@@ -1,11 +1,11 @@
 import { Link } from "react-router-dom";
 
-import logo from "../assets/img/image1.png";
+import logo from "../assets/img/principal.png";
 
 function Footer() {
   return (
     <>
-      <footer className="container">
+      <footer className="footer">
         <div className="column">
           <div className="logo">
             <img src={logo} alt="Logo" />
@@ -45,14 +45,13 @@ function Footer() {
         <div className="column">
           <h4>Contactos</h4>
 
-          <Link to="/quem-somos">Formulário</Link>
+          <Link to="/formulario">Formulário</Link>
 
           <a href="#">Política de Privacidade</a>
 
           <a href="#">Termos e Condições</a>
         </div>
       </footer>
-
       <div className="copyright">
         Copyright © 2025 TRINDADE. All Rights Reserved.
       </div>

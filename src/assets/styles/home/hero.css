@@ -1,0 +1,86 @@
+.hero {
+  display: grid;
+  grid-template-columns: 1fr 450px;
+  gap: 4rem;
+  align-items: center;
+  padding: 5rem 0;
+}
+
+.hero-content h1 {
+  color: #fff;
+  font-size: 1rem;
+  margin-bottom: 1rem;
+}
+
+.hero-content h2 {
+  color: white;
+  font-size: 3rem;
+  line-height: 4rem;
+  margin-bottom: 1rem;
+}
+
+.hero-content h2 span {
+  -webkit-text-fill-color: transparent;
+  -webkit-text-stroke: 1px #fff;
+}
+
+.hero-content p {
+  color: #ccc;
+  margin-bottom: 1.5rem;
+  line-height: 1.7;
+}
+
+.hero-image {
+  display: flex;
+  justify-content: center;
+}
+
+.hero-image img {
+  width: 100%;
+  max-width: 450px;
+  border-radius: 15px;
+}
+
+/* TABLET */
+@media (max-width: 992px) {
+  .hero {
+    grid-template-columns: 1fr;
+    text-align: center;
+    gap: 3rem;
+  }
+
+  .hero-image {
+    order: -1;
+  }
+
+  .hero-content h2 {
+    font-size: 2.5rem;
+    line-height: 3rem;
+  }
+}
+
+/* TELEMÓVEL */
+@media (max-width: 576px) {
+  .hero {
+    padding: 3rem 0;
+    gap: 2rem;
+  }
+
+  .hero-content h1 {
+    font-size: 0.9rem;
+  }
+
+  .hero-content h2 {
+    font-size: 1.8rem;
+    line-height: 2.3rem;
+  }
+
+  .hero-content p {
+    font-size: 0.95rem;
+    text-align: justify;
+  }
+
+  .hero-image img {
+    max-width: 100%;
+  }
+}

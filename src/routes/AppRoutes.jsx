@@ -3,8 +3,9 @@ import { Routes, Route } from "react-router-dom";
 import Home from "../pages/Home";
 import Escola120 from "../pages/Escola120";
 import Contribua from "../pages/Contribua";
-import QuemSomos from "../pages/QuemSomos";
+import Formulario from "../pages/Formulario";
 import NotFound from "../pages/NotFound";
+import Login from "../pages/Login";
 
 function AppRoutes() {
   return (
@@ -15,9 +16,11 @@ function AppRoutes() {
 
       <Route path="/contribua" element={<Contribua />} />
 
-      <Route path="/quem-somos" element={<QuemSomos />} />
+      <Route path="/formulario" element={<Formulario />} />
 
       <Route path="*" element={<NotFound />} />
+
+      <Route path="/login" element={<Login />} />
     </Routes>
   );
 }

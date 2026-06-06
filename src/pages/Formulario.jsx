@@ -2,7 +2,7 @@ import { useState } from "react";
 
 import Layout from "../components/Layout";
 
-function QuemSomos() {
+function Formulario() {
   const [form, setForm] = useState({
     nome: "",
     telefone: "",
@@ -23,7 +23,16 @@ function QuemSomos() {
     console.log(form);
 
     alert("Mensagem enviada!");
+
+    setForm({
+      nome: "",
+      telefone: "",
+      email: "",
+      assunto: "",
+      mensagem: "",
+    });
   }
+
 
   return (
     <Layout>
@@ -32,7 +41,7 @@ function QuemSomos() {
           <fieldset>
             <h1>CONTACTO</h1>
 
-            <label>Primeiro Nome</label>
+            <label>Nome Completo</label>
 
             <input
               type="text"
@@ -59,6 +68,15 @@ function QuemSomos() {
               onChange={handleChange}
             />
 
+            <label>Assunto</label>
+
+            <input
+              type="text"
+              name="assunto"
+              value={form.assunto}
+              onChange={handleChange}
+            />
+
             <label>Mensagem</label>
 
             <textarea
@@ -77,4 +95,4 @@ function QuemSomos() {
   );
 }
 
-export default QuemSomos;
+export default Formulario;
