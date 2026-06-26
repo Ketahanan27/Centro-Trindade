@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 
 import img1 from "../../assets/img/IMG1.jpg";
 import img2 from "../../assets/img/IMG2.jpg";
@@ -22,43 +22,30 @@ import img22 from "../../assets/img/IMG22.jpg";
 import img23 from "../../assets/img/IMG23.jpg";
 
 const images = [
-  img8,
-  img1,
-  img4,
-  img5,
-  img13,
-  img23,
-  img3,
-  img18,
-  img21,
-  img22,
-  img11,
-  img2,
-  img6,
-  img7,
-  img10,
-  img14,
-  img15,
-  img17,
-  img20,
-  img16,
+  img8, img1, img4, img5, img13, img23,
+  img3, img18, img21, img22, img11, img2,
+  img6, img7, img10, img14, img15, img17,
+  img20, img16,
 ];
 
 function Gallery() {
   const [current, setCurrent] = useState(0);
   const [paused, setPaused] = useState(false);
 
-  const nextSlide = () => {
+  // CORRIGIDO: nextSlide envolvido em useCallback para ter referência estável
+  // — antes estava a ser criado de novo a cada render, causando warning ESLint
+  // "React Hook useEffect has a missing dependency: 'nextSlide'"
+  const nextSlide = useCallback(() => {
     setCurrent((prev) =>
       prev === images.length - 1 ? 0 : prev + 1
     );
-  };
+  }, []); // sem deps: setCurrent é estável e images.length é constante
 
-  const prevSlide = () => {
+  const prevSlide = useCallback(() => {
     setCurrent((prev) =>
       prev === 0 ? images.length - 1 : prev - 1
     );
-  };
+  }, []);
 
   useEffect(() => {
     if (paused) return;
@@ -68,7 +55,9 @@ function Gallery() {
     }, 2000);
 
     return () => clearInterval(interval);
-  }, [current, paused]);
+    // CORRIGIDO: nextSlide agora incluído nas deps (é estável via useCallback)
+    // Removido 'current' das deps — desnecessário com useCallback + update funcional
+  }, [paused, nextSlide]);
 
   return (
     <section className="gallery-section" id="galeria">
@@ -105,9 +94,7 @@ function Gallery() {
           <span
             key={index}
             className={
-              current === index
-                ? "dot active"
-                : "dot"
+              current === index ? "dot active" : "dot"
             }
             onClick={() => setCurrent(index)}
           ></span>

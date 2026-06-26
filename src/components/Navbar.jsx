@@ -1,50 +1,84 @@
 import { Link } from "react-router-dom";
-import { useState } from "react";
+import { useState, useEffect, useRef } from "react";
 
 import logo from "../assets/img/principal.png";
 
 function Navbar() {
   const [menuOpen, setMenuOpen] = useState(false);
 
+  // CORRIGIDO: adicionado click-outside handler — sem isto o menu mobile
+  // ficava aberto mesmo ao clicar fora dele, não havia forma de o fechar
+  // excepto clicar num link de navegação
+  const navRef = useRef(null);
+
+  useEffect(() => {
+    if (!menuOpen) return;
+
+    function handleClickOutside(e) {
+      if (navRef.current && !navRef.current.contains(e.target)) {
+        setMenuOpen(false);
+      }
+    }
+
+    document.addEventListener("mousedown", handleClickOutside);
+    document.addEventListener("touchstart", handleClickOutside);
+
+    return () => {
+      document.removeEventListener("mousedown", handleClickOutside);
+      document.removeEventListener("touchstart", handleClickOutside);
+    };
+  }, [menuOpen]);
+
+  const closeMenu = () => setMenuOpen(false);
+
   return (
-    <nav className="navbar">
+    <nav className="navbar" ref={navRef}>
+
       <div className="nav-logo">
-        <Link to="/">
+        <Link to="/" onClick={closeMenu}>
           <img src={logo} alt="Logo Trindade" />
         </Link>
       </div>
 
-      <ul className={`nav-links ${menuOpen ? "active" : ""}`}>
+      <ul className={`nav-links ${menuOpen ? "is-open" : ""}`}>
+
         <li className="link">
-          <Link to="/" onClick={() => setMenuOpen(false)}>
+          <Link to="/" onClick={closeMenu}>
             Trindade
           </Link>
         </li>
 
         <li className="link">
-          <Link to="/escola120" onClick={() => setMenuOpen(false)}>
+          <Link to="/escola120" onClick={closeMenu}>
             Academia 120
           </Link>
         </li>
 
         <li className="link">
-          <Link to="/contribua" onClick={() => setMenuOpen(false)}>
+          <Link to="/calendario" onClick={closeMenu}>
+            Agenda
+          </Link>
+        </li>
+
+        <li className="link">
+          <Link to="/contribua" onClick={closeMenu}>
             Contribua
           </Link>
         </li>
 
         {/* Apenas Mobile */}
         <li className="link mobile-only">
-          <Link to="/formulario" onClick={() => setMenuOpen(false)}>
+          <Link to="/formulario" onClick={closeMenu}>
             Contactos
           </Link>
         </li>
 
         <li className="link mobile-only">
-          <Link to="/login" onClick={() => setMenuOpen(false)}>
+          <Link to="/login" onClick={closeMenu}>
             Login
           </Link>
         </li>
+
       </ul>
 
       {/* Apenas Desktop */}
@@ -52,7 +86,6 @@ function Navbar() {
         <Link to="/formulario" className="icon-btn">
           <i className="ri-mail-line"></i>
         </Link>
-
         <Link to="/login" className="icon-btn">
           <i className="ri-user-3-line"></i>
         </Link>
@@ -61,9 +94,11 @@ function Navbar() {
       <div
         className="menu-icon"
         onClick={() => setMenuOpen(!menuOpen)}
+        aria-label="Menu"
       >
-        <i className="ri-menu-line"></i>
+        <i className={menuOpen ? "ri-close-line" : "ri-menu-line"}></i>
       </div>
+
     </nav>
   );
 }

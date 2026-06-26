@@ -5,14 +5,23 @@
   "type": "module",
   "scripts": {
     "dev": "vite",
+    "server": "nodemon backend/server.js",
     "build": "vite build",
     "lint": "eslint .",
     "preview": "vite preview"
   },
   "dependencies": {
+    "bcrypt": "^6.0.0",
+    "cors": "^2.8.6",
+    "dotenv": "^17.4.2",
+    "express": "^5.2.1",
+    "jsonwebtoken": "^9.0.3",
+    "jspdf": "^4.2.1",
+    "mysql2": "^3.22.5",
     "react": "^19.2.6",
     "react-dom": "^19.2.6",
-    "react-router-dom": "^7.16.0"
+    "react-router-dom": "^7.16.0",
+    "remixicon": "^4.9.1"
   },
   "devDependencies": {
     "@eslint/js": "^10.0.1",
@@ -23,6 +32,20 @@
     "eslint-plugin-react-hooks": "^7.1.1",
     "eslint-plugin-react-refresh": "^0.5.2",
     "globals": "^17.6.0",
+    "nodemon": "^3.1.14",
     "vite": "^8.0.12"
-  }
+  },
+  "description": "",
+  "main": "eslint.config.js",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Ketahanan27/Projeto_Academico.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/Ketahanan27/Projeto_Academico/issues"
+  },
+  "homepage": "https://github.com/Ketahanan27/Projeto_Academico#readme"
 }

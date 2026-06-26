@@ -3,10 +3,13 @@ import { useState } from "react";
 import Layout from "../components/Layout";
 
 function Formulario() {
+  // CORRIGIDO: 'assunto' adicionado ao estado inicial (estava a causar
+  // warning "uncontrolled to controlled component")
   const [form, setForm] = useState({
     nome: "",
     telefone: "",
     email: "",
+    assunto: "",
     mensagem: "",
   });
 
@@ -32,7 +35,6 @@ function Formulario() {
       mensagem: "",
     });
   }
-
 
   return (
     <Layout>

@@ -1,15 +1,28 @@
+// CORRIGIDO: página 404 sem qualquer forma de navegar de volta —
+// utilizador ficava preso sem link para a Home
+import { Link } from "react-router-dom";
+
 function NotFound() {
   return (
-    <div
-      style={{
-        color: "white",
-        textAlign: "center",
-        marginTop: "100px",
-      }}
-    >
-      <h1>404</h1>
+    <div className="not-found-page">
 
-      <p>Página não encontrada.</p>
+      <div className="not-found-content">
+
+        <h1 className="not-found-code">404</h1>
+
+        <h2 className="not-found-title">Página não encontrada</h2>
+
+        <p className="not-found-msg">
+          A página que procura não existe ou foi movida.
+        </p>
+
+        <Link to="/" className="not-found-btn">
+          <i className="ri-arrow-left-line"></i>
+          Voltar à página inicial
+        </Link>
+
+      </div>
+
     </div>
   );
 }

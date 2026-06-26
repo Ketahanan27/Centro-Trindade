@@ -1,5 +1,25 @@
 @import url('https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700;800&display=swap');
 
+/* =============================================
+   CSS CUSTOM PROPERTIES (variáveis globais)
+   CORRIGIDO: adicionadas as variáveis usadas em
+   visitantes.css e apresentacoes.css — sem estas
+   definições os var() retornavam valor vazio
+   ============================================= */
+:root {
+  --primary-color: #0044ff;
+  --primary-hover: #001c68;
+  --bg-color: #161616;
+  --card-bg: #202020;
+  --border-color: #333;
+  --text-color: #ffffff;
+  --text-muted: #999999;
+  --success-color: #10b981;
+  --warning-color: #f59e0b;
+  --danger-color: #ef4444;
+  --info-color: #00efff;
+}
+
 html {
   scroll-behavior: smooth;
 }
@@ -11,8 +31,8 @@ html {
 }
 
 body {
-  background: #161616;
-  color: white;
+  background: var(--bg-color);
+  color: var(--text-color);
   font-family: 'Poppins', sans-serif;
 }
 
@@ -34,7 +54,7 @@ img {
 .btn {
   display: inline-block;
   padding: 12px 24px;
-  background: #0044ff;
+  background: var(--primary-color);
   color: white;
   border: none;
   border-radius: 10px;
@@ -44,12 +64,12 @@ img {
 }
 
 .btn:hover {
-  background: #001c68;
+  background: var(--primary-hover);
 }
 
 .blur {
   position: absolute;
-  box-shadow: 0 0 1000px 120px #0044ff;
+  box-shadow: 0 0 1000px 120px var(--primary-color);
   z-index: -1;
 }
 

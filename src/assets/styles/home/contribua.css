@@ -2,10 +2,11 @@
   max-width: 1200px;
   margin: 0 auto;
   padding: 80px 20px;
-  align-items: center;
   display: grid;
   grid-template-columns: 1fr 1fr;
   gap: 60px;
+  /* CORRIGIDO: align-items: start para ambas as colunas começarem no topo */
+  align-items: start;
 }
 
 .contribua-title {
@@ -29,18 +30,22 @@
 }
 
 .contribua-form label {
-  color: rgb(255, 255, 255);
+  color: #ffffff;
 }
 
 .contribua-form input {
   height: 50px;
   padding: 0 15px;
-
   background: transparent;
   border: 1px solid #0044ff;
   border-radius: 10px;
+  color: #ffffff;
+  outline: none;
+  transition: .3s;
+}
 
-  color: rgb(255, 255, 255);
+.contribua-form input:focus {
+  box-shadow: 0 0 0 3px rgba(0, 68, 255, .3);
 }
 
 .contribua-form select {
@@ -49,21 +54,55 @@
   background: transparent;
   border: 1px solid #0044ff;
   border-radius: 10px;
-  color: rgb(255, 255, 255);
+  color: #ffffff;
+  outline: none;
+  cursor: pointer;
+  transition: .3s;
+}
+
+.contribua-form select:focus {
+  box-shadow: 0 0 0 3px rgba(0, 68, 255, .3);
 }
 
 .contribua-form option {
   background-color: #141212;
 }
 
+/* CORRIGIDO: era padding-top: 450px — valor absurdo que escondia o conteúdo
+   da coluna da direita por baixo do viewport em muitos ecrãs.
+   Substituído por padding-top moderado com borda para separação visual. */
 .contribua-right {
-  padding-top: 450px;
+  padding-top: 30px;
   color: white;
   text-align: center;
+  border-left: 1px solid #333;
+  padding-left: 40px;
 }
 
 .contribua-right h2 {
   margin-bottom: 30px;
+  font-size: 1.6rem;
+}
+
+.contribua-right p {
+  margin-bottom: 12px;
+  color: #ccc;
+  line-height: 1.6;
+}
+
+.contribua-right strong {
+  color: white;
+}
+
+/* CORRIGIDO: adicionada classe para mensagem de sucesso após submissão */
+.contribua-sucesso {
+  background: rgba(16, 185, 129, .15);
+  border: 1px solid #10b981;
+  color: #10b981;
+  border-radius: 10px;
+  padding: 14px 18px;
+  margin-bottom: 15px;
+  font-weight: 500;
 }
 
 .mbway-logo,
@@ -88,9 +127,12 @@
     width: 100%;
   }
 
-  .contribua-left h1 {
-    font-size: 1.5rem;
-    text-align: center;
+  /* No mobile remove a borda e o padding lateral */
+  .contribua-right {
+    border-left: none;
+    border-top: 1px solid #333;
+    padding-left: 0;
+    padding-top: 30px;
   }
 
   .contribua-left p,
@@ -109,5 +151,3 @@
     max-width: 200px;
   }
 }
-
-

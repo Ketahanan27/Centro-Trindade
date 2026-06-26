@@ -1,0 +1,269 @@
+.calendar-page {
+    min-height: 100vh;
+    /* CORRIGIDO: era padding: 120px 20px 80px — desnecessário porque a Navbar
+       tem position: relative (não fixed), portanto 120px criava espaço em branco
+       enorme antes do título. Reduzido para 40px top. */
+    padding: 40px 20px 80px;
+    background: #161616;
+}
+
+.calendar-page h1 {
+    text-align: center;
+    color: white;
+    margin-bottom: 40px;
+    font-size: 2.5rem;
+}
+
+.calendar-container {
+    max-width: 1200px;
+    margin: auto;
+    background: #161616;
+    border-radius: 20px;
+    padding: 25px;
+    box-shadow: 0 10px 40px #0044ff;
+}
+
+.calendar-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 25px;
+    gap: 15px;
+}
+
+.calendar-header h2 {
+    color: #ffffff;
+    font-size: 1.8rem;
+    text-align: center;
+}
+
+.calendar-header button {
+    background: #0044ff;
+    color: #ffffff;
+    border: none;
+    padding: 10px 18px;
+    border-radius: 10px;
+    cursor: pointer;
+    font-size: 1rem;
+    transition: .3s;
+}
+
+.calendar-header button:hover {
+    background: #001c68;
+}
+
+.weekdays {
+    display: grid;
+    grid-template-columns: repeat(7, 1fr);
+    margin-bottom: 10px;
+    border-bottom: 2px solid #333;
+}
+
+.weekdays div {
+    text-align: center;
+    font-weight: 600;
+    padding: 15px;
+    color: #0044ff;
+}
+
+.calendar-days {
+    display: grid;
+    grid-template-columns: repeat(7, 1fr);
+}
+
+.day,
+.empty-day {
+    min-height: 100px;
+    border: 1px solid #222;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    position: relative;
+    color: #ddd;
+}
+
+.day {
+    cursor: pointer;
+    transition: .3s;
+}
+
+.day:hover {
+    background: rgba(0, 110, 255, .15);
+}
+
+.today {
+    background: #0044ff;
+    color: white;
+    font-weight: bold;
+    border-radius: 4px;
+}
+
+.selected {
+    outline: 3px solid #0044ff;
+    z-index: 2;
+}
+
+.has-event::after {
+    content: "";
+    width: 10px;
+    height: 10px;
+    border-radius: 50%;
+    background: #ff3333;
+    position: absolute;
+    bottom: 10px;
+}
+
+/* CORRIGIDO: event-box tinha fundo branco (#fff) e texto escuro — incompatível
+   com o tema dark da aplicação. Corrigido para dark theme consistente. */
+.event-box {
+    max-width: 1200px;
+    margin: 30px auto 0;
+    background: #202020;
+    border-radius: 20px;
+    padding: 25px;
+    box-shadow: 0 10px 25px rgba(0, 0, 0, .4);
+}
+
+.event-box h3 {
+    margin-bottom: 20px;
+    color: white;
+}
+
+.event-item {
+    padding: 14px 0;
+    border-bottom: 1px solid #333;
+    color: #ddd;
+}
+
+.event-item:last-child {
+    border-bottom: none;
+}
+
+.event-box p {
+    color: #0044ff;
+}
+
+/* ========================= */
+/* TABLET                    */
+/* ========================= */
+
+@media (max-width: 900px) {
+
+    .calendar-page {
+        /* CORRIGIDO: reduzido de 100px para 30px */
+        padding: 30px 15px 60px;
+    }
+
+    .calendar-page h1 {
+        font-size: 2rem;
+    }
+
+    .calendar-container {
+        padding: 15px;
+    }
+
+    .calendar-header h2 {
+        font-size: 1.4rem;
+    }
+
+    .weekdays div {
+        font-size: .9rem;
+        padding: 10px 5px;
+    }
+
+    .day,
+    .empty-day {
+        min-height: 75px;
+        font-size: .95rem;
+    }
+}
+
+/* ========================= */
+/* MOBILE                    */
+/* ========================= */
+
+@media (max-width: 600px) {
+
+    .calendar-page {
+        /* CORRIGIDO: reduzido de 90px para 20px */
+        padding: 20px 10px 50px;
+    }
+
+    .calendar-page h1 {
+        font-size: 1.8rem;
+        margin-bottom: 25px;
+    }
+
+    .calendar-container {
+        padding: 10px;
+        border-radius: 15px;
+    }
+
+    .calendar-header {
+        gap: 10px;
+    }
+
+    .calendar-header h2 {
+        font-size: 1.1rem;
+    }
+
+    .calendar-header button {
+        padding: 8px 12px;
+        font-size: .9rem;
+    }
+
+    .weekdays div {
+        font-size: .75rem;
+        padding: 8px 2px;
+    }
+
+    .day,
+    .empty-day {
+        min-height: 55px;
+        font-size: .85rem;
+    }
+
+    .has-event::after {
+        width: 8px;
+        height: 8px;
+        bottom: 6px;
+    }
+
+    .event-box {
+        padding: 20px;
+        border-radius: 15px;
+    }
+
+    .event-box h3 {
+        font-size: 1.1rem;
+    }
+
+    .event-item {
+        font-size: .9rem;
+    }
+}
+
+/* ========================= */
+/* TELEMÓVEIS MUITO PEQUENOS */
+/* ========================= */
+
+@media (max-width: 380px) {
+
+    .weekdays div {
+        font-size: .65rem;
+    }
+
+    .day,
+    .empty-day {
+        min-height: 45px;
+        font-size: .75rem;
+    }
+
+    .calendar-header h2 {
+        font-size: 1rem;
+    }
+
+    .calendar-header button {
+        padding: 6px 10px;
+    }
+}
