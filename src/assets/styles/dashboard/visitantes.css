@@ -2,7 +2,7 @@
     padding: 20px;
 }
 
-/* HEADER */
+
 
 .page-header {
     display: flex;
@@ -32,7 +32,7 @@
     transform: translateY(-1px);
 }
 
-/* PESQUISA */
+
 
 .search-box {
     margin-bottom: 15px;
@@ -54,7 +54,7 @@
     box-shadow: 0 0 0 3px rgba(59, 130, 246, .15);
 }
 
-/* FILTROS */
+
 
 .filter-box {
     margin-bottom: 20px;
@@ -76,7 +76,7 @@
     box-shadow: 0 0 0 3px rgba(59, 130, 246, .15);
 }
 
-/* ESTATÍSTICAS */
+
 
 .stats-grid {
     display: grid;
@@ -113,7 +113,7 @@
     font-size: .9rem;
 }
 
-/* TABELA */
+
 
 .table-wrapper {
     overflow-x: auto;
@@ -145,7 +145,7 @@
     background: rgba(255, 255, 255, 0.03);
 }
 
-/* ESTADO */
+
 
 .status {
     display: inline-block;
@@ -157,7 +157,7 @@
     color: #3b82f6;
 }
 
-/* AÇÕES */
+
 
 .actions {
     display: flex;
@@ -170,7 +170,7 @@
     height: 36px;
     border-radius: 8px;
     cursor: pointer;
-    /* CORRIGIDO: era "transition: 3s" (3 segundos!) — corrigido para .3s */
+    
     transition: .3s;
 }
 
@@ -188,7 +188,7 @@
     color: #fff;
 }
 
-/* MODAL */
+
 
 .modal {
     position: fixed;
@@ -230,7 +230,7 @@
     color: var(--text-color);
 }
 
-/* GRID */
+
 
 .grid {
     display: grid;
@@ -277,7 +277,7 @@
     resize: vertical;
 }
 
-/* BOTÕES */
+
 
 .form-actions {
     display: flex;
@@ -309,7 +309,7 @@
     color: #fff;
 }
 
-/* RESPONSIVO */
+
 
 @media (max-width: 768px) {
 

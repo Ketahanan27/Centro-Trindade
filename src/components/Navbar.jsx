@@ -6,9 +6,6 @@ import logo from "../assets/img/principal.png";
 function Navbar() {
   const [menuOpen, setMenuOpen] = useState(false);
 
-  // CORRIGIDO: adicionado click-outside handler — sem isto o menu mobile
-  // ficava aberto mesmo ao clicar fora dele, não havia forma de o fechar
-  // excepto clicar num link de navegação
   const navRef = useRef(null);
 
   useEffect(() => {
@@ -66,7 +63,6 @@ function Navbar() {
           </Link>
         </li>
 
-        {/* Apenas Mobile */}
         <li className="link mobile-only">
           <Link to="/formulario" onClick={closeMenu}>
             Contactos
@@ -81,7 +77,6 @@ function Navbar() {
 
       </ul>
 
-      {/* Apenas Desktop */}
       <div className="desktop-actions">
         <Link to="/formulario" className="icon-btn">
           <i className="ri-mail-line"></i>

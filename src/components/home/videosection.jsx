@@ -25,7 +25,6 @@ function VideoSection() {
           que é HTML inválido — <button> não pode ser filho direto de <a>.
           Substituído por <a> estilizado diretamente com className="btn",
           evitando elementos interativos aninhados.
-        */}
         <a
           href="https://www.youtube.com/@trindade3oficial/featured"
           target="_blank"
@@ -34,6 +33,7 @@ function VideoSection() {
         >
           Acesse o nosso canal
         </a>
+        */}
 
       </div>
 

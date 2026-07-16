@@ -8,7 +8,7 @@
     border-radius: 15px;
 }
 
-/* PÁGINA HEADER */
+
 
 .page-header {
     display: flex;
@@ -22,7 +22,7 @@
     font-size: 1.4rem;
 }
 
-/* SELECTOR DE TIPO */
+
 
 .documentos-container > .field {
     margin-bottom: 5px;
@@ -41,8 +41,7 @@
     padding: 12px 15px;
     border-radius: 10px;
     border: 1px solid #333;
-    /* CORRIGIDO: sem background nem color → select ficava com fundo
-       branco do browser e texto preto sobre fundo branco */
+    
     background: #202020;
     color: white;
     outline: none;
@@ -55,7 +54,7 @@
     box-shadow: 0 0 0 2px rgba(0, 68, 255, .2);
 }
 
-/* GRID DE CAMPOS */
+
 
 .grid {
     display: grid;
@@ -72,8 +71,7 @@
     grid-column: span 2;
 }
 
-/* CORRIGIDO: label sem color → ficava com cor padrão do browser (preto)
-   ilegível sobre o fundo dark #1c1c1c */
+
 .field label {
     margin-bottom: 6px;
     color: white;
@@ -81,8 +79,7 @@
     font-weight: 500;
 }
 
-/* CORRIGIDO: input sem background nem color → ficava branco com texto preto,
-   incompatível com o tema dark do projeto */
+
 .field input,
 .field select,
 .field textarea {
@@ -111,7 +108,7 @@
     color: white;
 }
 
-/* BOTÕES */
+
 
 .form-actions {
     margin-top: 20px;
@@ -134,7 +131,7 @@
     background: #001c68;
 }
 
-/* TABELA */
+
 
 .table-wrapper {
     overflow-x: auto;
@@ -161,7 +158,7 @@
     color: #ddd;
 }
 
-/* RESPONSIVO */
+
 
 @media (max-width: 768px) {
 

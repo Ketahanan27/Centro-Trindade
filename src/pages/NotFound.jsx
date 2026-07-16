@@ -1,5 +1,3 @@
-// CORRIGIDO: página 404 sem qualquer forma de navegar de volta —
-// utilizador ficava preso sem link para a Home
 import { Link } from "react-router-dom";
 
 function NotFound() {

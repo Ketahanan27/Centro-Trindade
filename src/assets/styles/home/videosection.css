@@ -32,13 +32,13 @@
   margin: 1.5rem 0;
 }
 
-/* Centralizar botão */
+
 .video-content .btn {
   display: inline-block;
   margin: 20px auto 0;
 }
 
-/* Tablet */
+
 @media (max-width: 900px) {
   .video-section {
     grid-template-columns: 1fr;
@@ -54,7 +54,7 @@
   }
 }
 
-/* Telemóvel */
+
 @media (max-width: 600px) {
   .video-section {
     padding: 3rem 0;

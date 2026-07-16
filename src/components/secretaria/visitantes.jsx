@@ -1,8 +1,11 @@
 import { useEffect, useState, useCallback } from "react";
+import { usePerfil } from "../../routes/ProctedRoute";
+import { toast } from "../../utils/toast";
 import { apiFetch, apiFetchArray } from "../../utils/api";
 import "../../assets/styles/dashboard/visitantes.css";
 
 function Visitantes() {
+  const { soLeitura } = usePerfil();
 
     const [visitantes, setVisitantes]     = useState([]);
     const [search, setSearch]             = useState("");
@@ -36,11 +39,11 @@ function Visitantes() {
     };
 
     const validarFormulario = () => {
-        if (!formData.nome.trim())                      { alert("O nome é obrigatório.");                           return false; }
-        if (!formData.telefone.trim())                  { alert("O telefone é obrigatório.");                       return false; }
-        if (!/^\d{9}$/.test(formData.telefone))         { alert("O telefone deve conter exatamente 9 dígitos.");    return false; }
-        if (!formData.data_visita)                      { alert("Selecione a data da visita.");                     return false; }
-        if (!formData.convidado_por.trim())             { alert("Informe quem convidou o visitante.");              return false; }
+        if (!formData.nome.trim())                      { toast.aviso("O nome é obrigatório.");                           return false; }
+        if (!formData.telefone.trim())                  { toast.aviso("O telefone é obrigatório.");                       return false; }
+        if (!/^\d{9}$/.test(formData.telefone))         { toast.aviso("O telefone deve conter exatamente 9 dígitos.");    return false; }
+        if (!formData.data_visita)                      { toast.aviso("Selecione a data da visita.");                     return false; }
+        if (!formData.convidado_por.trim())             { toast.aviso("Informe quem convidou o visitante.");              return false; }
         return true;
     };
 
@@ -49,8 +52,8 @@ function Visitantes() {
         try {
             const response = await apiFetch("/api/visitantes", { method: "POST", body: JSON.stringify(formData) });
             const data = await response.json();
-            if (!response.ok) { alert(data.message); return; }
-            alert(data.message);
+            if (!response.ok) { toast.erro(data.message); return; }
+            toast.sucesso(data.message);
             carregarVisitantes(); clearForm(); setShowModal(false);
         } catch (error) { console.error(error); }
     };
@@ -60,8 +63,8 @@ function Visitantes() {
         try {
             const response = await apiFetch(`/api/visitantes/${editId}`, { method: "PUT", body: JSON.stringify(formData) });
             const data = await response.json();
-            if (!response.ok) { alert(data.message); return; }
-            alert(data.message);
+            if (!response.ok) { toast.erro(data.message); return; }
+            toast.sucesso(data.message);
             carregarVisitantes(); clearForm(); setShowModal(false);
         } catch (error) { console.error(error); }
     };
@@ -71,8 +74,8 @@ function Visitantes() {
         try {
             const response = await apiFetch(`/api/visitantes/${id}`, { method: "DELETE" });
             const data = await response.json();
-            if (!response.ok) { alert(data.message); return; }
-            alert(data.message);
+            if (!response.ok) { toast.erro(data.message); return; }
+            toast.sucesso(data.message);
             carregarVisitantes();
         } catch (error) { console.error(error); }
     };
@@ -97,13 +100,22 @@ function Visitantes() {
     const totalVisitantes = visitantes.length;
     const acompanhamento  = visitantes.filter(v => v.estado === "Em acompanhamento").length;
     const membros         = visitantes.filter(v => v.estado === "Tornou-se membro").length;
+    const visitante         = visitantes.filter(v => v.estado === "Visitante").length;
+    const mostrarAcoes = !soLeitura;
 
     return (
         <div className="visitors-container">
 
+      {soLeitura && (
+        <div className="banner-leitura">
+          <i className="ri-eye-line"></i>
+          Modo visualização — não tem permissão para editar visitantes.
+        </div>
+      )}
+
             <div className="page-header">
                 <h1>Visitantes</h1>
-                <button onClick={() => { clearForm(); setShowModal(true); }}>Novo Visitante</button>
+                {!soLeitura && <button onClick={() => { clearForm(); setShowModal(true); }}>Novo Visitante</button>}
             </div>
 
             <div className="search-box">
@@ -124,12 +136,20 @@ function Visitantes() {
                 <div className="stat-card"><h3>{totalVisitantes}</h3><span>Total</span></div>
                 <div className="stat-card"><h3>{acompanhamento}</h3><span>Em acompanhamento</span></div>
                 <div className="stat-card"><h3>{membros}</h3><span>Tornaram-se membros</span></div>
+                <div className="stat-card"><h3>{visitante}</h3><span>Visitante</span></div>
             </div>
 
             <div className="table-wrapper">
                 <table>
                     <thead>
-                        <tr><th>Nome</th><th>Telefone</th><th>Email</th><th>Data Visita</th><th>Estado</th><th>Ações</th></tr>
+                        <tr>
+                            <th>Nome</th>
+                            <th>Telefone</th>
+                            <th>Email</th>
+                            <th>Data Visita</th>
+                            <th>Estado</th>
+                            {mostrarAcoes && <th>Ações</th>}
+                        </tr>
                     </thead>
                     <tbody>
                         {visitantesFiltrados.length === 0 ? (
@@ -144,12 +164,14 @@ function Visitantes() {
                                     <td>{v.email}</td>
                                     <td>{new Date(v.data_visita).toLocaleDateString("pt-PT")}</td>
                                     <td><span className="status">{v.estado}</span></td>
-                                    <td className="actions">
-                                        <button className="edit" onClick={() => handleSelectVisitor(v)}>
-                                            <i className="ri-pencil-line"></i></button>
-                                        <button className="delete" onClick={() => handleDelete(v.id)}>
-                                            <i className="ri-delete-bin-line"></i></button>
-                                    </td>
+                                    {mostrarAcoes && (
+                                        <td className="actions">
+                                            <button className="edit" onClick={() => handleSelectVisitor(v)}>
+                                                <i className="ri-pencil-line"></i></button>
+                                            <button className="delete" onClick={() => handleDelete(v.id)}>
+                                                <i className="ri-delete-bin-line"></i></button>
+                                        </td>
+                                    )}
                                 </tr>
                             ))
                         )}

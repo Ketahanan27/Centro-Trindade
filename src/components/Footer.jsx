@@ -3,19 +3,41 @@ import { Link } from "react-router-dom";
 import logo from "../assets/img/principal.png";
 
 function Footer() {
-  // CORRIGIDO: ano calculado dinamicamente — estava hardcoded em '2025'
-  // mas já estamos em 2026 (e ficará sempre desatualizado se não for dinâmico)
   const anoAtual = new Date().getFullYear();
 
   return (
-    <>
-      <footer className="footer">
-
-        <div className="column">
-          <div className="logo">
-            <img src={logo} alt="Logo" />
+    <footer className="footer">
+      <div className="footer-top">
+        <div className="footer-links compact">
+          <div className="footer-section">
+            <h4>Informação</h4>
+            <Link to="/">Início</Link>
+            <a href="#galeria">Galeria</a>
+            <Link to="/calendario">Agenda</Link>
+            <Link to="/formulario">Formulário</Link>
           </div>
 
+          <div className="footer-section contactos">
+            <h4>Contactos</h4>
+            <a href="tel:+258000000000">+258 000 000 000</a>
+            <a href="mailto:contato@trindade3oficial.com">contato@trindade3oficial.com</a>
+            <span>Av. Principal, Bairro Trindade, Cidade</span>
+            <span>Seg-Sex • 09h00 - 18h00</span>
+          </div>
+
+          <div className="footer-section">
+            <h4>Recursos</h4>
+            <a href="#">Política de Privacidade</a>
+            <a href="#">Termos e Condições</a>
+            <a href="#">Perguntas Frequentes</a>
+            <a href="#">Doações</a>
+          </div>
+        </div>
+      </div>
+
+      <div className="footer-bottom">
+        <div className="footer-socials">
+          <span>Conecte-se conosco</span>
           <div className="socials">
             <a
               href="https://www.youtube.com/@trindade3oficial/featured"
@@ -25,7 +47,6 @@ function Footer() {
             >
               <i className="ri-youtube-line"></i>
             </a>
-
             <a
               href="https://www.instagram.com/trindade3oficial/"
               target="_blank"
@@ -34,38 +55,17 @@ function Footer() {
             >
               <i className="ri-instagram-line"></i>
             </a>
-
-            {/* WhatsApp: substituir "#" pelo link real quando disponível */}
-            <a
-              href="#"
-              aria-label="WhatsApp"
-            >
+            <a href="#" aria-label="WhatsApp">
               <i className="ri-whatsapp-line"></i>
             </a>
           </div>
         </div>
 
-        <div className="column">
-          <h4>Quem Somos</h4>
-          <a href="#galeria">Galeria</a>
-          {/* "Canais": substituir "#" pelo link real quando disponível */}
-          <a href="https://www.youtube.com/@trindade3oficial/featured">Canais</a>
+        <div className="footer-copy">
+          <p>© {anoAtual} Centro Trindade. Todos os direitos reservados.</p>
         </div>
-
-        <div className="column">
-          <h4>Contactos</h4>
-          <Link to="/formulario">Formulário</Link>
-          <a href="#">Política de Privacidade</a>
-          <a href="#">Termos e Condições</a>
-        </div>
-
-      </footer>
-
-      {/* CORRIGIDO: ano hardcoded '2025' substituído por variável dinâmica */}
-      <div className="copyright">
-        Copyright © {anoAtual} TRINDADE. All Rights Reserved.
       </div>
-    </>
+    </footer>
   );
 }
 

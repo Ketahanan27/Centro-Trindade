@@ -1,14 +1,17 @@
 import { useEffect, useState, useCallback } from "react";
+import { usePerfil } from "../../routes/ProctedRoute";
+import { toast } from "../../utils/toast";
 import { apiFetch, apiFetchArray } from "../../utils/api";
 import "../../assets/styles/dashboard/apresentacoes.css";
 
 function Apresentacoes() {
+  const { soLeitura } = usePerfil();
 
   const [apresentacoes, setApresentacoes] = useState([]);
-  const [search, setSearch]               = useState("");
-  const [showModal, setShowModal]         = useState(false);
-  const [editId, setEditId]               = useState(null);
-  const [filtroAno, setFiltroAno]         = useState("Todos");
+  const [search, setSearch] = useState("");
+  const [showModal, setShowModal] = useState(false);
+  const [editId, setEditId] = useState(null);
+  const [filtroAno, setFiltroAno] = useState("Todos");
 
   const [formData, setFormData] = useState({
     data_apresentacao: "", quantidade: "", observacoes: ""
@@ -47,13 +50,13 @@ function Apresentacoes() {
   };
 
   const handleCreate = async () => {
-    if (!formData.data_apresentacao) { alert("Selecione uma data."); return; }
-    if (!formData.quantidade || Number(formData.quantidade) <= 0) { alert("Quantidade inválida."); return; }
+    if (!formData.data_apresentacao) { toast.aviso("Selecione uma data."); return; }
+    if (!formData.quantidade || Number(formData.quantidade) <= 0) { toast.aviso("Quantidade inválida."); return; }
     try {
       const response = await apiFetch("/api/apresentacoes", { method: "POST", body: JSON.stringify(formData) });
       const data = await response.json();
-      if (!response.ok) { alert(data.message); return; }
-      alert(data.message);
+      if (!response.ok) { toast.erro(data.message); return; }
+      toast.sucesso(data.message);
       carregarApresentacoes(); clearForm(); setShowModal(false);
     } catch (error) { console.error(error); }
   };
@@ -72,8 +75,8 @@ function Apresentacoes() {
     try {
       const response = await apiFetch(`/api/apresentacoes/${editId}`, { method: "PUT", body: JSON.stringify(formData) });
       const data = await response.json();
-      if (!response.ok) { alert(data.message); return; }
-      alert(data.message);
+      if (!response.ok) { toast.erro(data.message); return; }
+      toast.sucesso(data.message);
       carregarApresentacoes(); clearForm(); setShowModal(false);
     } catch (error) { console.error(error); }
   };
@@ -83,8 +86,8 @@ function Apresentacoes() {
     try {
       const response = await apiFetch(`/api/apresentacoes/${id}`, { method: "DELETE" });
       const data = await response.json();
-      if (!response.ok) { alert(data.message); return; }
-      alert(data.message);
+      if (!response.ok) { toast.erro(data.message); return; }
+      toast.sucesso(data.message);
       carregarApresentacoes();
     } catch (error) { console.error(error); }
   };
@@ -92,9 +95,20 @@ function Apresentacoes() {
   return (
     <div className="apresentacoes-container">
 
+      {soLeitura && (
+        <div className="banner-leitura">
+          <i className="ri-eye-line"></i>
+          Modo visualização — não tem permissão para registar apresentações.
+        </div>
+      )}
+
       <div className="page-header">
         <h1>Apresentação de Crianças</h1>
-        <button onClick={() => { clearForm(); setShowModal(true); }}>Nova Apresentação</button>
+        {!soLeitura && (
+          <button onClick={() => { clearForm(); setShowModal(true); }}>
+            Nova Apresentação
+          </button>
+        )}
       </div>
 
       <div className="search-box">
@@ -131,10 +145,10 @@ function Apresentacoes() {
                   <td><span className="quantity-badge">{item.quantidade}</span></td>
                   <td className="obs-cell">{item.observacoes}</td>
                   <td className="actions">
-                    <button className="edit" onClick={() => handleSelect(item)}>
+                    {!soLeitura && (<><button className="edit" onClick={() => handleSelect(item)}>
                       <i className="ri-pencil-line"></i></button>
-                    <button className="delete" onClick={() => handleDelete(item.id)}>
-                      <i className="ri-delete-bin-line"></i></button>
+                      <button className="delete" onClick={() => handleDelete(item.id)}>
+                        <i className="ri-delete-bin-line"></i></button></>)}
                   </td>
                 </tr>
               ))
@@ -152,11 +166,11 @@ function Apresentacoes() {
             </div>
             <div className="grid">
               <div className="field"><label>Data da Apresentação</label>
-                <input type="date" name="data_apresentacao" value={formData.data_apresentacao} onChange={handleChange}/></div>
+                <input type="date" name="data_apresentacao" value={formData.data_apresentacao} onChange={handleChange} /></div>
               <div className="field"><label>Quantidade de Crianças</label>
-                <input type="number" min="1" name="quantidade" value={formData.quantidade} onChange={handleChange}/></div>
+                <input type="number" min="1" name="quantidade" value={formData.quantidade} onChange={handleChange} /></div>
               <div className="field full"><label>Observações</label>
-                <textarea rows="4" name="observacoes" value={formData.observacoes} onChange={handleChange}/></div>
+                <textarea rows="4" name="observacoes" value={formData.observacoes} onChange={handleChange} /></div>
             </div>
             <div className="form-actions">
               <button className="save" onClick={editId ? handleEdit : handleCreate}>Guardar</button>

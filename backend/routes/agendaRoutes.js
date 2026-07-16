@@ -7,16 +7,14 @@ import {
   deleteEvent
 } from "../controllers/agendaController.js";
 
-import { verifyToken } from "../middleware/auth.js";
+import { verifyToken, permit } from "../middleware/auth.js";
 
 const router = express.Router();
 
-// GET é público — o calendário público (calendario.jsx) também usa este endpoint
 router.get("/", getEvents);
 
-// Escrita requer autenticação
-router.post("/",      verifyToken, createEvent);
-router.put("/:id",    verifyToken, updateEvent);
-router.delete("/:id", verifyToken, deleteEvent);
+router.post("/",      verifyToken, permit("Administrador", "Secretaria"), createEvent);
+router.put("/:id",    verifyToken, permit("Administrador", "Secretaria"), updateEvent);
+router.delete("/:id", verifyToken, permit("Administrador", "Secretaria"), deleteEvent);
 
 export default router;

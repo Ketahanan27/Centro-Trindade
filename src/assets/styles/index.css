@@ -1,11 +1,6 @@
 @import url('https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700;800&display=swap');
 
-/* =============================================
-   CSS CUSTOM PROPERTIES (variáveis globais)
-   CORRIGIDO: adicionadas as variáveis usadas em
-   visitantes.css e apresentacoes.css — sem estas
-   definições os var() retornavam valor vazio
-   ============================================= */
+
 :root {
   --primary-color: #0044ff;
   --primary-hover: #001c68;

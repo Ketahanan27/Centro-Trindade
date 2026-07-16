@@ -1,7 +1,6 @@
 import db from "../config/db.js";
 
 export const createEvent = (req, res) => {
-
   const {
     titulo,
     descricao,
@@ -10,15 +9,6 @@ export const createEvent = (req, res) => {
     local_evento,
     estado
   } = req.body;
-
-  // CORRIGIDO: a versão original chamava new Date(data_evento) ANTES de
-  // verificar se data_evento existia. Se fosse undefined:
-  //   new Date(undefined) → Invalid Date
-  //   Invalid Date < hoje → false (comparação NaN)
-  // O evento passava a validação de data passada mesmo sem data, e só depois
-  // falhava na validação de obrigatoriedade — com mensagem confusa.
-  // Validações de campos obrigatórios movidas para ANTES de qualquer Date().
-
   if (!titulo?.trim()) {
     return res.status(400).json({ message: "O título é obrigatório." });
   }
@@ -26,25 +16,20 @@ export const createEvent = (req, res) => {
   if (!data_evento) {
     return res.status(400).json({ message: "A data é obrigatória." });
   }
-
   const hoje = new Date();
   hoje.setHours(0, 0, 0, 0);
-
   const dataEvento = new Date(data_evento);
   dataEvento.setHours(0, 0, 0, 0);
-
   if (dataEvento < hoje) {
     return res.status(400).json({
       message: "Não é permitido criar eventos em datas passadas."
     });
   }
-
   const sql = `
     INSERT INTO eventos
       (titulo, descricao, data_evento, hora_evento, local_evento, estado)
     VALUES (?, ?, ?, ?, ?, ?)
   `;
-
   db.query(
     sql,
     [titulo, descricao, data_evento, hora_evento, local_evento, estado],

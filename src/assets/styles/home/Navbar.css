@@ -8,8 +8,7 @@
   align-items: center;
 
   position: relative;
-  /* CORRIGIDO: adicionado z-index para garantir que a navbar
-     fica sempre acima de qualquer conteúdo da página */
+  
   z-index: 100;
 }
 
@@ -54,7 +53,7 @@
   width: 70%;
 }
 
-/* Botões Desktop */
+
 
 .desktop-actions {
   display: flex;
@@ -80,7 +79,7 @@
   transform: translateY(-2px);
 }
 
-/* Menu Hamburguer */
+
 
 .menu-icon {
   display: none;
@@ -100,7 +99,7 @@
   display: none;
 }
 
-/* MOBILE */
+
 
 @media (max-width: 900px) {
 
@@ -126,7 +125,7 @@
     padding: 2rem 1rem;
 
     background: #1a1a1a;
-    /* CORRIGIDO: sem border-radius → menu aparecia com cantos cortados (reto) */
+    
     border-radius: 15px;
     border: 1px solid #333;
     box-shadow: 0 8px 32px rgba(0, 0, 0, .5);

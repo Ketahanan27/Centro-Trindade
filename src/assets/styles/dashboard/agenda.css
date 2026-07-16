@@ -4,9 +4,9 @@
     gap: 25px;
 }
 
-/* ========================= */
-/* CALENDÁRIO                */
-/* ========================= */
+
+
+
 
 .calendar-box {
     background: #1f1f1f;
@@ -105,9 +105,9 @@
     padding: 0 12px;
 }
 
-/* ========================= */
-/* EVENTOS                   */
-/* ========================= */
+
+
+
 
 .events-box {
     background: #1f1f1f;
@@ -165,9 +165,9 @@
     font-size: .9rem;
 }
 
-/* ========================= */
-/* FORM                      */
-/* ========================= */
+
+
+
 
 .event-form {
     display: flex;
@@ -197,9 +197,9 @@
     box-shadow: 0 0 0 2px rgba(0, 68, 255, .2);
 }
 
-/* ========================= */
-/* CRUD                      */
-/* ========================= */
+
+
+
 
 .crud-buttons {
     display: grid;
@@ -245,9 +245,9 @@
     background: #001c68;
 }
 
-/* ========================= */
-/* RESPONSIVO                */
-/* ========================= */
+
+
+
 
 @media (max-width: 1000px) {
     .agenda-container {
@@ -257,9 +257,7 @@
 
 @media (max-width: 600px) {
 
-    /* CORRIGIDO: era "body { padding: 15px }" — estilo GLOBAL que afetava toda
-       a aplicação em mobile, não apenas a agenda. Substituído por seletor
-       específico do componente para não contaminar outras páginas */
+    
     .agenda-container {
         gap: 15px;
     }

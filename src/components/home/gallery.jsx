@@ -32,14 +32,11 @@ function Gallery() {
   const [current, setCurrent] = useState(0);
   const [paused, setPaused] = useState(false);
 
-  // CORRIGIDO: nextSlide envolvido em useCallback para ter referência estável
-  // — antes estava a ser criado de novo a cada render, causando warning ESLint
-  // "React Hook useEffect has a missing dependency: 'nextSlide'"
   const nextSlide = useCallback(() => {
     setCurrent((prev) =>
       prev === images.length - 1 ? 0 : prev + 1
     );
-  }, []); // sem deps: setCurrent é estável e images.length é constante
+  }, []); 
 
   const prevSlide = useCallback(() => {
     setCurrent((prev) =>
@@ -55,8 +52,6 @@ function Gallery() {
     }, 2000);
 
     return () => clearInterval(interval);
-    // CORRIGIDO: nextSlide agora incluído nas deps (é estável via useCallback)
-    // Removido 'current' das deps — desnecessário com useCallback + update funcional
   }, [paused, nextSlide]);
 
   return (

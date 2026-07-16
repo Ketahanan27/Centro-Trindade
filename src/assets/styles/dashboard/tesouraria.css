@@ -21,7 +21,7 @@
   border-left: 5px solid #0044ff;
 }
 
-/* CORRIGIDO: adicionados estilos específicos para os cards de entrada, saída e saldo */
+
 .card.entrada {
   border-left-color: #10b981;
 }
@@ -45,8 +45,7 @@
   font-weight: bold;
 }
 
-/* CORRIGIDO: classes renomeadas de .saldo-positivo/.saldo-negativo para
-   .positivo/.negativo para corresponder ao que o JSX gera */
+
 .positivo p {
   color: #00ff88;
 }
@@ -191,24 +190,7 @@ td {
 
 .actions {
   display: flex;
-  gap: 8px;
-  flex-wrap: wrap;
-}
-
-.actions button {
-  min-width: 90px;
-  min-height: 38px;
-  width: auto;
-  height: auto;
-  padding: 8px 12px;
-  border: none;
-  border-radius: 8px;
-  cursor: pointer;
-  transition: .3s;
-  white-space: nowrap;
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
+  gap: 10px;
 }
 
 .edit-btn {
@@ -303,4 +285,57 @@ td {
   .actions {
     flex-direction: column;
   }
+}
+
+.natureza-badge {
+  display: inline-block;
+  padding: 3px 10px;
+  border-radius: 20px;
+  font-size: 12px;
+  font-weight: 600;
+}
+
+.natureza-receita {
+  background: rgba(16, 185, 129, 0.15);
+  color: #10b981;
+}
+
+.natureza-despesa {
+  background: rgba(239, 68, 68, 0.15);
+  color: #ef4444;
+}
+
+
+.filtro-natureza-select {
+  padding: 12px;
+  border: none;
+  border-radius: 10px;
+  background: #202020;
+  color: white;
+  outline: none;
+  cursor: pointer;
+  transition: .3s;
+}
+
+.filtro-natureza-select:focus {
+  box-shadow: 0 0 0 2px #0044ff;
+}
+
+
+.campo-full {
+  grid-column: 1 / -1;
+}
+
+
+.valor-cel {
+  font-weight: 600;
+  color: white;
+}
+
+
+.obs-cel {
+  max-width: 200px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }

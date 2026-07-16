@@ -1,12 +1,10 @@
-// CORRIGIDO: form completamente não controlado — ao clicar "Confirmar" a página
-// recarregava porque não havia onSubmit com e.preventDefault(). Adicionados
-// estado controlado, validação e handler de submissão.
 import { useState } from "react";
 import Layout from "../components/Layout";
 import "../assets/styles/home/contribua.css";
 
 import mbway from "../assets/img/mbway.png";
 import paypal from "../assets/img/PAYPAL.jpg";
+import { apiFetch } from "../utils/api";
 
 function Contribua() {
 
@@ -18,14 +16,15 @@ function Contribua() {
   });
 
   const [enviado, setEnviado] = useState(false);
+  const [loading, setLoading] = useState(false);
+  const [donationId, setDonationId] = useState(null);
+  const [status, setStatus] = useState(null);
 
   const handleChange = (e) => {
     setForm({ ...form, [e.target.name]: e.target.value });
   };
 
   const handleSubmit = (e) => {
-    // CORRIGIDO: sem este preventDefault() o browser
-    // fazia GET/reload ao clicar no botão Confirmar
     e.preventDefault();
 
     if (!form.nome.trim()) {
@@ -48,18 +47,46 @@ function Contribua() {
       return;
     }
 
-    // Aqui seria feita a integração com a API MBWay
-    console.log("Pedido MBWay:", form);
-    setEnviado(true);
+    setLoading(true);
+    apiFetch("/api/donate/create", {
+      method: "POST",
+      body: JSON.stringify(form),
+    })
+      .then((r) => {
+        if (!r.ok) throw new Error("Erro ao criar pedido");
+        return r.json();
+      })
+      .then((data) => {
+        setDonationId(data.donationId);
+        setStatus(data.status);
+        setEnviado(true);
 
-    setForm({
-      nome: "",
-      telemovel: "",
-      valor: "",
-      descricao: "Selecione uma opção",
-    });
+        const start = Date.now();
+        const poll = setInterval(async () => {
+          try {
+            const res = await apiFetch(`/api/donate/status/${data.donationId}`);
+            const json = await res.json();
+            setStatus(json.status);
+            if (json.status === "PAID") {
+              clearInterval(poll);
+              setLoading(false);
+            }
+            if (Date.now() - start > 2 * 60 * 1000) {
+              clearInterval(poll);
+              setLoading(false);
+            }
+          } catch (err) {
+            clearInterval(poll);
+            setLoading(false);
+          }
+        }, 2000);
 
-    setTimeout(() => setEnviado(false), 5000);
+        setForm({ nome: "", telemovel: "", valor: "", descricao: "Selecione uma opção" });
+      })
+      .catch((err) => {
+        alert(err.message || "Erro ao enviar pedido");
+      })
+      .finally(() => setLoading(false));
   };
 
   return (
@@ -87,6 +114,30 @@ function Contribua() {
           {enviado && (
             <div className="contribua-sucesso">
               ✓ Pedido MBWay enviado com sucesso! Confirme no seu telemóvel.
+            </div>
+          )}
+
+          {donationId && (
+            <div className="contribua-status">
+              <p>ID: {donationId} — Estado: {status}</p>
+              {status !== "PAID" && (
+                <button
+                  className="btn"
+                  onClick={async () => {
+                    try {
+                      const res = await apiFetch(`/api/donate/simulate/${donationId}`, { method: "POST" });
+                      if (!res.ok) throw new Error("Simulação falhou");
+                      const j = await res.json();
+                      setStatus(j.donation.status);
+                      alert("Simulado: marcado como PAID");
+                    } catch (err) {
+                      alert(err.message || "Erro");
+                    }
+                  }}
+                >
+                  Simular confirmação (desenvolvimento)
+                </button>
+              )}
             </div>
           )}
 

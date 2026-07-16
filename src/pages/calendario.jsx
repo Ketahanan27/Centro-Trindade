@@ -1,7 +1,8 @@
-import { useState, useCallback } from "react";
+import { useState, useEffect, useMemo } from "react";
 
 import Navbar from "../components/Navbar";
 import Footer from "../components/Footer";
+import { apiFetchArray } from "../utils/api";
 
 import "../assets/styles/home/calendario.css";
 
@@ -12,82 +13,80 @@ function Calendario() {
     "Setembro", "Outubro", "Novembro", "Dezembro",
   ];
 
-  // CORRIGIDO: getEventsForDate envolvida em useCallback para não ser
-  // recriada em cada render — era chamada dentro do loop de dias
-  // (até 31x por render) e voltava a ser criada do zero sem necessidade.
-  // CORRIGIDO: specialEvents atualizado com datas futuras (as de Jun 2026
-  // já passaram) — mantidas como exemplo de evento especial
-  const getEventsForDate = useCallback((dateString) => {
-    const [year, month, day] = dateString.split("-").map(Number);
-    const date = new Date(year, month - 1, day);
-    const weekday = date.getDay();
-    const events = [];
-
-    // Domingo: Sunday Service
-    if (weekday === 0) {
-      events.push("Sunday Service - 10h00");
-    }
-
-    // Primeiro domingo do mês: Santa Ceia
-    if (weekday === 0 && day <= 7) {
-      events.push("À Mesa + Santa Ceia");
-    }
-
-    // Eventos especiais hardcoded
-    const specialEvents = {
-      "2026-07-10": ["Conferência Trindade"],
-      "2026-07-16": ["Discipulado - 19h30"],
-      "2026-07-23": ["Fornalha - 20h00"],
-      "2026-08-06": ["Conferência de Jovens"],
-      "2026-08-13": ["Discipulado - 19h30"],
-    };
-
-    if (specialEvents[dateString]) {
-      events.push(...specialEvents[dateString]);
-    }
-
-    return events;
-  }, []); // sem deps externas — array de eventos e lógica são constantes
-
+  const [events, setEvents] = useState([]);
   const [currentDate, setCurrentDate] = useState(new Date());
   const [selectedDate, setSelectedDate] = useState(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
 
-  const year  = currentDate.getFullYear();
+  const carregarEventos = async () => {
+    try {
+      setLoading(true);
+      const data = await apiFetchArray("/api/eventos");
+      const publicEvents = data
+        .filter((item) => item.estado === "Agendado")
+        .map((item) => ({
+          ...item,
+          data_evento: item.data_evento?.slice(0, 10),
+        }));
+      setEvents(publicEvents);
+      setError(null);
+    } catch (err) {
+      console.error("[carregarEventos]", err);
+      setError("Erro ao carregar a agenda pública.");
+      setEvents([]);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    carregarEventos();
+  }, []);
+
+  const year = currentDate.getFullYear();
   const month = currentDate.getMonth();
-
   const firstDay = new Date(year, month, 1).getDay();
   const lastDate = new Date(year, month + 1, 0).getDate();
 
+  const selectedEvents = useMemo(() => {
+    if (!selectedDate) return [];
+    return events.filter((event) => event.data_evento === selectedDate);
+  }, [events, selectedDate]);
+
+  const monthEvents = useMemo(
+    () => events.filter((event) => {
+      if (!event.data_evento) return false;
+      const [y, m] = event.data_evento.split("-").map(Number);
+      return y === year && m === month + 1;
+    }),
+    [events, year, month]
+  );
+
+  const formatarData = (data) => {
+    if (!data) return "";
+    const [year2, month2, day2] = data.split("-");
+    return `${day2}/${month2}/${year2}`;
+  };
+
   const handlePrevMonth = () => {
-    const newDate = new Date(currentDate);
-    newDate.setMonth(currentDate.getMonth() - 1);
-    setCurrentDate(newDate);
   };
 
   const handleNextMonth = () => {
-    const newDate = new Date(currentDate);
-    newDate.setMonth(currentDate.getMonth() + 1);
-    setCurrentDate(newDate);
   };
 
-  const days = [];
+  const today = new Date();
+  const todayString = `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, "0")}-${String(today.getDate()).padStart(2, "0")}`;
 
+  const days = [];
   for (let i = 0; i < firstDay; i++) {
-    days.push(
-      <div key={`empty-${i}`} className="empty-day" />
-    );
+    days.push(<div key={`empty-${i}`} className="empty-day" />);
   }
 
   for (let day = 1; day <= lastDate; day++) {
     const dateString = `${year}-${String(month + 1).padStart(2, "0")}-${String(day).padStart(2, "0")}`;
-    const today = new Date();
-
-    const isToday =
-      day   === today.getDate()  &&
-      month === today.getMonth() &&
-      year  === today.getFullYear();
-
-    const hasEvent  = getEventsForDate(dateString).length > 0;
+    const isToday = dateString === todayString;
+    const hasEvent = events.some((event) => event.data_evento === dateString);
     const isSelected = selectedDate === dateString;
 
     days.push(
@@ -109,11 +108,8 @@ function Calendario() {
         <h1>Agenda</h1>
 
         <div className="calendar-container">
-
           <div className="calendar-header">
-            <button onClick={handlePrevMonth}>◀</button>
             <h2>{months[month]} {year}</h2>
-            <button onClick={handleNextMonth}>▶</button>
           </div>
 
           <div className="weekdays">
@@ -121,30 +117,44 @@ function Calendario() {
             <div>Qua</div><div>Qui</div><div>Sex</div><div>Sáb</div>
           </div>
 
-          <div className="calendar-days">
-            {days}
-          </div>
-
+          <div className="calendar-days">{days}</div>
         </div>
 
         <div className="event-box">
-          <h3>Eventos</h3>
+          <h3>Eventos públicos</h3>
 
-          {selectedDate ? (
-            getEventsForDate(selectedDate).length > 0 ? (
-              getEventsForDate(selectedDate).map((event, index) => (
-                <div key={index} className="event-item">
-                  {event}
+          {loading ? (
+            <p>Carregando eventos...</p>
+          ) : error ? (
+            <p>{error}</p>
+          ) : selectedDate ? (
+            selectedEvents.length > 0 ? (
+              selectedEvents.map((event) => (
+                <div key={event.id} className="event-item">
+                  <strong>{event.titulo}</strong>
+                  <div className="event-time">{event.hora_evento || "Horário não informado"}</div>
+                  {event.descricao && <p>{event.descricao}</p>}
                 </div>
               ))
             ) : (
-              <p>Não existem eventos para esta data.</p>
+              <p>Não existem eventos públicos para esta data.</p>
             )
           ) : (
-            <p>Selecione um dia para visualizar os eventos.</p>
+            <>
+              <p>Selecione um dia para ver os eventos agendados.</p>
+              <div className="month-summary">
+                <strong>{monthEvents.length}</strong> evento(s) agendado(s) neste mês.
+              </div>
+              {monthEvents.map((event) => (
+                <div key={event.id} className="event-item">
+                  <strong>{event.titulo}</strong>
+                  <div>{formatarData(event.data_evento)} {event.hora_evento ? `- ${event.hora_evento}` : ""}</div>
+                  {event.descricao && <p>{event.descricao}</p>}
+                </div>
+              ))}
+            </>
           )}
         </div>
-
       </section>
 
       <Footer />

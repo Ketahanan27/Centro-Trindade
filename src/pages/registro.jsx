@@ -15,21 +15,17 @@ function Registo() {
   });
 
   const [loading, setLoading] = useState(false);
+  const [showPassword, setShowPassword] = useState(false);
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
 
   const handleChange = (e) => {
-    setFormData({
-      ...formData,
-      [e.target.name]: e.target.value,
-    });
+    setFormData({ ...formData, [e.target.name]: e.target.value });
   };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
 
-    if (
-      formData.password !==
-      formData.confirmarPassword
-    ) {
+    if (formData.password !== formData.confirmarPassword) {
       alert("As palavras-passe não coincidem.");
       return;
     }
@@ -37,37 +33,26 @@ function Registo() {
     setLoading(true);
 
     try {
-      const response = await fetch(
-        "http://localhost:5000/api/auth/register",
-        {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify({
-            nome: formData.nome,
-            email: formData.email,
-            password: formData.password,
-            perfil: formData.perfil,
-          }),
-        }
-      );
+      const response = await fetch("/api/auth/register", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          nome:   formData.nome,
+          email:  formData.email,
+          password: formData.password,
+          perfil: formData.perfil,
+        }),
+      });
 
       const data = await response.json();
 
       if (!response.ok) {
         alert(data.message);
-        // CORRIGIDO: faltava setLoading(false) neste return —
-        // o botão ficava bloqueado em "A criar..." indefinidamente
         setLoading(false);
         return;
       }
 
       alert("Conta criada com sucesso.");
-
-      // CORRIGIDO: setLoading(false) chamado ANTES de navigate()
-      // para evitar "state update on unmounted component" —
-      // navigate() desmonta o componente imediatamente
       setLoading(false);
       navigate("/login");
 
@@ -76,9 +61,6 @@ function Registo() {
       alert("Erro ao comunicar com o servidor.");
       setLoading(false);
     }
-
-    // CORRIGIDO: removido setLoading(false) aqui em baixo —
-    // já é tratado em cada ramo acima de forma explícita e segura
   };
 
   return (
@@ -90,10 +72,7 @@ function Registo() {
         <div className="login-form-box">
 
           <div className="login-logo">
-            <img
-              src={logo}
-              alt="Centro Trindade"
-            />
+            <img src={logo} alt="Centro Trindade" />
           </div>
 
           <h2>Registo</h2>
@@ -126,26 +105,55 @@ function Registo() {
 
             <div className="login-input-box">
               <input
-                type="password"
+                type={showPassword ? "text" : "password"}
                 name="password"
                 value={formData.password}
                 onChange={handleChange}
                 required
               />
               <label>Palavra-passe</label>
-              <i className="ri-lock-fill"></i>
+              <button
+                type="button"
+                className="password-toggle"
+                onClick={() => setShowPassword((prev) => !prev)}
+                aria-label={showPassword ? "Ocultar palavra-passe" : "Mostrar palavra-passe"}
+              >
+                <i className={showPassword ? "ri-eye-off-line" : "ri-eye-line"}></i>
+              </button>
             </div>
 
             <div className="login-input-box">
               <input
-                type="password"
+                type={showConfirmPassword ? "text" : "password"}
                 name="confirmarPassword"
                 value={formData.confirmarPassword}
                 onChange={handleChange}
                 required
               />
               <label>Confirmar Palavra-passe</label>
-              <i className="ri-lock-password-fill"></i>
+              <button
+                type="button"
+                className="password-toggle"
+                onClick={() => setShowConfirmPassword((prev) => !prev)}
+                aria-label={showConfirmPassword ? "Ocultar palavra-passe" : "Mostrar palavra-passe"}
+              >
+                <i className={showConfirmPassword ? "ri-eye-off-line" : "ri-eye-line"}></i>
+              </button>
+            </div>
+
+            <div className="login-input-box">
+              <select
+                name="perfil"
+                value={formData.perfil}
+                onChange={handleChange}
+                style={{ width: "100%", padding: "12px", borderRadius: "8px" }}
+              >
+                <option value="Membro">Membro</option>
+                <option value="Secretaria">Secretaria</option>
+                <option value="Tesouraria">Tesouraria</option>
+                <option value="Pastor">Pastor</option>
+                <option value="Administrador">Administrador</option>
+              </select>
             </div>
 
             <button
@@ -157,37 +165,24 @@ function Registo() {
             </button>
 
             <div className="login-link">
-
               <p>
                 Já possui conta?
                 <Link to="/login"> Entrar</Link>
               </p>
-
               <p className="back-home">
                 <Link to="/">
                   <i className="ri-arrow-left-line"></i>
                   Voltar para Home
                 </Link>
               </p>
-
             </div>
 
           </form>
-
         </div>
 
         <div className="login-info-text">
-
-          <h2>
-            CENTRO
-            <br />
-            TRINDADE
-          </h2>
-
-          <p>
-            Crie a sua conta para aceder ao ERP.
-          </p>
-
+          <h2>CENTRO<br />TRINDADE</h2>
+          <p>Crie a sua conta para aceder ao ERP.</p>
         </div>
 
       </div>

@@ -1,8 +1,5 @@
 function Topbar() {
 
-  // CORRIGIDO: JSON.parse sem try/catch crasha se o valor guardado em
-  // localStorage estiver corrompido ou mal formado. Adicionado try/catch
-  // com fallback para objeto vazio.
   let user = null;
   try {
     const raw = localStorage.getItem("user");
@@ -25,12 +22,6 @@ function Topbar() {
         <small>
           {user?.perfil ?? ""}
         </small>
-
-      </div>
-
-      <div className="profile">
-
-        <i className="ri-user-3-line"></i>
 
       </div>
 

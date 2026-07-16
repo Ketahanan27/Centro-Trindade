@@ -1,4 +1,3 @@
-// CORRIGIDO: removido useEffect — estava importado mas nunca utilizado
 import { useState } from "react";
 import DashboardLayout from "../../components/dashboard/dashboardlayout";
 
@@ -9,7 +8,6 @@ import Apresentacoes from "../../components/secretaria/apresentacoes";
 import Atas from "../../components/secretaria/atas";
 
 import "../../assets/styles/dashboard/secretaria.css";
-
 
 function Secretaria() {
 

@@ -1,9 +1,15 @@
 import { useState, useEffect, useCallback } from "react";
+import { createPortal } from "react-dom";
 import DashboardLayout from "../../components/dashboard/dashboardlayout";
 import { apiFetch, apiFetchArray } from "../../utils/api";
+import { usePerfil } from "../../routes/ProctedRoute";
+import { toast } from "../../utils/toast";
 import "../../assets/styles/dashboard/membros.css";
 
+const API_BASE = import.meta.env.VITE_API_URL ?? "";
+
 function Membros() {
+  const { soLeitura } = usePerfil();
 
   const [showModal, setShowModal]       = useState(false);
   const [showDetails, setShowDetails]   = useState(false);
@@ -18,8 +24,6 @@ function Membros() {
     sexo: "Masculino", estado_civil: "Solteiro(a)",
     entrada: "", batizado: "Não", estado: "Ativo"
   });
-
-  // CORRIGIDO: apiFetchArray injeta Authorization header e garante array
   const carregarMembros = useCallback(async () => {
     try {
       const data = await apiFetchArray("/api/membros");
@@ -56,22 +60,31 @@ function Membros() {
         }
       );
       const data = await response.json();
-      if (!response.ok) { alert(data.message); return; }
-      alert(data.message);
+      if (!response.ok) { toast.erro(data.message); return; }
+      toast.sucesso(data.message);
       carregarMembros();
       limparFormulario();
       setShowModal(false);
     } catch (error) {
       console.error(error);
-      alert("Erro ao comunicar com o servidor.");
+      toast.erro("Erro ao comunicar com o servidor.");
     }
   };
 
   const editarMembro = (membro) => {
+    const limparData = (d) => (!d ? "" : String(d).split("T")[0]);
     setFormData({
-      ...membro,
-      nascimento: membro.nascimento ? membro.nascimento.split("T")[0] : "",
-      entrada:    membro.entrada    ? membro.entrada.split("T")[0]    : ""
+      nome:          membro.nome          || "",
+      email:         membro.email         || "",
+      telemovel:     membro.telemovel     || "",
+      nascimento:    limparData(membro.nascimento),
+      sexo:          membro.sexo          || "Masculino",
+      estado_civil:  membro.estado_civil  || "Solteiro(a)",
+      morada:        membro.morada        || "",
+      codigo_postal: membro.codigo_postal || "",
+      entrada:       limparData(membro.entrada),
+      batizado:      membro.batizado      || "Não",
+      estado:        membro.estado        || "Ativo",
     });
     setEditId(membro.id);
     setShowModal(true);
@@ -82,18 +95,28 @@ function Membros() {
     try {
       const response = await apiFetch(`/api/membros/${id}`, { method: "DELETE" });
       const data = await response.json();
-      if (!response.ok) { alert(data.message); return; }
-      alert(data.message);
+      if (!response.ok) { toast.erro(data.message); return; }
+      toast.sucesso(data.message);
       carregarMembros();
     } catch (error) {
       console.error(error);
     }
   };
 
-  const formatarData = (data) => {
-    if (!data) return "-";
-    const d = new Date(data);
-    return `${String(d.getDate()).padStart(2,"0")}/${String(d.getMonth()+1).padStart(2,"0")}/${d.getFullYear()}`;
+  const formatarData = (d) => {
+    if (!d) return "—";
+    const parte = String(d).split("T")[0];       
+    const [ano, mes, dia] = parte.split("-");
+    if (!ano || !mes || !dia) return String(d);   
+    return `${dia}/${mes}/${ano}`;
+  };
+
+  const getAvatarSrc = (foto) => {
+    if (!foto) return "";
+    const value = String(foto).trim();
+    if (!value) return "";
+    if (value.startsWith("http")) return value;
+    return value.startsWith("/") ? `${API_BASE}${value}` : `${API_BASE}/${value}`;
   };
 
   const membrosFiltrados = membros.filter(
@@ -104,11 +127,21 @@ function Membros() {
     <DashboardLayout>
       <div className="container">
 
+        {}
+        {soLeitura && (
+          <div className="banner-leitura">
+            <i className="ri-eye-line"></i>
+            Modo visualização — não tem permissão para editar dados nesta área.
+          </div>
+        )}
+
         <div className="page-header">
           <h1>Membros</h1>
+          {!soLeitura && (
           <button className="btn-primary" onClick={() => { limparFormulario(); setShowModal(true); }}>
             <i className="ri-user-add-line"></i> Novo Membro
           </button>
+          )}
         </div>
 
         <div className="search-box">
@@ -139,12 +172,16 @@ function Membros() {
                       <button className="view" onClick={() => { setSelectedMember(membro); setShowDetails(true); }}>
                         <i className="ri-eye-line"></i>
                       </button>
-                      <button className="edit" onClick={() => editarMembro(membro)}>
-                        <i className="ri-pencil-line"></i>
-                      </button>
-                      <button className="delete" onClick={() => eliminarMembro(membro.id)}>
-                        <i className="ri-delete-bin-line"></i>
-                      </button>
+                      {!soLeitura && (
+                        <>
+                          <button className="edit" onClick={() => editarMembro(membro)}>
+                            <i className="ri-pencil-line"></i>
+                          </button>
+                          <button className="delete" onClick={() => eliminarMembro(membro.id)}>
+                            <i className="ri-delete-bin-line"></i>
+                          </button>
+                        </>
+                      )}
                     </td>
                   </tr>
                 ))
@@ -155,8 +192,9 @@ function Membros() {
 
       </div>
 
-      {showModal && (
-        <div className="modal">
+      {}
+      {showModal && createPortal(
+        <div className="modal active">
           <div className="modal-content">
             <div className="modal-header">
               <h2>{editId ? "Editar Membro" : "Novo Membro"}</h2>
@@ -198,35 +236,59 @@ function Membros() {
               </div>
             </form>
           </div>
-        </div>
+        </div>,
+        document.body
       )}
 
-      {showDetails && selectedMember && (
-        <div className="modal">
+      {showDetails && selectedMember && createPortal(
+        <div className="modal active">
           <div className="modal-content">
             <div className="modal-header">
               <h2>Detalhes do Membro</h2>
               <button onClick={() => setShowDetails(false)}><i className="ri-close-line"></i></button>
             </div>
-            {[
-              ["Nome", selectedMember.nome],
-              ["Email", selectedMember.email],
-              ["Telemóvel", selectedMember.telemovel],
-              ["Nascimento", formatarData(selectedMember.nascimento)],
-              ["Sexo", selectedMember.sexo],
-              ["Estado Civil", selectedMember.estado_civil],
-              ["Morada", selectedMember.morada],
-              ["Código Postal", selectedMember.codigo_postal],
-              ["Entrada", formatarData(selectedMember.entrada)],
-              ["Batizado", selectedMember.batizado],
-              ["Estado", selectedMember.estado],
-            ].map(([label, value]) => (
-              <div key={label} className="details-item">
-                <strong>{label}:</strong> {value}
+
+            <div className="details-wrapper">
+              <div className="details-profile-card">
+                {getAvatarSrc(selectedMember.foto) ? (
+                  <img
+                    className="details-avatar"
+                    src={getAvatarSrc(selectedMember.foto)}
+                    alt={`Foto de perfil de ${selectedMember.nome || "membro"}`}
+                    onError={(e) => {
+                      e.currentTarget.style.display = "none";
+                    }}
+                  />
+                ) : (
+                  <div className="details-avatar details-avatar-placeholder">
+                    <i className="ri-user-line"></i>
+                  </div>
+                )}
               </div>
-            ))}
+
+              <div className="details-list">
+                {[
+                  ["Nome", selectedMember.nome],
+                  ["Email", selectedMember.email],
+                  ["Telemóvel", selectedMember.telemovel],
+                  ["Nascimento", formatarData(selectedMember.nascimento)],
+                  ["Sexo", selectedMember.sexo],
+                  ["Estado Civil", selectedMember.estado_civil],
+                  ["Morada", selectedMember.morada],
+                  ["Código Postal", selectedMember.codigo_postal],
+                  ["Entrada", formatarData(selectedMember.entrada)],
+                  ["Batizado", selectedMember.batizado],
+                  ["Estado", selectedMember.estado],
+                ].map(([label, value]) => (
+                  <div key={label} className="details-item">
+                    <strong>{label}:</strong> {value || "—"}
+                  </div>
+                ))}
+              </div>
+            </div>
           </div>
-        </div>
+        </div>,
+        document.body
       )}
 
     </DashboardLayout>

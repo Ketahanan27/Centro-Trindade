@@ -10,11 +10,6 @@ export const getDocumentos = (req, res) => {
         return res.status(500).json({ message: "Erro interno do servidor." });
       }
 
-      // CORRIGIDO: dados_json era guardado como string JSON na DB e devolvido
-      // como string crua ao cliente. A função reimprimir() fazia:
-      //   setFormData(doc.dados_json)  →  setFormData("{ \"nome\": ... }")
-      // O formulário recebia uma string em vez de objeto, quebrando todos os campos.
-      // Agora é parsed antes de enviar ao cliente.
       const parsed = results.map(doc => ({
         ...doc,
         dados_json: (() => {
@@ -57,9 +52,6 @@ export const createDocumento = (req, res) => {
   );
 };
 
-// CORRIGIDO: função deleteDocumento completamente em falta —
-// documentos.jsx chamava DELETE /api/documentos/:id mas não existia
-// nem no controller nem na route → 404 ao tentar eliminar documentos
 export const deleteDocumento = (req, res) => {
 
   const { id } = req.params;

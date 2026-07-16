@@ -5,7 +5,7 @@
   display: grid;
   grid-template-columns: 1fr 1fr;
   gap: 60px;
-  /* CORRIGIDO: align-items: start para ambas as colunas começarem no topo */
+  
   align-items: start;
 }
 
@@ -68,9 +68,7 @@
   background-color: #141212;
 }
 
-/* CORRIGIDO: era padding-top: 450px — valor absurdo que escondia o conteúdo
-   da coluna da direita por baixo do viewport em muitos ecrãs.
-   Substituído por padding-top moderado com borda para separação visual. */
+
 .contribua-right {
   padding-top: 30px;
   color: white;
@@ -94,7 +92,7 @@
   color: white;
 }
 
-/* CORRIGIDO: adicionada classe para mensagem de sucesso após submissão */
+
 .contribua-sucesso {
   background: rgba(16, 185, 129, .15);
   border: 1px solid #10b981;
@@ -127,7 +125,7 @@
     width: 100%;
   }
 
-  /* No mobile remove a borda e o padding lateral */
+  
   .contribua-right {
     border-left: none;
     border-top: 1px solid #333;

@@ -4,7 +4,7 @@
     gap: 20px;
 }
 
-/* HEADER */
+
 
 .page-header {
     display: flex;
@@ -33,7 +33,7 @@
     transform: translateY(-1px);
 }
 
-/* ESTATÍSTICAS */
+
 
 .stats-grid {
     display: grid;
@@ -55,9 +55,7 @@
     transform: translateY(-2px);
 }
 
-/* CORRIGIDO: h3 contém o número (grande, colorido) e span o rótulo (pequeno, muted).
-   A versão anterior tinha os estilos INVERTIDOS — h3 estava .9rem/#999
-   e span estava 2rem/branco, causando números pequenos e rótulos gigantes. */
+
 .stat-card h3 {
     margin: 0 0 8px 0;
     font-size: 2.2rem;
@@ -72,7 +70,7 @@
     font-weight: 500;
 }
 
-/* PESQUISA E FILTRO */
+
 
 .search-box,
 .filter-box {
@@ -97,7 +95,7 @@
     box-shadow: 0 0 0 3px rgba(0, 68, 255, .15);
 }
 
-/* TABELA */
+
 
 .table-wrapper {
     overflow-x: auto;
@@ -129,7 +127,7 @@
     background: rgba(255, 255, 255, .02);
 }
 
-/* QUANTIDADE */
+
 
 .quantity-badge {
     background: rgba(0, 68, 255, .15);
@@ -139,7 +137,7 @@
     font-weight: 600;
 }
 
-/* OBSERVAÇÕES */
+
 
 .obs-cell {
     max-width: 300px;
@@ -149,7 +147,7 @@
     color: var(--text-muted);
 }
 
-/* AÇÕES */
+
 
 .actions {
     display: flex;
@@ -179,7 +177,7 @@
     color: white;
 }
 
-/* EMPTY */
+
 
 .empty-row {
     text-align: center;
@@ -187,7 +185,7 @@
     padding: 30px;
 }
 
-/* MODAL */
+
 
 .modal {
     position: fixed;
@@ -229,7 +227,7 @@
     color: var(--text-color);
 }
 
-/* GRID */
+
 
 .grid {
     display: grid;
@@ -276,7 +274,7 @@
     resize: vertical;
 }
 
-/* BOTÕES */
+
 
 .form-actions {
     display: flex;
@@ -308,7 +306,7 @@
     color: #fff;
 }
 
-/* RESPONSIVO */
+
 
 @media (max-width: 768px) {
 

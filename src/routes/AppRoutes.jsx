@@ -1,102 +1,63 @@
-import { Routes, Route } from "react-router-dom";
+import { Routes, Route, Navigate } from "react-router-dom";
 
-import Home from "../pages/Home";
-import Escola120 from "../pages/Escola120";
-import Contribua from "../pages/Contribua";
-import Formulario from "../pages/Formulario";
-import NotFound from "../pages/NotFound";
-import Login from "../pages/Login";
-import Registo from "../pages/registro";
-import Calendario from "../pages/calendario";
-import Dashboard from "../pages/dashboard/dashboard";
-import Membros from "../pages/dashboard/membros";
-import Agenda from "../pages/dashboard/agenda";
-import Tesouraria from "../pages/dashboard/tesouraria";
-import Secretaria from "../pages/dashboard/secretaria";
-import Utilizadores from "../pages/dashboard/utilizadores";
+import Home             from "../pages/Home";
+import Escola120        from "../pages/Escola120";
+import Contribua        from "../pages/Contribua";
+import Formulario       from "../pages/Formulario";
+import NotFound         from "../pages/NotFound";
+import Login            from "../pages/Login";
+import Calendario       from "../pages/calendario";
+import RedefinirPassword from "../pages/RedefinirPassword";
+import Registo from "../pages/registro"
 
-import ProtectedRoute from "../routes/ProctedRoute";
+import Dashboard        from "../pages/dashboard/dashboard";
+import Membros          from "../pages/dashboard/membros";
+import Agenda           from "../pages/dashboard/agenda";
+import Tesouraria       from "../pages/dashboard/tesouraria";
+import Secretaria       from "../pages/dashboard/secretaria";
+import Utilizadores     from "../pages/dashboard/utilizadores";
+import MinhaArea       from "../pages/dashboard/MinhaArea";
 
-// CORRIGIDO: removido import desnecessário de Visitantes — este componente é
-// um sub-componente da Secretaria e não deve ter rota própria sem DashboardLayout
+import ProtectedRoute   from "./ProctedRoute";
 
 function AppRoutes() {
   return (
     <Routes>
+      {}
+      <Route path="/"                    element={<Home />} />
+      <Route path="/escola120"           element={<Escola120 />} />
+      <Route path="/contribua"           element={<Contribua />} />
+      <Route path="/formulario"          element={<Formulario />} />
+      <Route path="/login"               element={<Login />} />
+      <Route path="/registo"             element={<Registo />} />
+      <Route path="/calendario"          element={<Calendario />} />
+      <Route path="/redefinir-password"  element={<RedefinirPassword />} />
 
-      {/* Rotas Públicas */}
-      <Route path="/" element={<Home />} />
-      <Route path="/escola120" element={<Escola120 />} />
-      <Route path="/contribua" element={<Contribua />} />
-      <Route path="/formulario" element={<Formulario />} />
-      <Route path="/login" element={<Login />} />
-      <Route path="/registo" element={<Registo />} />
-      <Route path="/calendario" element={<Calendario />} />
-
-      {/* Rotas Protegidas do Dashboard */}
-      <Route
-        path="/dashboard"
-        element={
-          <ProtectedRoute>
-            <Dashboard />
-          </ProtectedRoute>
-        }
-      />
-
-      <Route
-        path="/dashboard/membros"
-        element={
-          <ProtectedRoute>
-            <Membros />
-          </ProtectedRoute>
-        }
-      />
-
-      <Route
-        path="/dashboard/agenda"
-        element={
-          <ProtectedRoute>
-            <Agenda />
-          </ProtectedRoute>
-        }
-      />
-
-      <Route
-        path="/dashboard/tesouraria"
-        element={
-          <ProtectedRoute>
-            <Tesouraria />
-          </ProtectedRoute>
-        }
-      />
-
-      <Route
-        path="/dashboard/secretaria"
-        element={
-          <ProtectedRoute>
-            <Secretaria />
-          </ProtectedRoute>
-        }
-      />
-
-      <Route
-        path="/dashboard/utilizadores"
-        element={
-          <ProtectedRoute>
-            <Utilizadores />
-          </ProtectedRoute>
-        }
-      />
-
-      {/* CORRIGIDO: rota /dashboard/visitantes removida — Visitantes é acedido
-          através do tab "Visitantes" dentro de /dashboard/secretaria.
-          Não deve ter rota própria sem DashboardLayout (sidebar/topbar). */}
-
-      {/* Página 404 */}
+      {}
+      <Route path="/dashboard" element={
+        <ProtectedRoute area="dashboard"><Dashboard /></ProtectedRoute>
+      } />
+      <Route path="/dashboard/membros" element={
+        <ProtectedRoute area="membros"><Membros /></ProtectedRoute>
+      } />
+      <Route path="/dashboard/agenda" element={
+        <ProtectedRoute area="agenda"><Agenda /></ProtectedRoute>
+      } />
+      <Route path="/dashboard/tesouraria" element={
+        <ProtectedRoute area="tesouraria"><Tesouraria /></ProtectedRoute>
+      } />
+      <Route path="/dashboard/secretaria" element={
+        <ProtectedRoute area="secretaria"><Secretaria /></ProtectedRoute>
+      } />
+      <Route path="/dashboard/utilizadores" element={
+        <ProtectedRoute area="utilizadores"><Utilizadores /></ProtectedRoute>
+      } />
+      <Route path="/dashboard/minha-area" element={
+        <ProtectedRoute><MinhaArea /></ProtectedRoute>
+      } />
       <Route path="*" element={<NotFound />} />
 
     </Routes>
   );
 }
-
 export default AppRoutes;

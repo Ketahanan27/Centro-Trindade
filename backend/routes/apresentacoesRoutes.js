@@ -7,14 +7,13 @@ import {
   deleteApresentacao
 } from "../controllers/apresentacoesController.js";
 
-import { verifyToken } from "../middleware/auth.js";
+import { verifyToken, permit } from "../middleware/auth.js";
 
 const router = express.Router();
 
-// ADICIONADO: autenticação JWT em todas as rotas de apresentações
 router.get("/",       verifyToken, getApresentacoes);
-router.post("/",      verifyToken, createApresentacao);
-router.put("/:id",    verifyToken, updateApresentacao);
-router.delete("/:id", verifyToken, deleteApresentacao);
+router.post("/",      verifyToken, permit("Administrador", "Secretaria"), createApresentacao);
+router.put("/:id",    verifyToken, permit("Administrador", "Secretaria"), updateApresentacao);
+router.delete("/:id", verifyToken, permit("Administrador", "Secretaria"), deleteApresentacao);
 
 export default router;

@@ -1,42 +1,46 @@
-// src/utils/api.js
-// Wrapper de fetch que injeta automaticamente o token JWT em todos os pedidos
-// ao backend. Evita repetir a lógica de autenticação em cada componente.
+const BASE = import.meta.env.VITE_API_URL ?? "";
 
-const BASE_URL = "http://localhost:5000";
+const ROTAS_PUBLICAS = [
+  "/api/auth/login",
+  "/api/auth/recuperar",
+  "/api/auth/redefinir",
+  "/api/contacto",
+];
 
-/**
- * Equivalente a fetch(), mas com:
- * - Header Authorization: Bearer <token> automático
- * - Content-Type: application/json automático em pedidos com body
- * - Retorna a Response — a gestão de erros fica no componente
- */
-export const apiFetch = (endpoint, options = {}) => {
+const ehRotaPublica = (path) =>
+  ROTAS_PUBLICAS.some((pub) => path.startsWith(pub));
+
+export const apiFetch = (path, options = {}) => {
   const token = localStorage.getItem("token");
 
   const headers = {
-    // Adicionar Content-Type apenas quando há body (POST, PUT)
-    ...(options.body ? { "Content-Type": "application/json" } : {}),
-    // Adicionar token se existir
     ...(token ? { Authorization: `Bearer ${token}` } : {}),
-    // Permitir override de headers por parte do chamador
-    ...(options.headers || {}),
+    ...(options.headers ?? {}),
   };
 
-  return fetch(`${BASE_URL}${endpoint}`, {
-    ...options,
-    headers,
+  if (!(options.body instanceof FormData)) {
+    headers["Content-Type"] = "application/json";
+  }
+
+  return fetch(`${BASE}${path}`, { ...options, headers }).then((res) => {
+    if (res.status === 401 && token && !ehRotaPublica(path)) {
+      localStorage.removeItem("token");
+      localStorage.removeItem("user");
+      window.location.replace("/login?sessao=expirada");
+      throw new Error("Sessão expirada. Por favor inicie sessão novamente.");
+    }
+    return res;
   });
 };
 
-/**
- * Helper para GET — devolve o JSON já parsed ou lança erro
- * Garante que o resultado é um array quando se espera uma lista
- */
-export const apiFetchArray = async (endpoint) => {
-  const response = await apiFetch(endpoint);
-  if (!response.ok) {
-    throw new Error(`HTTP ${response.status}`);
+export const apiFetchArray = async (path, options = {}) => {
+  const res = await apiFetch(path, options);
+
+  if (!res.ok) {
+    const body = await res.json().catch(() => ({}));
+    throw new Error(body.message ?? `Erro HTTP ${res.status}`);
   }
-  const data = await response.json();
+
+  const data = await res.json();
   return Array.isArray(data) ? data : [];
 };

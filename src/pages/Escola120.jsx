@@ -1,9 +1,6 @@
 import Layout from "../components/Layout";
 import "../assets/styles/home/Escola120.css";
 
-// CORRIGIDO: removido "import escolaImg from ..." — a imagem era importada
-// mas nunca usada no JSX, causando um aviso de variável inutilizada
-
 function Escola120() {
   return (
     <Layout>

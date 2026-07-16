@@ -1,8 +1,6 @@
 .calendar-page {
     min-height: 100vh;
-    /* CORRIGIDO: era padding: 120px 20px 80px — desnecessário porque a Navbar
-       tem position: relative (não fixed), portanto 120px criava espaço em branco
-       enorme antes do título. Reduzido para 40px top. */
+    
     padding: 40px 20px 80px;
     background: #161616;
 }
@@ -15,26 +13,27 @@
 }
 
 .calendar-container {
-    max-width: 1200px;
+    max-width: 1000px;
     margin: auto;
     background: #161616;
-    border-radius: 20px;
-    padding: 25px;
-    box-shadow: 0 10px 40px #0044ff;
+    border-radius: 24px;
+    padding: 30px;
+    box-shadow: 0 16px 50px rgba(0, 68, 255, 0.18);
 }
 
 .calendar-header {
     display: flex;
-    justify-content: space-between;
+    justify-content: center;
     align-items: center;
     margin-bottom: 25px;
-    gap: 15px;
+    padding: 0 10px;
 }
 
 .calendar-header h2 {
     color: #ffffff;
-    font-size: 1.8rem;
+    font-size: 2rem;
     text-align: center;
+    margin: 0;
 }
 
 .calendar-header button {
@@ -54,53 +53,64 @@
 
 .weekdays {
     display: grid;
-    grid-template-columns: repeat(7, 1fr);
-    margin-bottom: 10px;
-    border-bottom: 2px solid #333;
+    grid-template-columns: repeat(7, minmax(0, 1fr));
+    margin-bottom: 32px;
+    border-bottom: 2px solid #222;
+    gap: 8px;
+    padding-bottom: 10px;
 }
 
 .weekdays div {
     text-align: center;
-    font-weight: 600;
-    padding: 15px;
-    color: #0044ff;
+    font-weight: 700;
+    padding: 14px 8px;
+    color: #48a1ff;
+    background: rgba(255, 255, 255, 0.04);
+    border-radius: 12px;
 }
 
 .calendar-days {
     display: grid;
-    grid-template-columns: repeat(7, 1fr);
+    grid-template-columns: repeat(7, minmax(0, 1fr));
+    gap: 18px;
 }
 
 .day,
 .empty-day {
-    min-height: 100px;
+    min-height: 96px;
     border: 1px solid #222;
     display: flex;
     align-items: center;
     justify-content: center;
     position: relative;
     color: #ddd;
+    background: rgba(255, 255, 255, 0.02);
+    border-radius: 16px;
 }
 
 .day {
     cursor: pointer;
-    transition: .3s;
+    transition: all .25s ease;
+    box-shadow: inset 0 0 0 rgba(255,255,255,.05);
 }
 
 .day:hover {
-    background: rgba(0, 110, 255, .15);
+    background: rgba(0, 110, 255, .16);
+    transform: translateY(-1px);
 }
 
 .today {
-    background: #0044ff;
+    background: linear-gradient(180deg, rgba(0,68,255,0.95), rgba(0,111,255,0.88));
     color: white;
-    font-weight: bold;
-    border-radius: 4px;
+    font-weight: 700;
+    border-radius: 16px;
+    box-shadow: 0 0 0 2px rgba(0, 68, 255, 0.35);
 }
 
 .selected {
-    outline: 3px solid #0044ff;
+    outline: 3px solid rgba(0, 68, 255, 0.6);
     z-index: 2;
+    border-radius: 16px;
 }
 
 .has-event::after {
@@ -108,13 +118,14 @@
     width: 10px;
     height: 10px;
     border-radius: 50%;
-    background: #ff3333;
+    background: #ff6b6b;
     position: absolute;
-    bottom: 10px;
+    bottom: 12px;
+    right: 12px;
+    box-shadow: 0 0 8px rgba(255, 107, 107, 0.4);
 }
 
-/* CORRIGIDO: event-box tinha fundo branco (#fff) e texto escuro — incompatível
-   com o tema dark da aplicação. Corrigido para dark theme consistente. */
+
 .event-box {
     max-width: 1200px;
     margin: 30px auto 0;
@@ -143,14 +154,14 @@
     color: #0044ff;
 }
 
-/* ========================= */
-/* TABLET                    */
-/* ========================= */
+
+
+
 
 @media (max-width: 900px) {
 
     .calendar-page {
-        /* CORRIGIDO: reduzido de 100px para 30px */
+        
         padding: 30px 15px 60px;
     }
 
@@ -178,14 +189,14 @@
     }
 }
 
-/* ========================= */
-/* MOBILE                    */
-/* ========================= */
+
+
+
 
 @media (max-width: 600px) {
 
     .calendar-page {
-        /* CORRIGIDO: reduzido de 90px para 20px */
+        
         padding: 20px 10px 50px;
     }
 
@@ -243,9 +254,9 @@
     }
 }
 
-/* ========================= */
-/* TELEMÓVEIS MUITO PEQUENOS */
-/* ========================= */
+
+
+
 
 @media (max-width: 380px) {
 

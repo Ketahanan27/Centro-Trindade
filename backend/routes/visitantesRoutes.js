@@ -7,14 +7,13 @@ import {
   deleteVisitante
 } from "../controllers/visitantesController.js";
 
-import { verifyToken } from "../middleware/auth.js";
+import { verifyToken, permit } from "../middleware/auth.js";
 
 const router = express.Router();
 
-// ADICIONADO: autenticação JWT em todas as rotas de visitantes
-router.get("/",       verifyToken, getVisitantes);
-router.post("/",      verifyToken, createVisitante);
-router.put("/:id",    verifyToken, updateVisitante);
-router.delete("/:id", verifyToken, deleteVisitante);
+router.get("/",       verifyToken, permit("Administrador", "Secretaria", "Pastor"), getVisitantes);
+router.post("/",      verifyToken, permit("Administrador", "Secretaria"), createVisitante);
+router.put("/:id",    verifyToken, permit("Administrador", "Secretaria"), updateVisitante);
+router.delete("/:id", verifyToken, permit("Administrador", "Secretaria"), deleteVisitante);
 
 export default router;
