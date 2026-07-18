@@ -1,6 +1,10 @@
 # dependencies
 node_modules
 
+# python virtual environment (não deve ser versionado)
+.venv/
+venv/
+
 # production
 dist
 
