@@ -1,10 +1,11 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import Layout from "../components/Layout";
 import "../assets/styles/home/contribua.css";
 
 import mbway from "../assets/img/mbway.png";
 import paypal from "../assets/img/PAYPAL.jpg";
 import { apiFetch } from "../utils/api";
+import { sanitizarTelefone, validarTelefone } from "../utils/validation";
 
 function Contribua() {
 
@@ -20,8 +21,34 @@ function Contribua() {
   const [donationId, setDonationId] = useState(null);
   const [status, setStatus] = useState(null);
 
+  // Faz polling do estado da doação enquanto houver um donationId ativo.
+  // O intervalo é limpo (clearInterval) quando o componente desmonta ou
+  // quando é criada uma nova doação — antes, este setInterval era criado
+  // fora de qualquer useEffect e nunca era cancelado ao mudar de página,
+  // continuando a chamar a API sobre um componente já desmontado.
+  useEffect(() => {
+    if (!donationId) return;
+
+    const start = Date.now();
+    const poll = setInterval(async () => {
+      try {
+        const res = await apiFetch(`/api/donate/status/${donationId}`);
+        const json = await res.json();
+        setStatus(json.status);
+        if (json.status === "PAID" || Date.now() - start > 2 * 60 * 1000) {
+          clearInterval(poll);
+        }
+      } catch (err) {
+        clearInterval(poll);
+      }
+    }, 2000);
+
+    return () => clearInterval(poll);
+  }, [donationId]);
+
   const handleChange = (e) => {
-    setForm({ ...form, [e.target.name]: e.target.value });
+    const { name, value } = e.target;
+    setForm({ ...form, [name]: name === "telemovel" ? sanitizarTelefone(value) : value });
   };
 
   const handleSubmit = (e) => {
@@ -32,8 +59,8 @@ function Contribua() {
       return;
     }
 
-    if (!form.telemovel.trim() || form.telemovel.length < 9) {
-      alert("Introduza um número de telemóvel válido.");
+    if (!validarTelefone(form.telemovel)) {
+      alert("Introduza um número de telemóvel válido (9 dígitos).");
       return;
     }
 
@@ -60,27 +87,6 @@ function Contribua() {
         setDonationId(data.donationId);
         setStatus(data.status);
         setEnviado(true);
-
-        const start = Date.now();
-        const poll = setInterval(async () => {
-          try {
-            const res = await apiFetch(`/api/donate/status/${data.donationId}`);
-            const json = await res.json();
-            setStatus(json.status);
-            if (json.status === "PAID") {
-              clearInterval(poll);
-              setLoading(false);
-            }
-            if (Date.now() - start > 2 * 60 * 1000) {
-              clearInterval(poll);
-              setLoading(false);
-            }
-          } catch (err) {
-            clearInterval(poll);
-            setLoading(false);
-          }
-        }, 2000);
-
         setForm({ nome: "", telemovel: "", valor: "", descricao: "Selecione uma opção" });
       })
       .catch((err) => {
@@ -120,24 +126,6 @@ function Contribua() {
           {donationId && (
             <div className="contribua-status">
               <p>ID: {donationId} — Estado: {status}</p>
-              {status !== "PAID" && (
-                <button
-                  className="btn"
-                  onClick={async () => {
-                    try {
-                      const res = await apiFetch(`/api/donate/simulate/${donationId}`, { method: "POST" });
-                      if (!res.ok) throw new Error("Simulação falhou");
-                      const j = await res.json();
-                      setStatus(j.donation.status);
-                      alert("Simulado: marcado como PAID");
-                    } catch (err) {
-                      alert(err.message || "Erro");
-                    }
-                  }}
-                >
-                  Simular confirmação (desenvolvimento)
-                </button>
-              )}
             </div>
           )}
 

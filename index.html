@@ -6,11 +6,27 @@
 
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
 
+  <!--
+    CSP: restringe de onde o browser pode carregar/scripts/estilos/ligar-se.
+    connect-src inclui o backend local de desenvolvimento (porta 5000); ao
+    publicar em produção, adicionar aqui o domínio real da API.
+  -->
+  <meta http-equiv="Content-Security-Policy"
+content="
+default-src 'self';
+img-src 'self' data: blob:;
+style-src 'self' 'unsafe-inline';
+script-src 'self';
+connect-src 'self'
+http://localhost:5000
+http://127.0.0.1:5000;
+font-src 'self' data:;
+object-src 'none';
+base-uri 'self';
+frame-ancestors 'none';
+">
+
   <title>TRINDADE</title>
-
-  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/remixicon/3.5.0/remixicon.min.css" />
-
-  <link href="https://cdn.jsdelivr.net/npm/remixicon/fonts/remixicon.css" rel="stylesheet" />
 </head>
 
 <body>

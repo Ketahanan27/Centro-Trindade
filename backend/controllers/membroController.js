@@ -1,6 +1,10 @@
 import db from "../config/db.js";
 
 const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+// Mesma regra usada em visitantesController.js e no endpoint /membros/me —
+// um telemóvel, quando indicado, tem sempre exatamente 9 dígitos.
+const TELEFONE_RE = /^\d{9}$/;
+const TELEFONE_MENSAGEM = "O telemóvel deve conter exatamente 9 dígitos.";
 
 const query = (sql, params = []) =>
   new Promise((resolve, reject) =>
@@ -21,6 +25,9 @@ export const createMember = async (req, res) => {
     }
     if (email?.trim() && !EMAIL_RE.test(email)) {
       return res.status(400).json({ message: "Formato de email inválido." });
+    }
+    if (telemovel && !TELEFONE_RE.test(String(telemovel).trim())) {
+      return res.status(400).json({ message: TELEFONE_MENSAGEM });
     }
     await query(
       `INSERT INTO membros
@@ -93,6 +100,9 @@ export const updateMember = async (req, res) => {
     if (email?.trim() && !EMAIL_RE.test(email)) {
       return res.status(400).json({ message: "Formato de email inválido." });
     }
+    if (telemovel && !TELEFONE_RE.test(String(telemovel).trim())) {
+      return res.status(400).json({ message: TELEFONE_MENSAGEM });
+    }
     await query(
       `UPDATE membros
        SET nome=?, email=?, telemovel=?, nascimento=?, sexo=?,
@@ -135,8 +145,8 @@ export const updateMembroMe = async (req, res) => {
       batizado,
     } = req.body;
 
-    if (telemovel && !/^\d{1,9}$/.test(String(telemovel).trim())) {
-      return res.status(400).json({ message: "O telemóvel deve ter até 9 dígitos." });
+    if (telemovel && !TELEFONE_RE.test(String(telemovel).trim())) {
+      return res.status(400).json({ message: TELEFONE_MENSAGEM });
     }
 
     if (codigo_postal && !/^\d{4}-\d{3}$/.test(String(codigo_postal).trim())) {

@@ -1,9 +1,9 @@
 import express from "express";
 import { getRelatorios } from "../controllers/relatoriosController.js";
-import { verifyToken } from "../middleware/auth.js";
+import { verifyToken, permit } from "../middleware/auth.js";
 
 const router = express.Router();
 
-router.get("/", verifyToken, getRelatorios);
+router.get("/", verifyToken, permit("Administrador", "Secretaria", "Pastor", "Tesouraria"), getRelatorios);
 
 export default router;

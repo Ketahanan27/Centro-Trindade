@@ -29,6 +29,13 @@ export const PERMISSOES = {
   },
 };
 
+// IMPORTANTE: isto é apenas um "hint" de UI (mostrar/esconder menus e
+// campos), lido de localStorage — nunca é, nem pode ser, a fonte real de
+// autorização. localStorage é controlado pelo utilizador no próprio browser
+// e pode ser alterado livremente via DevTools. A autorização verdadeira
+// (o que cada perfil pode realmente fazer) é sempre imposta no backend,
+// pelo middleware permit()/adminOnly em middleware/auth.js — é isso que
+// protege os dados, não este ficheiro.
 export const getPerfil = () => {
   try { return JSON.parse(localStorage.getItem("user") || "{}").perfil || "Membro"; }
   catch { return "Membro"; }

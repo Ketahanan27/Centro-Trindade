@@ -19,16 +19,16 @@ function Footer() {
 
           <div className="footer-section contactos">
             <h4>Contactos</h4>
-            <a href="tel:+258000000000">+258 000 000 000</a>
+            <a href="tel:+351000000000">+351 000 000 000</a>
             <a href="mailto:contato@trindade3oficial.com">contato@trindade3oficial.com</a>
-            <span>Av. Principal, Bairro Trindade, Cidade</span>
+            <span>Av. Principal, Bairro Trindade, Portugal</span>
             <span>Seg-Sex • 09h00 - 18h00</span>
           </div>
 
           <div className="footer-section">
             <h4>Recursos</h4>
-            <a href="#">Política de Privacidade</a>
-            <a href="#">Termos e Condições</a>
+            <Link to="../politica-privacidade">Política de Privacidade</Link>
+            <Link to="/termos-condicoes">Termos e Condições</Link>
             <a href="#">Perguntas Frequentes</a>
             <a href="#">Doações</a>
           </div>

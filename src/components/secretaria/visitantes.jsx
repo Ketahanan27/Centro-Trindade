@@ -1,13 +1,17 @@
-import { useEffect, useState, useCallback } from "react";
+import { useState } from "react";
 import { usePerfil } from "../../routes/ProctedRoute";
 import { toast } from "../../utils/toast";
-import { apiFetch, apiFetchArray } from "../../utils/api";
+import { apiFetch } from "../../utils/api";
+import { useListaRemota, executarAcaoCrud } from "../../utils/useCrud";
 import "../../assets/styles/dashboard/visitantes.css";
 
 function Visitantes() {
   const { soLeitura } = usePerfil();
 
-    const [visitantes, setVisitantes]     = useState([]);
+    const [visitantes, , carregarVisitantes] = useListaRemota(
+        "/api/visitantes",
+        "Não foi possível carregar os visitantes. Tente novamente."
+    );
     const [search, setSearch]             = useState("");
     const [filtroEstado, setFiltroEstado] = useState("Todos");
     const [showModal, setShowModal]       = useState(false);
@@ -18,17 +22,6 @@ function Visitantes() {
         data_visita: "", convidado_por: "",
         observacoes: "", estado: "Visitante"
     });
-
-    const carregarVisitantes = useCallback(async () => {
-        try {
-            const data = await apiFetchArray("/api/visitantes");
-            setVisitantes(data);
-        } catch (error) {
-            console.error("[carregarVisitantes]", error);
-        }
-    }, []);
-
-    useEffect(() => { carregarVisitantes(); }, [carregarVisitantes]);
 
     const handleChange      = (e) => setFormData({ ...formData, [e.target.name]: e.target.value });
     const handlePhoneChange = (e) => setFormData({ ...formData, telefone: e.target.value.replace(/\D/g, "") });
@@ -49,35 +42,26 @@ function Visitantes() {
 
     const handleCreate = async () => {
         if (!validarFormulario()) return;
-        try {
-            const response = await apiFetch("/api/visitantes", { method: "POST", body: JSON.stringify(formData) });
-            const data = await response.json();
-            if (!response.ok) { toast.erro(data.message); return; }
-            toast.sucesso(data.message);
-            carregarVisitantes(); clearForm(); setShowModal(false);
-        } catch (error) { console.error(error); }
+        await executarAcaoCrud(
+            apiFetch("/api/visitantes", { method: "POST", body: JSON.stringify(formData) }),
+            { aoSucesso: () => { carregarVisitantes(); clearForm(); setShowModal(false); } }
+        );
     };
 
     const handleEdit = async () => {
         if (!validarFormulario() || !editId) return;
-        try {
-            const response = await apiFetch(`/api/visitantes/${editId}`, { method: "PUT", body: JSON.stringify(formData) });
-            const data = await response.json();
-            if (!response.ok) { toast.erro(data.message); return; }
-            toast.sucesso(data.message);
-            carregarVisitantes(); clearForm(); setShowModal(false);
-        } catch (error) { console.error(error); }
+        await executarAcaoCrud(
+            apiFetch(`/api/visitantes/${editId}`, { method: "PUT", body: JSON.stringify(formData) }),
+            { aoSucesso: () => { carregarVisitantes(); clearForm(); setShowModal(false); } }
+        );
     };
 
     const handleDelete = async (id) => {
         if (!window.confirm("Deseja eliminar este visitante?")) return;
-        try {
-            const response = await apiFetch(`/api/visitantes/${id}`, { method: "DELETE" });
-            const data = await response.json();
-            if (!response.ok) { toast.erro(data.message); return; }
-            toast.sucesso(data.message);
-            carregarVisitantes();
-        } catch (error) { console.error(error); }
+        await executarAcaoCrud(
+            apiFetch(`/api/visitantes/${id}`, { method: "DELETE" }),
+            { aoSucesso: carregarVisitantes }
+        );
     };
 
     const handleSelectVisitor = (v) => {

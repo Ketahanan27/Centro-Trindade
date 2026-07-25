@@ -1,8 +1,9 @@
-import { useState, useEffect, useCallback } from "react";
+import { useState } from "react";
 import { createPortal } from "react-dom";
 import DashboardLayout from "../../components/dashboard/dashboardlayout";
-import { apiFetch, apiFetchArray } from "../../utils/api";
+import { apiFetch } from "../../utils/api";
 import { toast } from "../../utils/toast";
+import { useListaRemota, executarAcaoCrud } from "../../utils/useCrud";
 import "../../assets/styles/dashboard/utilizadores.css";
 
 const getUser = () => {
@@ -115,12 +116,8 @@ function ModalDetalhes({ user, onClose, onEdit, onReset, currentUserId }) {
   const handleReset = async () => {
     if (!window.confirm(`Enviar link de reset de palavra-passe para ${user.email}?`)) return;
     setResetLoading(true);
-    try {
-      const res  = await apiFetch(`/api/auth/users/${user.id}/reset`, { method: "POST" });
-      const data = await res.json();
-      toast.sucesso(data.message);
-    } catch { toast.erro("Erro ao enviar reset."); }
-    finally { setResetLoading(false); }
+    await executarAcaoCrud(apiFetch(`/api/auth/users/${user.id}/reset`, { method: "POST" }));
+    setResetLoading(false);
   };
 
   return createPortal(
@@ -168,8 +165,10 @@ function ModalDetalhes({ user, onClose, onEdit, onReset, currentUserId }) {
 const FORM_VAZIO = { nome: "", email: "", perfil: "Membro", estado: "Ativo" };
 
 function Utilizadores() {
-  const [users,          setUsers]          = useState([]);
-  const [loading,        setLoading]        = useState(true);
+  const [users, setUsers, carregarUtilizadores, loading] = useListaRemota(
+    "/api/auth/users",
+    "Não foi possível carregar os utilizadores. Tente novamente."
+  );
   const [formLoading,    setFormLoading]    = useState(false);
   const [search,         setSearch]         = useState("");
   const [showModal,      setShowModal]      = useState(false);
@@ -178,18 +177,7 @@ function Utilizadores() {
   const [editId,         setEditId]         = useState(null);
   const [formData,       setFormData]       = useState(FORM_VAZIO);
 
-  const eu = getUser(); 
-
-  const carregarUtilizadores = useCallback(async () => {
-    setLoading(true);
-    try {
-      const data = await apiFetchArray("/api/auth/users");
-      setUsers(data);
-    } catch (err) { console.error("[carregarUtilizadores]", err); }
-    finally { setLoading(false); }
-  }, []);
-
-  useEffect(() => { carregarUtilizadores(); }, [carregarUtilizadores]);
+  const eu = getUser();
 
   const handleChange = (e) => setFormData(prev => ({ ...prev, [e.target.name]: e.target.value }));
 
@@ -204,30 +192,23 @@ function Utilizadores() {
   const handleSubmit = async (e) => {
     e.preventDefault();
     setFormLoading(true);
-    try {
-      const res = await apiFetch(
+    await executarAcaoCrud(
+      apiFetch(
         editId ? `/api/auth/users/${editId}` : "/api/auth/users",
         { method: editId ? "PUT" : "POST", body: JSON.stringify(formData) }
-      );
-      const data = await res.json();
-      if (!res.ok) { toast.sucesso(data.message); return; }
-      toast.sucesso(data.message);
-      setShowModal(false);
-      carregarUtilizadores();
-    } catch { toast.erro("Erro ao comunicar com o servidor."); }
-    finally { setFormLoading(false); }
+      ),
+      { aoSucesso: () => { setShowModal(false); carregarUtilizadores(); } }
+    );
+    setFormLoading(false);
   };
 
   const eliminar = async (user) => {
     if (user.id === eu.id) { toast.erro("Não pode eliminar a sua própria conta."); return; }
     if (!window.confirm(`Eliminar o utilizador "${user.nome}"?`)) return;
-    try {
-      const res  = await apiFetch(`/api/auth/users/${user.id}`, { method: "DELETE" });
-      const data = await res.json();
-      if (!res.ok) { toast.sucesso(data.message); return; }
-      toast.sucesso(data.message);
-      setUsers(prev => prev.filter(u => u.id !== user.id));
-    } catch { toast.erro("Erro ao comunicar com o servidor."); }
+    await executarAcaoCrud(
+      apiFetch(`/api/auth/users/${user.id}`, { method: "DELETE" }),
+      { aoSucesso: () => setUsers(prev => prev.filter(u => u.id !== user.id)) }
+    );
   };
 
   const filtrados = users.filter(u =>

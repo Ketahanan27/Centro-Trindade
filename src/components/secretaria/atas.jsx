@@ -1,23 +1,18 @@
-import { useState, useEffect } from "react"; 
+import { useState } from "react";
 import { jsPDF } from "jspdf";
 import logo from "../../assets/img/principal.png";
 import { usePerfil } from "../../routes/ProctedRoute";
 import { toast } from "../../utils/toast";
+import { apiFetch } from "../../utils/api";
+import { useListaRemota, executarAcaoCrud } from "../../utils/useCrud";
 
 function Atas() {
     const { soLeitura } = usePerfil();
 
-    const [reunioes, setReunioes] = useState(() => {
-        const dados = localStorage.getItem("reunioes");
-        return dados ? JSON.parse(dados) : [];
-    });
-
-    useEffect(() => {
-        localStorage.setItem(
-            "reunioes",
-            JSON.stringify(reunioes)
-        );
-    }, [reunioes]);
+    const [reunioes, setReunioes, carregarReunioes] = useListaRemota(
+        "/api/atas",
+        "Não foi possível carregar as reuniões. Tente novamente."
+    );
 
     const [search, setSearch] = useState("");
 
@@ -25,8 +20,7 @@ function Atas() {
     const [showDetails, setShowDetails] = useState(false);
 
     const [selectedMeeting, setSelectedMeeting] = useState(null);
-    const [selectedMeetingIndex, setSelectedMeetingIndex] = useState(null);
-    const [editIndex, setEditIndex] = useState(null);
+    const [editId, setEditId] = useState(null);
 
     const [formData, setFormData] = useState({
         titulo: "",
@@ -58,12 +52,11 @@ function Atas() {
             observacoes: "",
         });
 
-        setEditIndex(null);
+        setEditId(null);
         setSelectedMeeting(null);
-        setSelectedMeetingIndex(null);
     };
 
-    const handleSubmit = (e) => {
+    const handleSubmit = async (e) => {
         e.preventDefault();
 
         if (!formData.titulo.trim()) {
@@ -81,91 +74,65 @@ function Atas() {
             return;
         }
 
-        if (editIndex !== null) {
-
-            const updated = [...reunioes];
-
-            updated[editIndex] = formData;
-
-            updated.sort((a, b) => {
-
-                const dateA =
-                    new Date(`${a.data} ${a.hora}`);
-
-                const dateB =
-                    new Date(`${b.data} ${b.hora}`);
-
-                return dateA - dateB;
-
-            });
-
-            setReunioes(updated);
-
-        } else {
-
-            const updated = [
-                ...reunioes,
-                formData
-            ];
-
-            updated.sort(
-                (a, b) =>
-                    new Date(a.data) -
-                    new Date(b.data)
-            );
-
-            setReunioes(updated);
-        }
-
-        resetForm();
-        setShowModal(false);
+        await executarAcaoCrud(
+            apiFetch(
+                editId !== null ? `/api/atas/${editId}` : "/api/atas",
+                { method: editId !== null ? "PUT" : "POST", body: JSON.stringify(formData) }
+            ),
+            { aoSucesso: () => { resetForm(); setShowModal(false); carregarReunioes(); } }
+        );
     };
 
-    const handleEdit = (index) => {
-        setFormData(reunioes[index]);
-        setEditIndex(index);
+    const handleEdit = (reuniao) => {
+        setFormData({
+            titulo: reuniao.titulo,
+            data: reuniao.data,
+            hora: reuniao.hora,
+            local: reuniao.local || "",
+            participantes: reuniao.participantes || "",
+            resumo: reuniao.resumo || "",
+            decisoes: reuniao.decisoes || "",
+            observacoes: reuniao.observacoes || "",
+        });
+        setEditId(reuniao.id);
         setShowModal(true);
     };
 
-    const handleDelete = (index) => {
-        if (window.confirm("Eliminar reunião?")) {
-            const updated = reunioes.filter((_, i) => i !== index);
-            setReunioes(updated);
-        }
+    const handleDelete = async (id) => {
+        if (!window.confirm("Eliminar reunião?")) return;
+
+        await executarAcaoCrud(
+            apiFetch(`/api/atas/${id}`, { method: "DELETE" }),
+            {
+                aoSucesso: () => {
+                    setReunioes((prev) => prev.filter((r) => r.id !== id));
+                    if (selectedMeeting?.id === id) setSelectedMeeting(null);
+                },
+            }
+        );
     };
 
-    const handleSelect = (index) => {
-        const meeting = reunioes[index];
-        setSelectedMeeting(meeting);
-        setSelectedMeetingIndex(index);
+    const handleSelect = (reuniao) => {
+        setSelectedMeeting(reuniao);
     };
 
-    const handleView = (index) => {
-        const meeting = reunioes[index];
-        setSelectedMeeting(meeting);
-        setSelectedMeetingIndex(index);
+    const handleView = (reuniao) => {
+        setSelectedMeeting(reuniao);
         setShowDetails(true);
     };
 
     const handlePrint = () => {
         if (reunioes.length === 0) return;
 
-        const indexToPrint =
-            selectedMeetingIndex !== null
-                ? selectedMeetingIndex
-                : 0;
-
-        const meetingToPrint = reunioes[indexToPrint];
+        const meetingToPrint = selectedMeeting ?? reunioes[0];
         if (!meetingToPrint) return;
 
         setSelectedMeeting(meetingToPrint);
-        setSelectedMeetingIndex(indexToPrint);
         setShowDetails(true);
 
         const doc = new jsPDF({ unit: "pt", format: "a4" });
         const margin = 40;
         const headerHeight = 80;
-        const footerHeight = 40;
         let cursorY = margin + headerHeight;
 
         const drawHeader = () => {
@@ -336,71 +303,60 @@ function Atas() {
 
                         ) : (
 
-                            filteredMeetings.map((r) => {
+                            filteredMeetings.map((r) => (
 
-                                const originalIndex = reunioes.findIndex(
-                                    item =>
-                                        item.titulo === r.titulo &&
-                                        item.data === r.data &&
-                                        item.hora === r.hora
-                                );
+                                <tr
+                                    key={r.id}
+                                    className={
+                                        selectedMeeting?.id === r.id
+                                            ? "selected-row"
+                                            : ""
+                                    }
+                                    onClick={() => handleSelect(r)}
+                                >
 
-                                return (
+                                    <td>{r.titulo}</td>
 
-                                    <tr
-                                        key={`${r.titulo}-${r.data}-${r.hora}`}
-                                        className={
-                                            selectedMeetingIndex === originalIndex
-                                                ? "selected-row"
-                                                : ""
-                                        }
-                                        onClick={() => handleSelect(originalIndex)}
-                                    >
+                                    <td>
+                                        {new Date(r.data)
+                                            .toLocaleDateString("pt-PT")}
+                                    </td>
 
-                                        <td>{r.titulo}</td>
+                                    <td>{r.hora}</td>
 
-                                        <td>
-                                            {new Date(r.data)
-                                                .toLocaleDateString("pt-PT")}
-                                        </td>
+                                    <td>{r.local}</td>
 
-                                        <td>{r.hora}</td>
+                                    <td className="actions">
 
-                                        <td>{r.local}</td>
+                                        <button
+                                            className="view"
+                                            onClick={() => handleView(r)}
+                                        >
+                                            <i className="ri-eye-line"></i>
+                                        </button>
 
-                                        <td className="actions">
-
+                                        {!soLeitura && (<><button
+                                            className="edit"
+                                            onClick={() =>
+                                                handleEdit(r)
+                                            }
+                                        >
+                                            <i className="ri-pencil-line"></i>
+                                        </button>
                                             <button
-                                                className="view"
-                                                onClick={() => handleView(originalIndex)}
-                                            >
-                                                <i className="ri-eye-line"></i>
-                                            </button>
-
-                                            {!soLeitura && (<><button
-                                                className="edit"
+                                                className="delete"
                                                 onClick={() =>
-                                                    handleEdit(originalIndex)
+                                                    handleDelete(r.id)
                                                 }
                                             >
-                                                <i className="ri-pencil-line"></i>
-                                            </button>
-                                                <button
-                                                    className="delete"
-                                                    onClick={() =>
-                                                        handleDelete(originalIndex)
-                                                    }
-                                                >
-                                                    <i className="ri-delete-bin-line"></i>
-                                                </button></>)}
+                                                <i className="ri-delete-bin-line"></i>
+                                            </button></>)}
 
-                                        </td>
+                                    </td>
 
-                                    </tr>
+                                </tr>
 
-                                );
-
-                            })
+                            ))
                         )}
 
                     </tbody>
@@ -419,7 +375,7 @@ function Atas() {
                             <div className="modal-header">
 
                                 <h2>
-                                    {editIndex !== null
+                                    {editId !== null
                                         ? "Editar Reunião"
                                         : "Registar Reunião"}
                                 </h2>

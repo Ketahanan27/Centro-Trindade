@@ -1,8 +1,10 @@
-import { useState, useEffect, useCallback } from "react";
+import { useState } from "react";
 import DashboardLayout from "../../components/dashboard/dashboardlayout";
 import { usePerfil } from "../../routes/ProctedRoute";
 import { toast } from "../../utils/toast";
-import { apiFetch, apiFetchArray } from "../../utils/api";
+import { apiFetch } from "../../utils/api";
+import { formatarData } from "../../utils/data";
+import { useListaRemota, executarAcaoCrud } from "../../utils/useCrud";
 import "../../assets/styles/dashboard/agenda.css";
 
 function Agenda() {
@@ -14,30 +16,16 @@ function Agenda() {
   const [currentDate, setCurrentDate] = useState(new Date());
   const [selectedDate, setSelectedDate] = useState(null);
   const [selectedEvent, setSelectedEvent] = useState(null);
-  const [events, setEvents] = useState([]);
+  const [events, , carregarEventos] = useListaRemota(
+    "/api/eventos",
+    "Não foi possível carregar a agenda. Tente novamente."
+  );
   const [editId, setEditId] = useState(null);
 
   const [formData, setFormData] = useState({
     titulo: "", descricao: "", data_evento: "",
     hora_evento: "", local_evento: "", estado: "Agendado"
   });
-
-  const formatarData = (data) => {
-    if (!data) return "";
-    const p = data.split("T")[0].split("-");
-    return `${p[2]}/${p[1]}/${p[0]}`;
-  };
-
-  const carregarEventos = useCallback(async () => {
-    try {
-      const data = await apiFetchArray("/api/eventos");
-      setEvents(data);
-    } catch (error) {
-      console.error("[carregarEventos]", error);
-    }
-  }, []);
-
-  useEffect(() => { carregarEventos(); }, [carregarEventos]);
 
   const year = currentDate.getFullYear();
   const month = currentDate.getMonth();
@@ -71,33 +59,27 @@ function Agenda() {
   };
 
   const handleCreate = async () => {
-    try {
-      const response = await apiFetch("/api/eventos", { method: "POST", body: JSON.stringify(formData) });
-      const data = await response.json();
-      if (!response.ok) { toast.erro(data.message); return; }
-      toast.sucesso(data.message); carregarEventos(); clearForm();
-    } catch (error) { console.error(error); }
+    await executarAcaoCrud(
+      apiFetch("/api/eventos", { method: "POST", body: JSON.stringify(formData) }),
+      { aoSucesso: () => { carregarEventos(); clearForm(); } }
+    );
   };
 
   const handleEdit = async () => {
     if (!editId) { toast.aviso("Selecione um evento."); return; }
-    try {
-      const response = await apiFetch(`/api/eventos/${editId}`, { method: "PUT", body: JSON.stringify(formData) });
-      const data = await response.json();
-      if (!response.ok) { toast.erro(data.message); return; }
-      toast.sucesso(data.message); carregarEventos(); clearForm();
-    } catch (error) { console.error(error); }
+    await executarAcaoCrud(
+      apiFetch(`/api/eventos/${editId}`, { method: "PUT", body: JSON.stringify(formData) }),
+      { aoSucesso: () => { carregarEventos(); clearForm(); } }
+    );
   };
 
   const handleDelete = async () => {
     if (!editId) return;
     if (!window.confirm("Deseja eliminar este evento?")) return;
-    try {
-      const response = await apiFetch(`/api/eventos/${editId}`, { method: "DELETE" });
-      const data = await response.json();
-      if (!response.ok) { toast.erro(data.message); return; }
-      toast.sucesso(data.message); carregarEventos(); clearForm();
-    } catch (error) { console.error(error); }
+    await executarAcaoCrud(
+      apiFetch(`/api/eventos/${editId}`, { method: "DELETE" }),
+      { aoSucesso: () => { carregarEventos(); clearForm(); } }
+    );
   };
 
   const eventosDoDia = selectedDate
@@ -149,11 +131,11 @@ function Agenda() {
           <div className="event-counter">Total do mês: {eventosDoMes.length}</div>
           <div className="event-list">
             {selectedDate && eventosDoDia.length ? (
-              eventosDoDia.map((e, i) => (
-                <div key={i}
-                  className={`event-item ${selectedEvent === i ? "selected" : ""}`}
+              eventosDoDia.map((e) => (
+                <div key={e.id}
+                  className={`event-item ${selectedEvent === e.id ? "selected" : ""}`}
                   onClick={() => {
-                    setSelectedEvent(i); setEditId(e.id);
+                    setSelectedEvent(e.id); setEditId(e.id);
                     setFormData({
                       titulo: e.titulo, descricao: e.descricao,
                       data_evento: String(e.data_evento).slice(0, 10),

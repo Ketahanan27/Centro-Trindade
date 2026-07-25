@@ -21,5 +21,4 @@ function ProtectedRoute({ children, area }) {
     </PerfilContext.Provider>
   );
 }
-
 export default ProtectedRoute;

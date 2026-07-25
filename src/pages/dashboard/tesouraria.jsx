@@ -102,7 +102,7 @@ function Tesouraria() {
         return;
       }
 
-      toast.erro(data.message);
+      toast.sucesso(data.message);
       limparCampos();
       carregarMovimentos();
     } catch (err) {
@@ -117,7 +117,7 @@ function Tesouraria() {
       natureza: mov.natureza,
       tipo: mov.tipo,
       valor: String(mov.valor),
-      data: mov.data,   
+      data: mov.data,
       observacao: mov.observacao || "",
     });
     window.scrollTo({ top: 0, behavior: "smooth" });
@@ -125,52 +125,43 @@ function Tesouraria() {
 
   const handleDelete = async (id) => {
     if (!window.confirm("Eliminar este movimento permanentemente?")) return;
-
     try {
       const res = await apiFetch(`/api/tesouraria/${id}`, { method: "DELETE" });
       const data = await res.json();
-
       if (!res.ok) {
         toast.erro(data.message);
         return;
       }
-
       setMovimentos((prev) => prev.filter((m) => m.id !== id));
     } catch (err) {
       console.error("[handleDelete]", err);
       toast.erro("Erro ao comunicar com o servidor.");
     }
   };
-
+  
   const entradas = useMemo(
     () => movimentos.filter((m) => m.natureza === "Receita")
       .reduce((acc, m) => acc + Number(m.valor), 0),
     [movimentos]
   );
-
   const saidas = useMemo(
     () => movimentos.filter((m) => m.natureza === "Despesa")
       .reduce((acc, m) => acc + Number(m.valor), 0),
     [movimentos]
   );
-
   const saldo = entradas - saidas;
-
   const movimentosFiltrados = useMemo(() => {
     return movimentos
       .filter((mov) => {
         const matchTexto =
           mov.tipo.toLowerCase().includes(pesquisa.toLowerCase()) ||
           (mov.observacao || "").toLowerCase().includes(pesquisa.toLowerCase());
-
         const matchNatureza =
           filtroNatureza === "Todos" || mov.natureza === filtroNatureza;
-
         return matchTexto && matchNatureza;
       })
       .sort((a, b) => new Date(b.data) - new Date(a.data));
   }, [movimentos, pesquisa, filtroNatureza]);
-
   const totaisPorTipo = useMemo(() => {
     const mapa = {};
     movimentos.forEach((mov) => {

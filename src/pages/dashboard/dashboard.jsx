@@ -191,7 +191,7 @@ function Dashboard() {
     );
   }
 
-  const { stats, proximosEventos, ultimosMembros, ultimosMovimentos, graficoAnual } = dados;
+  const { stats, proximosEventos, ultimosMembros, ultimosMovimentos, graficoAnual, podeVerFinancas } = dados;
 
   return (
     <DashboardLayout>
@@ -208,11 +208,13 @@ function Dashboard() {
           title="Próximos Eventos"
           value={stats.eventos}
         />
-        <Card
-          icon="ri-money-euro-circle-line"
-          title="Receitas do Mês"
-          value={`${Number(stats.receitas).toFixed(2)} €`}
-        />
+        {podeVerFinancas && (
+          <Card
+            icon="ri-money-euro-circle-line"
+            title="Receitas do Mês"
+            value={`${Number(stats.receitas).toFixed(2)} €`}
+          />
+        )}
         <Card
           icon="ri-user-settings-line"
           title="Utilizadores"
@@ -231,8 +233,8 @@ function Dashboard() {
           {proximosEventos.length === 0 ? (
             <p className="dash-vazio">Sem eventos agendados.</p>
           ) : (
-            proximosEventos.map((ev, i) => (
-              <div key={i} className="event-item">
+            proximosEventos.map((ev) => (
+              <div key={ev.id} className="event-item">
                 <span>{ev.titulo}</span>
                 <strong>{ev.data}</strong>
               </div>
@@ -248,8 +250,8 @@ function Dashboard() {
           {ultimosMembros.length === 0 ? (
             <p className="dash-vazio">Sem membros registados.</p>
           ) : (
-            ultimosMembros.map((m, i) => (
-              <div key={i} className="event-item">
+            ultimosMembros.map((m) => (
+              <div key={m.id} className="event-item">
                 <span>{m.nome}</span>
                 <span className={m.estado === "Ativo" ? "dash-badge-ativo" : "dash-badge-inativo"}>
                   {m.estado}
@@ -261,55 +263,59 @@ function Dashboard() {
 
       </section>
 
-      {}
-      <section className="panel">
-        <div className="dash-panel-header">
-          <h2><i className="ri-bar-chart-2-line"></i> Relatórios Financeiros</h2>
-          <span className="dash-ano">{new Date().getFullYear()}</span>
-        </div>
+      {podeVerFinancas && (
+        <>
+          {}
+          <section className="panel">
+            <div className="dash-panel-header">
+              <h2><i className="ri-bar-chart-2-line"></i> Relatórios Financeiros</h2>
+              <span className="dash-ano">{new Date().getFullYear()}</span>
+            </div>
 
-        <GraficoBarras dados={graficoAnual} />
-      </section>
+            <GraficoBarras dados={graficoAnual} />
+          </section>
 
-      {}
-      <section className="panel">
-        <h2><i className="ri-exchange-dollar-line"></i> Últimos Movimentos</h2>
+          {}
+          <section className="panel">
+            <h2><i className="ri-exchange-dollar-line"></i> Últimos Movimentos</h2>
 
-        {ultimosMovimentos.length === 0 ? (
-          <p className="dash-vazio">Sem movimentos registados.</p>
-        ) : (
-          <table className="dash-table">
-            <thead>
-              <tr>
-                <th>Tipo</th>
-                <th>Natureza</th>
-                <th>Valor</th>
-                <th>Data</th>
-              </tr>
-            </thead>
-            <tbody>
-              {ultimosMovimentos.map((mov, i) => (
-                <tr key={i}>
-                  <td>{mov.tipo}</td>
-                  <td>
-                    <span className={
-                      mov.natureza === "Receita"
-                        ? "dash-badge-ativo"
-                        : "dash-badge-inativo"
-                    }>
-                      {mov.natureza}
-                    </span>
-                  </td>
-                  <td className="dash-valor">
-                    {Number(mov.valor).toFixed(2)} €
-                  </td>
-                  <td>{mov.data}</td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        )}
-      </section>
+            {ultimosMovimentos.length === 0 ? (
+              <p className="dash-vazio">Sem movimentos registados.</p>
+            ) : (
+              <table className="dash-table">
+                <thead>
+                  <tr>
+                    <th>Tipo</th>
+                    <th>Natureza</th>
+                    <th>Valor</th>
+                    <th>Data</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {ultimosMovimentos.map((mov) => (
+                    <tr key={mov.id}>
+                      <td>{mov.tipo}</td>
+                      <td>
+                        <span className={
+                          mov.natureza === "Receita"
+                            ? "dash-badge-ativo"
+                            : "dash-badge-inativo"
+                        }>
+                          {mov.natureza}
+                        </span>
+                      </td>
+                      <td className="dash-valor">
+                        {Number(mov.valor).toFixed(2)} €
+                      </td>
+                      <td>{mov.data}</td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            )}
+          </section>
+        </>
+      )}
 
     </DashboardLayout>
   );

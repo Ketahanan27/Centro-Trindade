@@ -3,6 +3,7 @@ import { useState, useEffect, useMemo } from "react";
 import Navbar from "../components/Navbar";
 import Footer from "../components/Footer";
 import { apiFetchArray } from "../utils/api";
+import { formatarData } from "../utils/data";
 
 import "../assets/styles/home/calendario.css";
 
@@ -62,12 +63,6 @@ function Calendario() {
     }),
     [events, year, month]
   );
-
-  const formatarData = (data) => {
-    if (!data) return "";
-    const [year2, month2, day2] = data.split("-");
-    return `${day2}/${month2}/${year2}`;
-  };
 
   const handlePrevMonth = () => {
   };

@@ -9,8 +9,13 @@ export const verifyToken = (req, res, next) => {
   }
 
   try {
-    const decoded = jwt.verify(token, process.env.JWT_SECRET);
-    req.user = decoded; 
+    // Fixa explicitamente o algoritmo aceite. Sem isto, jwt.verify aceita
+    // qualquer algoritmo declarado no cabeçalho do próprio token — incluindo
+    // "none" em bibliotecas mal configuradas, ou permitindo um ataque de
+    // confusão de algoritmo caso o segredo HS256 seja reaproveitado como
+    // chave pública RS256. Fixar "HS256" elimina essa superfície de ataque.
+    const decoded = jwt.verify(token, process.env.JWT_SECRET, { algorithms: ["HS256"] });
+    req.user = decoded;
     next();
   } catch {
     return res.status(401).json({ message: "Token inválido ou expirado." });

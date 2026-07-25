@@ -1,3 +1,5 @@
+import crypto from "crypto";
+
 const donations = new Map();
 
 export const createDonation = (req, res) => {
@@ -6,7 +8,10 @@ export const createDonation = (req, res) => {
     return res.status(400).json({ error: "Dados inválidos" });
   }
 
-  const id = String(Date.now());
+  // IDs sequenciais/previsíveis (Date.now()) permitem IDOR: qualquer pessoa
+  // consegue adivinhar o id de outra doação e consultar os dados pessoais
+  // associados via GET /status/:id. Um UUID v4 não é adivinhável.
+  const id = crypto.randomUUID();
   const pspId = `mock-${id}`;
   const donation = {
     id,
@@ -28,21 +33,12 @@ export const getDonationStatus = (req, res) => {
   const { id } = req.params;
   const donation = donations.get(id);
   if (!donation) return res.status(404).json({ error: "Not found" });
-  return res.json(donation);
-};
-
-export const simulateConfirm = (req, res) => {
-  const { id } = req.params;
-  const donation = donations.get(id);
-  if (!donation) return res.status(404).json({ error: "Not found" });
-  donation.status = "PAGO";
-  donation.paidAt = new Date().toISOString();
-  donations.set(id, donation);
-  return res.json({ ok: true, donation });
+  // Só devolve o mínimo necessário para consultar o estado — nome, telemóvel
+  // e valor não devem ser expostos a quem apenas conhece o id da doação.
+  return res.json({ id: donation.id, status: donation.status, createdAt: donation.createdAt });
 };
 
 export default {
   createDonation,
   getDonationStatus,
-  simulateConfirm,
 };

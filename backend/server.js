@@ -1,5 +1,6 @@
 import express from "express";
 import cors    from "cors";
+import helmet  from "helmet";
 import fs      from "fs";
 import path    from "path";
 import { fileURLToPath } from "url";
@@ -15,6 +16,7 @@ import contactoRoutes      from "./routes/contactoRoutes.js";
 import dashboardRoutes     from "./routes/dashboardRoutes.js";
 import relatoriosRoutes   from "./routes/relatoriosRoutes.js";
 import donateRoutes       from "./routes/donateRoutes.js";
+import atasRoutes         from "./routes/atasRoutes.js";
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -23,6 +25,12 @@ fs.mkdirSync(uploadDir, { recursive: true });
 
 const app = express();
 
+// Helmet com as proteções por omissão (inclui Cross-Origin-Resource-Policy:
+// "same-origin"). O relaxamento para "cross-origin" é aplicado apenas à
+// rota /uploads abaixo, não à API inteira — assim as respostas JSON da API
+// continuam protegidas contra XS-Leaks noutras origens.
+app.use(helmet());
+
 app.use(cors({
   origin:         process.env.FRONTEND_URL || "http://localhost:5173",
   methods:        ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
@@ -30,7 +38,13 @@ app.use(cors({
   credentials:    true,
 }));
 
-app.use("/uploads", express.static(uploadDir));
+// O frontend (Vite, noutra origem/porta) carrega imagens diretamente de
+// /uploads — só esta rota precisa do CORP relaxado para "cross-origin".
+app.use(
+  "/uploads",
+  helmet.crossOriginResourcePolicy({ policy: "cross-origin" }),
+  express.static(uploadDir)
+);
 
 app.use(express.json());
 
@@ -47,11 +61,12 @@ app.use("/api/contacto",      contactoRoutes);
 app.use("/api/dashboard",     dashboardRoutes);
 app.use("/api/relatorios",    relatoriosRoutes);
 app.use("/api/donate",        donateRoutes);
-app.use((req, res, next) => {           
+app.use("/api/atas",          atasRoutes);
+app.use((req, res, next) => {
   res.status(404).json({ message: "Rota não encontrada." });
 });
 
-app.use((err, req, res, next) => {      
+app.use((err, req, res, next) => {
   console.error("[ERRO NÃO TRATADO]", err);
   if (res.headersSent) return next(err);
   res.status(500).json({ message: "Erro interno do servidor." });

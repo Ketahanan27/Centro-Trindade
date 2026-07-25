@@ -9,6 +9,8 @@ import Login            from "../pages/Login";
 import Calendario       from "../pages/calendario";
 import RedefinirPassword from "../pages/RedefinirPassword";
 import Registo from "../pages/registro"
+import PoliticaPrivacidade from "../pages/politicaprivacidade";
+import TermosCondicoes  from "../pages/termoscondicoes";
 
 import Dashboard        from "../pages/dashboard/dashboard";
 import Membros          from "../pages/dashboard/membros";
@@ -32,6 +34,8 @@ function AppRoutes() {
       <Route path="/registo"             element={<Registo />} />
       <Route path="/calendario"          element={<Calendario />} />
       <Route path="/redefinir-password"  element={<RedefinirPassword />} />
+      <Route path="/politica-privacidade" element={<PoliticaPrivacidade />} />
+      <Route path="/termos-condicoes"    element={<TermosCondicoes />} />
 
       {}
       <Route path="/dashboard" element={

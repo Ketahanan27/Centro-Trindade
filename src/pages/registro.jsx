@@ -11,7 +11,6 @@ function Registo() {
     email: "",
     password: "",
     confirmarPassword: "",
-    perfil: "Membro",
   });
 
   const [loading, setLoading] = useState(false);
@@ -30,6 +29,11 @@ function Registo() {
       return;
     }
 
+    if (formData.password.length < 8) {
+      alert("A palavra-passe deve ter pelo menos 8 caracteres.");
+      return;
+    }
+
     setLoading(true);
 
     try {
@@ -40,7 +44,6 @@ function Registo() {
           nome:   formData.nome,
           email:  formData.email,
           password: formData.password,
-          perfil: formData.perfil,
         }),
       });
 
@@ -110,6 +113,7 @@ function Registo() {
                 value={formData.password}
                 onChange={handleChange}
                 required
+                minLength={8}
               />
               <label>Palavra-passe</label>
               <button
@@ -129,6 +133,7 @@ function Registo() {
                 value={formData.confirmarPassword}
                 onChange={handleChange}
                 required
+                minLength={8}
               />
               <label>Confirmar Palavra-passe</label>
               <button
@@ -141,20 +146,11 @@ function Registo() {
               </button>
             </div>
 
-            <div className="login-input-box">
-              <select
-                name="perfil"
-                value={formData.perfil}
-                onChange={handleChange}
-                style={{ width: "100%", padding: "12px", borderRadius: "8px" }}
-              >
-                <option value="Membro">Membro</option>
-                <option value="Secretaria">Secretaria</option>
-                <option value="Tesouraria">Tesouraria</option>
-                <option value="Pastor">Pastor</option>
-                <option value="Administrador">Administrador</option>
-              </select>
-            </div>
+            <p className="registo-nota">
+              A conta é criada com o perfil <strong>Membro</strong>. Para aceder com outro
+              perfil (Secretaria, Tesouraria, Pastor ou Administrador), contacte um
+              administrador do sistema depois de criar a conta.
+            </p>
 
             <button
               type="submit"

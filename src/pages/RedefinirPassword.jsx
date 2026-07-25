@@ -31,8 +31,8 @@ function RedefinirPassword() {
       return;
     }
 
-    if (form.nova_password.length < 6) {
-      setStatus({ tipo: "erro", texto: "A palavra-passe deve ter pelo menos 6 caracteres." });
+    if (form.nova_password.length < 8) {
+      setStatus({ tipo: "erro", texto: "A palavra-passe deve ter pelo menos 8 caracteres." });
       return;
     }
 
@@ -104,7 +104,7 @@ function RedefinirPassword() {
                   onChange={handleChange}
                   required
                   disabled={loading}
-                  minLength={6}
+                  minLength={8}
                 />
                 <label>Nova Palavra-passe</label>
                 <i
@@ -122,7 +122,7 @@ function RedefinirPassword() {
                   onChange={handleChange}
                   required
                   disabled={loading}
-                  minLength={6}
+                  minLength={8}
                 />
                 <label>Confirmar Palavra-passe</label>
                 <i

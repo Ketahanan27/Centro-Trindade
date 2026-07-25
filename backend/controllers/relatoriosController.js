@@ -5,8 +5,11 @@ const q = (sql, params = []) =>
     db.query(sql, params, (err, rows) => (err ? reject(err) : resolve(rows)))
   );
 
+const PERFIS_FINANCAS = ["Administrador", "Tesouraria", "Pastor"];
+
 export const getRelatorios = async (req, res) => {
   const ano = Number(req.query.ano) || new Date().getFullYear();
+  const podeVerFinancas = PERFIS_FINANCAS.includes(req.user?.perfil);
 
   try {
     const [
@@ -18,7 +21,7 @@ export const getRelatorios = async (req, res) => {
       [geral],
     ] = await Promise.all([
 
-      
+
       q(`SELECT estado, COUNT(*) AS total
          FROM membros
          GROUP BY estado
@@ -29,15 +32,17 @@ export const getRelatorios = async (req, res) => {
          GROUP BY estado
          ORDER BY total DESC`),
 
-      
-      q(`SELECT
-           MONTH(data)  AS mes,
-           ROUND(SUM(CASE WHEN natureza = 'Receita' THEN valor ELSE 0 END), 2) AS receitas,
-           ROUND(SUM(CASE WHEN natureza = 'Despesa' THEN valor ELSE 0 END), 2) AS despesas
-         FROM tesouraria
-         WHERE YEAR(data) = ?
-         GROUP BY MONTH(data)
-         ORDER BY mes`, [ano]),
+
+      podeVerFinancas
+        ? q(`SELECT
+               MONTH(data)  AS mes,
+               ROUND(SUM(CASE WHEN natureza = 'Receita' THEN valor ELSE 0 END), 2) AS receitas,
+               ROUND(SUM(CASE WHEN natureza = 'Despesa' THEN valor ELSE 0 END), 2) AS despesas
+             FROM tesouraria
+             WHERE YEAR(data) = ?
+             GROUP BY MONTH(data)
+             ORDER BY mes`, [ano])
+        : Promise.resolve([]),
 
       q(`SELECT
            MONTH(data_evento) AS mes,
@@ -69,6 +74,14 @@ export const getRelatorios = async (req, res) => {
         [ano, ano, ano, ano]),
     ]);
 
+    // Sem permissão de finanças: não expor os totais financeiros agregados
+    // (as queries financeiras acima já nem chegam a correr).
+    const geralFinal = geral ?? {};
+    if (!podeVerFinancas) {
+      geralFinal.receitas_ano = null;
+      geralFinal.despesas_ano = null;
+    }
+
     res.json({
       ano,
       membrosEstado,
@@ -76,7 +89,8 @@ export const getRelatorios = async (req, res) => {
       financeiroMensal,
       eventosMes,
       apresentacoesMes,
-      geral: geral ?? {},
+      geral: geralFinal,
+      podeVerFinancas,
     });
 
   } catch (err) {

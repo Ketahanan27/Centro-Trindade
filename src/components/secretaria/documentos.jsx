@@ -1,8 +1,8 @@
-import { useEffect, useState, useCallback } from "react";
+import { useState } from "react";
 import { usePerfil } from "../../routes/ProctedRoute";
-import { toast } from "../../utils/toast";
 import { jsPDF } from "jspdf";
-import { apiFetch, apiFetchArray } from "../../utils/api";
+import { apiFetch } from "../../utils/api";
+import { useListaRemota, executarAcaoCrud } from "../../utils/useCrud";
 import "../../assets/styles/dashboard/documentos.css";
 
 const TITULOS_DOCUMENTO = {
@@ -19,19 +19,13 @@ function Documentos() {
     data_entrada: "", estado: "Ativo", igreja_destino: "", motivo: ""
   });
 
-  const [documentos, setDocumentos] = useState([]);
+  const [documentos, , carregarDocumentos] = useListaRemota(
+    "/api/documentos",
+    "Não foi possível carregar os documentos. Tente novamente."
+  );
   const [tipoDocumento, setTipoDocumento] = useState("Batismo");
 
   const handleChange = (e) => setFormData({ ...formData, [e.target.name]: e.target.value });
-
-  const carregarDocumentos = useCallback(async () => {
-    try {
-      const data = await apiFetchArray("/api/documentos");
-      setDocumentos(data);
-    } catch (error) { console.error(error); }
-  }, []);
-
-  useEffect(() => { carregarDocumentos(); }, [carregarDocumentos]);
 
   const criarCabecalho = (doc, titulo) => {
     doc.setFont("helvetica", "bold"); doc.setFontSize(18);
@@ -64,17 +58,23 @@ function Documentos() {
   };
 
   const salvarDocumento = async () => {
-    const response = await apiFetch("/api/documentos", {
-      method: "POST",
-      body: JSON.stringify({
-        tipo: tipoDocumento, nome_completo: formData.nome_completo,
-        bi: formData.bi, data_emissao: new Date().toISOString().split("T")[0],
-        dados_json: formData
-      })
-    });
-    const data = await response.json();
-    if (!response.ok) console.error(data.message);
-    else carregarDocumentos();
+    // O gerarPDF() que chama esta função gera o PDF de qualquer forma, mesmo
+    // que este pedido falhe — por isso o aviso de erro de rede é explícito
+    // sobre isso, em vez de usar a mensagem genérica do executarAcaoCrud.
+    await executarAcaoCrud(
+      apiFetch("/api/documentos", {
+        method: "POST",
+        body: JSON.stringify({
+          tipo: tipoDocumento, nome_completo: formData.nome_completo,
+          bi: formData.bi, data_emissao: new Date().toISOString().split("T")[0],
+          dados_json: formData
+        })
+      }),
+      {
+        aoSucesso: carregarDocumentos,
+        mensagemErroRede: "Não foi possível ligar ao servidor. O PDF foi gerado, mas o registo não foi guardado.",
+      }
+    );
   };
 
   const gerarPDF = async () => {
@@ -86,12 +86,10 @@ function Documentos() {
 
   const eliminarDocumento = async (id) => {
     if (!window.confirm("Eliminar documento?")) return;
-    try {
-      const response = await apiFetch(`/api/documentos/${id}`, { method: "DELETE" });
-      const data = await response.json();
-      if (!response.ok) { toast.erro(data.message); return; }
-      carregarDocumentos();
-    } catch (error) { console.error(error); }
+    await executarAcaoCrud(
+      apiFetch(`/api/documentos/${id}`, { method: "DELETE" }),
+      { aoSucesso: carregarDocumentos }
+    );
   };
 
   const reimprimir = (doc) => {

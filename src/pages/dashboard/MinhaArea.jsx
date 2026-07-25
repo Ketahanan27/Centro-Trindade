@@ -1,17 +1,10 @@
 import { useState, useEffect, useMemo } from "react";
 import { apiFetch } from "../../utils/api";
+import { validarTelefone, TELEFONE_MENSAGEM_ERRO } from "../../utils/validation";
+import { formatarData as fmtData } from "../../utils/data";
 import DashboardLayout from "../../components/dashboard/dashboardlayout";
 import "../../assets/styles/dashboard/minha-area.css";
 
-const fmtData = (d) => {
-  if (!d) return "—";
-  const parte = String(d).split("T")[0];
-  const [ano, mes, dia] = parte.split("-");
-  if (!ano || !mes || !dia) return String(d);
-  return `${dia}/${mes}/${ano}`;
-};
-
-const TELEMOVEL_RE = /^\d{1,9}$/;
 const CODIGO_POSTAL_RE = /^\d{4}-\d{3}$/;
 
 function MinhaArea() {
@@ -122,8 +115,8 @@ function MinhaArea() {
     const telemovel = String(formData.telemovel || "").trim();
     const codigoPostal = String(formData.codigo_postal || "").trim();
 
-    if (telemovel && !TELEMOVEL_RE.test(telemovel)) {
-      setFeedback({ type: "error", message: "O telemóvel deve ter até 9 dígitos." });
+    if (telemovel && !validarTelefone(telemovel)) {
+      setFeedback({ type: "error", message: TELEFONE_MENSAGEM_ERRO });
       setSaving(false);
       return;
     }

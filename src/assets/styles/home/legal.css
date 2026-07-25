@@ -1,0 +1,85 @@
+.legal-page {
+  padding-top: 2rem;
+}
+
+.legal-page .legal-header {
+  margin-bottom: 2.5rem;
+  border-bottom: 1px solid var(--border-color);
+  padding-bottom: 1.5rem;
+}
+
+.legal-page .legal-header h1 {
+  font-size: 2rem;
+  font-weight: 700;
+  margin-bottom: .5rem;
+}
+
+.legal-page .legal-updated {
+  color: var(--text-muted);
+  font-size: .9rem;
+}
+
+.legal-page section {
+  margin-bottom: 2.2rem;
+}
+
+.legal-page section h2 {
+  font-size: 1.25rem;
+  font-weight: 600;
+  color: var(--primary-color);
+  margin-bottom: .8rem;
+}
+
+.legal-page section h3 {
+  font-size: 1rem;
+  font-weight: 600;
+  margin: 1rem 0 .5rem;
+}
+
+.legal-page section p,
+.legal-page section li {
+  color: #d9d9d9;
+  line-height: 1.7;
+  font-size: .96rem;
+}
+
+.legal-page section p {
+  margin-bottom: .8rem;
+}
+
+.legal-page section ul {
+  margin: 0 0 .8rem 1.4rem;
+}
+
+.legal-page section li {
+  margin-bottom: .4rem;
+}
+
+.legal-page section a {
+  color: var(--primary-color);
+  text-decoration: underline;
+}
+
+.legal-page .legal-note {
+  background: var(--card-bg);
+  border-left: 3px solid var(--primary-color);
+  border-radius: 8px;
+  padding: 1rem 1.2rem;
+  margin-bottom: .8rem;
+}
+
+.legal-page .legal-note p {
+  margin-bottom: 0;
+}
+
+.legal-page .legal-contacto {
+  background: var(--card-bg);
+  border-radius: 12px;
+  padding: 1.5rem;
+}
+
+.legal-page .legal-back {
+  display: inline-block;
+  margin-top: 1rem;
+  color: var(--primary-color);
+}

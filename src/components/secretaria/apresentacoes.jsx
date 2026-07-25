@@ -1,13 +1,17 @@
-import { useEffect, useState, useCallback } from "react";
+import { useState } from "react";
 import { usePerfil } from "../../routes/ProctedRoute";
 import { toast } from "../../utils/toast";
-import { apiFetch, apiFetchArray } from "../../utils/api";
+import { apiFetch } from "../../utils/api";
+import { useListaRemota, executarAcaoCrud } from "../../utils/useCrud";
 import "../../assets/styles/dashboard/apresentacoes.css";
 
 function Apresentacoes() {
   const { soLeitura } = usePerfil();
 
-  const [apresentacoes, setApresentacoes] = useState([]);
+  const [apresentacoes, , carregarApresentacoes] = useListaRemota(
+    "/api/apresentacoes",
+    "Não foi possível carregar as apresentações. Tente novamente."
+  );
   const [search, setSearch] = useState("");
   const [showModal, setShowModal] = useState(false);
   const [editId, setEditId] = useState(null);
@@ -18,17 +22,6 @@ function Apresentacoes() {
   });
 
   const handleChange = (e) => setFormData({ ...formData, [e.target.name]: e.target.value });
-
-  const carregarApresentacoes = useCallback(async () => {
-    try {
-      const data = await apiFetchArray("/api/apresentacoes");
-      setApresentacoes(data);
-    } catch (error) {
-      console.error("[carregarApresentacoes]", error);
-    }
-  }, []);
-
-  useEffect(() => { carregarApresentacoes(); }, [carregarApresentacoes]);
 
   const totalApresentacoes = apresentacoes.length;
   const totalCriancas = apresentacoes.reduce((t, i) => t + Number(i.quantidade), 0);
@@ -52,13 +45,10 @@ function Apresentacoes() {
   const handleCreate = async () => {
     if (!formData.data_apresentacao) { toast.aviso("Selecione uma data."); return; }
     if (!formData.quantidade || Number(formData.quantidade) <= 0) { toast.aviso("Quantidade inválida."); return; }
-    try {
-      const response = await apiFetch("/api/apresentacoes", { method: "POST", body: JSON.stringify(formData) });
-      const data = await response.json();
-      if (!response.ok) { toast.erro(data.message); return; }
-      toast.sucesso(data.message);
-      carregarApresentacoes(); clearForm(); setShowModal(false);
-    } catch (error) { console.error(error); }
+    await executarAcaoCrud(
+      apiFetch("/api/apresentacoes", { method: "POST", body: JSON.stringify(formData) }),
+      { aoSucesso: () => { carregarApresentacoes(); clearForm(); setShowModal(false); } }
+    );
   };
 
   const handleSelect = (item) => {
@@ -72,24 +62,18 @@ function Apresentacoes() {
 
   const handleEdit = async () => {
     if (!editId) return;
-    try {
-      const response = await apiFetch(`/api/apresentacoes/${editId}`, { method: "PUT", body: JSON.stringify(formData) });
-      const data = await response.json();
-      if (!response.ok) { toast.erro(data.message); return; }
-      toast.sucesso(data.message);
-      carregarApresentacoes(); clearForm(); setShowModal(false);
-    } catch (error) { console.error(error); }
+    await executarAcaoCrud(
+      apiFetch(`/api/apresentacoes/${editId}`, { method: "PUT", body: JSON.stringify(formData) }),
+      { aoSucesso: () => { carregarApresentacoes(); clearForm(); setShowModal(false); } }
+    );
   };
 
   const handleDelete = async (id) => {
     if (!window.confirm("Deseja eliminar este registo?")) return;
-    try {
-      const response = await apiFetch(`/api/apresentacoes/${id}`, { method: "DELETE" });
-      const data = await response.json();
-      if (!response.ok) { toast.erro(data.message); return; }
-      toast.sucesso(data.message);
-      carregarApresentacoes();
-    } catch (error) { console.error(error); }
+    await executarAcaoCrud(
+      apiFetch(`/api/apresentacoes/${id}`, { method: "DELETE" }),
+      { aoSucesso: carregarApresentacoes }
+    );
   };
 
   return (

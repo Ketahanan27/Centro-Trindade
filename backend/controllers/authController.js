@@ -13,6 +13,11 @@ const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
 const PERFIS_VALIDOS = ["Administrador", "Pastor", "Secretaria", "Tesouraria", "Membro"];
 
+// Mensagem única de credenciais inválidas, usada para email inexistente,
+// conta inativa e password errada — impede que um atacante enumere contas
+// válidas observando respostas diferentes (OWASP A07 / M2).
+const CREDENCIAIS_INVALIDAS = { message: "Credenciais inválidas." };
+
 const criarTransporter = () =>
   nodemailer.createTransport({
     service: "gmail",
@@ -29,8 +34,8 @@ export const register = async (req, res) => {
     if (!EMAIL_RE.test(email)) {
       return res.status(400).json({ message: "Formato de email inválido." });
     }
-    if (password.length < 6) {
-      return res.status(400).json({ message: "A palavra-passe deve ter pelo menos 6 caracteres." });
+    if (password.length < 8) {
+      return res.status(400).json({ message: "A palavra-passe deve ter pelo menos 8 caracteres." });
     }
 
     const existe = await query("SELECT id FROM utilizadores WHERE email = ?", [email.trim()]);
@@ -67,27 +72,34 @@ export const login = async (req, res) => {
     );
 
     if (result.length === 0) {
-      return res.status(401).json({ message: "Credenciais inválidas." });
+      return res.status(401).json(CREDENCIAIS_INVALIDAS);
     }
 
     const user = result[0];
 
+    // Antes esta verificação devolvia uma mensagem distinta ("Conta
+    // inativa..."), o que permitia a um atacante distinguir "email não
+    // existe" de "email existe mas está inativo" — uma enumeração de contas.
+    // Agora devolve a mesma mensagem genérica que password errada.
     if (user.estado !== "Ativo") {
-      return res.status(401).json({ message: "Conta inativa. Contacte o administrador." });
+      return res.status(401).json(CREDENCIAIS_INVALIDAS);
     }
 
     const ok = await bcrypt.compare(password, user.password);
     if (!ok) {
-      return res.status(401).json({ message: "Credenciais inválidas." });
+      return res.status(401).json(CREDENCIAIS_INVALIDAS);
     }
 
     query("UPDATE utilizadores SET ultimo_acesso = NOW() WHERE id = ?", [user.id])
       .catch((e) => console.warn("[login] ultimo_acesso:", e.message));
 
+    // Fixa explicitamente o algoritmo de assinatura (ver também
+    // middleware/auth.js), para eliminar qualquer ambiguidade/downgrade de
+    // algoritmo entre a emissão e a verificação do token.
     const token = jwt.sign(
       { id: user.id, perfil: user.perfil },
       process.env.JWT_SECRET,
-      { expiresIn: "1d" }
+      { expiresIn: "1d", algorithm: "HS256" }
     );
 
     res.json({
@@ -108,13 +120,21 @@ export const recuperarPassword = async (req, res) => {
       return res.status(400).json({ message: "Email obrigatório." });
     }
 
+    // Resposta sempre igual (200 + mensagem genérica), exista ou não a
+    // conta — caso contrário o próprio status HTTP permite enumerar emails
+    // registados (OWASP A07 / M3). O email só é enviado quando a conta
+    // existe e está ativa.
+    const MENSAGEM_GENERICA = {
+      message: "Se existir uma conta ativa com este email, foi enviado um link de recuperação.",
+    };
+
     const result = await query(
       "SELECT id, nome FROM utilizadores WHERE email = ? AND estado = 'Ativo'",
       [email.trim()]
     );
 
     if (result.length === 0) {
-      return res.status(404).json({ message: "Nenhuma conta ativa encontrada com este email." });
+      return res.json(MENSAGEM_GENERICA);
     }
 
     const user   = result[0];
@@ -145,7 +165,7 @@ export const recuperarPassword = async (req, res) => {
         </div></div>`,
     });
 
-    res.json({ message: "Email enviado! Verifique a sua caixa de correio." });
+    res.json(MENSAGEM_GENERICA);
 
   } catch (e) {
     console.error("[recuperarPassword]", e.message);
@@ -163,8 +183,8 @@ export const redefinirPassword = async (req, res) => {
     if (!token || !nova_password) {
       return res.status(400).json({ message: "Token e nova palavra-passe são obrigatórios." });
     }
-    if (nova_password.length < 6) {
-      return res.status(400).json({ message: "Mínimo 6 caracteres." });
+    if (nova_password.length < 8) {
+      return res.status(400).json({ message: "A palavra-passe deve ter pelo menos 8 caracteres." });
     }
 
     const result = await query(

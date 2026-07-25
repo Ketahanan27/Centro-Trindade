@@ -1,7 +1,10 @@
-import { useState, useEffect, useCallback } from "react";
+import { useState } from "react";
 import { createPortal } from "react-dom";
 import DashboardLayout from "../../components/dashboard/dashboardlayout";
-import { apiFetch, apiFetchArray } from "../../utils/api";
+import { apiFetch } from "../../utils/api";
+import { sanitizarTelefone } from "../../utils/validation";
+import { formatarData } from "../../utils/data";
+import { useListaRemota, executarAcaoCrud } from "../../utils/useCrud";
 import { usePerfil } from "../../routes/ProctedRoute";
 import { toast } from "../../utils/toast";
 import "../../assets/styles/dashboard/membros.css";
@@ -16,7 +19,10 @@ function Membros() {
   const [selectedMember, setSelectedMember] = useState(null);
   const [editId, setEditId]             = useState(null);
   const [pesquisa, setPesquisa]         = useState("");
-  const [membros, setMembros]           = useState([]);
+  const [membros, , carregarMembros]    = useListaRemota(
+    "/api/membros",
+    "Não foi possível carregar os membros. Tente novamente."
+  );
 
   const [formData, setFormData] = useState({
     nome: "", morada: "", codigo_postal: "",
@@ -24,19 +30,9 @@ function Membros() {
     sexo: "Masculino", estado_civil: "Solteiro(a)",
     entrada: "", batizado: "Não", estado: "Ativo"
   });
-  const carregarMembros = useCallback(async () => {
-    try {
-      const data = await apiFetchArray("/api/membros");
-      setMembros(data);
-    } catch (error) {
-      console.error("[carregarMembros]", error);
-    }
-  }, []);
-
-  useEffect(() => { carregarMembros(); }, [carregarMembros]);
-
   const handleChange = (e) => {
-    setFormData({ ...formData, [e.target.name]: e.target.value });
+    const { name, value } = e.target;
+    setFormData({ ...formData, [name]: name === "telemovel" ? sanitizarTelefone(value) : value });
   };
 
   const limparFormulario = () => {
@@ -51,24 +47,13 @@ function Membros() {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    try {
-      const response = await apiFetch(
+    await executarAcaoCrud(
+      apiFetch(
         editId ? `/api/membros/${editId}` : "/api/membros",
-        {
-          method: editId ? "PUT" : "POST",
-          body: JSON.stringify(formData),
-        }
-      );
-      const data = await response.json();
-      if (!response.ok) { toast.erro(data.message); return; }
-      toast.sucesso(data.message);
-      carregarMembros();
-      limparFormulario();
-      setShowModal(false);
-    } catch (error) {
-      console.error(error);
-      toast.erro("Erro ao comunicar com o servidor.");
-    }
+        { method: editId ? "PUT" : "POST", body: JSON.stringify(formData) }
+      ),
+      { aoSucesso: () => { carregarMembros(); limparFormulario(); setShowModal(false); } }
+    );
   };
 
   const editarMembro = (membro) => {
@@ -92,23 +77,10 @@ function Membros() {
 
   const eliminarMembro = async (id) => {
     if (!window.confirm("Eliminar membro?")) return;
-    try {
-      const response = await apiFetch(`/api/membros/${id}`, { method: "DELETE" });
-      const data = await response.json();
-      if (!response.ok) { toast.erro(data.message); return; }
-      toast.sucesso(data.message);
-      carregarMembros();
-    } catch (error) {
-      console.error(error);
-    }
-  };
-
-  const formatarData = (d) => {
-    if (!d) return "—";
-    const parte = String(d).split("T")[0];       
-    const [ano, mes, dia] = parte.split("-");
-    if (!ano || !mes || !dia) return String(d);   
-    return `${dia}/${mes}/${ano}`;
+    await executarAcaoCrud(
+      apiFetch(`/api/membros/${id}`, { method: "DELETE" }),
+      { aoSucesso: carregarMembros }
+    );
   };
 
   const getAvatarSrc = (foto) => {
