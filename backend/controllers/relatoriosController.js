@@ -20,8 +20,6 @@ export const getRelatorios = async (req, res) => {
       apresentacoesMes,
       [geral],
     ] = await Promise.all([
-
-
       q(`SELECT estado, COUNT(*) AS total
          FROM membros
          GROUP BY estado
@@ -31,7 +29,6 @@ export const getRelatorios = async (req, res) => {
          FROM visitantes
          GROUP BY estado
          ORDER BY total DESC`),
-
 
       podeVerFinancas
         ? q(`SELECT
@@ -74,8 +71,16 @@ export const getRelatorios = async (req, res) => {
         [ano, ano, ano, ano]),
     ]);
 
-    // Sem permissão de finanças: não expor os totais financeiros agregados
-    // (as queries financeiras acima já nem chegam a correr).
+    /*
+    |----------------------------------------------------------------------
+    | Ocultação de dados financeiros
+    |----------------------------------------------------------------------
+    |
+    | Quando o perfil não tem acesso a finanças, as queries financeiras
+    | acima já nem chegam a correr (Promise.resolve([])) — aqui só se
+    | garante que os totais agregados também não saem no payload "geral".
+    |
+    */
     const geralFinal = geral ?? {};
     if (!podeVerFinancas) {
       geralFinal.receitas_ano = null;
@@ -92,7 +97,6 @@ export const getRelatorios = async (req, res) => {
       geral: geralFinal,
       podeVerFinancas,
     });
-
   } catch (err) {
     console.error("[getRelatorios]", err);
     res.status(500).json({ message: "Erro interno do servidor." });

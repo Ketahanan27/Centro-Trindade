@@ -1,6 +1,14 @@
 @import url('https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700;800&display=swap');
 
-
+/*
+|--------------------------------------------------------------------------
+| Variáveis globais
+|--------------------------------------------------------------------------
+|
+| Paleta de cores partilhada por toda a aplicação (site público e área
+| reservada), reutilizada nas folhas de estilo específicas de cada página.
+|
+*/
 :root {
   --primary-color: #0044ff;
   --primary-hover: #001c68;
@@ -15,6 +23,11 @@
   --info-color: #00efff;
 }
 
+/*
+|--------------------------------------------------------------------------
+| Reset e elementos base
+|--------------------------------------------------------------------------
+*/
 html {
   scroll-behavior: smooth;
 }
@@ -40,6 +53,15 @@ img {
   display: block;
 }
 
+/*
+|--------------------------------------------------------------------------
+| Utilitários partilhados
+|--------------------------------------------------------------------------
+|
+| Container central usado como grelha de página, botão primário padrão
+| e o efeito de desfoque decorativo usado em vários fundos.
+|
+*/
 .container {
   max-width: 1200px;
   margin: auto;
@@ -68,6 +90,11 @@ img {
   z-index: -1;
 }
 
+/*
+|--------------------------------------------------------------------------
+| Responsivo
+|--------------------------------------------------------------------------
+*/
 @media (max-width: 768px) {
   .container {
     padding: 3rem 1rem;

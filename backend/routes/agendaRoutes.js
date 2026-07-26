@@ -4,7 +4,7 @@ import {
   createEvent,
   getEvents,
   updateEvent,
-  deleteEvent
+  deleteEvent,
 } from "../controllers/agendaController.js";
 
 import { verifyToken, permit } from "../middleware/auth.js";
@@ -14,8 +14,8 @@ const router = express.Router();
 
 router.get("/", publicReadLimiter, getEvents);
 
-router.post("/",      verifyToken, permit("Administrador", "Secretaria"), writeLimiter, createEvent);
-router.put("/:id",    verifyToken, permit("Administrador", "Secretaria"), writeLimiter, updateEvent);
+router.post("/", verifyToken, permit("Administrador", "Secretaria"), writeLimiter, createEvent);
+router.put("/:id", verifyToken, permit("Administrador", "Secretaria"), writeLimiter, updateEvent);
 router.delete("/:id", verifyToken, permit("Administrador", "Secretaria"), writeLimiter, deleteEvent);
 
 export default router;

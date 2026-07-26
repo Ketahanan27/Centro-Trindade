@@ -41,7 +41,9 @@ function Tesouraria() {
     }
   }, []);
 
-  useEffect(() => { carregarMovimentos(); }, [carregarMovimentos]);
+  useEffect(() => {
+    carregarMovimentos();
+  }, [carregarMovimentos]);
 
   const handleChange = (e) => {
     const { name, value } = e.target;
@@ -138,7 +140,7 @@ function Tesouraria() {
       toast.erro("Erro ao comunicar com o servidor.");
     }
   };
-  
+
   const entradas = useMemo(
     () => movimentos.filter((m) => m.natureza === "Receita")
       .reduce((acc, m) => acc + Number(m.valor), 0),
@@ -150,6 +152,7 @@ function Tesouraria() {
     [movimentos]
   );
   const saldo = entradas - saidas;
+
   const movimentosFiltrados = useMemo(() => {
     return movimentos
       .filter((mov) => {
@@ -162,6 +165,7 @@ function Tesouraria() {
       })
       .sort((a, b) => new Date(b.data) - new Date(a.data));
   }, [movimentos, pesquisa, filtroNatureza]);
+
   const totaisPorTipo = useMemo(() => {
     const mapa = {};
     movimentos.forEach((mov) => {
@@ -207,7 +211,6 @@ function Tesouraria() {
 
         <h1>Tesouraria</h1>
 
-        {}
         <div className="resumo-cards">
           <div className="card entrada">
             <h3>Receitas</h3>
@@ -225,7 +228,6 @@ function Tesouraria() {
           </div>
         </div>
 
-        {}
         {!soLeitura && (
           <>
             <div className="form-box">
@@ -297,7 +299,6 @@ function Tesouraria() {
               </div>
             </div>
 
-            {}
             <div className="search-box">
               <input
                 type="text"
@@ -319,7 +320,6 @@ function Tesouraria() {
               </button>
             </div>
 
-            {}
             <div className="table-box">
               {loading ? (
                 <p className="empty-row">A carregar movimentos...</p>
@@ -390,7 +390,6 @@ function Tesouraria() {
               )}
             </div>
 
-            {}
             {totaisPorTipo.length > 0 && (
               <div className="resumo-tipos">
                 <h2>Resumo por Categoria</h2>

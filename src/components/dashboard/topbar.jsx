@@ -1,5 +1,4 @@
 function Topbar() {
-
   let user = null;
   try {
     const raw = localStorage.getItem("user");
@@ -10,21 +9,11 @@ function Topbar() {
 
   return (
     <header className="topbar">
-
       <div className="welcome">
-
         <h1>Dashboard</h1>
-
-        <h3>
-          Bem-vindo, {user?.nome ?? "Utilizador"}
-        </h3>
-
-        <small>
-          {user?.perfil ?? ""}
-        </small>
-
+        <h3>Bem-vindo, {user?.nome ?? "Utilizador"}</h3>
+        <small>{user?.perfil ?? ""}</small>
       </div>
-
     </header>
   );
 }

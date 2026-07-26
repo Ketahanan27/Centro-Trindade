@@ -1,43 +1,41 @@
-import { Routes, Route, Navigate } from "react-router-dom";
+import { Routes, Route } from "react-router-dom";
 
-import Home             from "../pages/Home";
-import Escola120        from "../pages/Escola120";
-import Contribua        from "../pages/Contribua";
-import Formulario       from "../pages/Formulario";
-import NotFound         from "../pages/NotFound";
-import Login            from "../pages/Login";
-import Calendario       from "../pages/calendario";
+import Home from "../pages/Home";
+import Escola120 from "../pages/Escola120";
+import Contribua from "../pages/Contribua";
+import Formulario from "../pages/Formulario";
+import NotFound from "../pages/NotFound";
+import Login from "../pages/Login";
+import Calendario from "../pages/calendario";
 import RedefinirPassword from "../pages/RedefinirPassword";
-import Registo from "../pages/registro"
+import Registo from "../pages/registro";
 import PoliticaPrivacidade from "../pages/politicaprivacidade";
-import TermosCondicoes  from "../pages/termoscondicoes";
+import TermosCondicoes from "../pages/termoscondicoes";
 
-import Dashboard        from "../pages/dashboard/dashboard";
-import Membros          from "../pages/dashboard/membros";
-import Agenda           from "../pages/dashboard/agenda";
-import Tesouraria       from "../pages/dashboard/tesouraria";
-import Secretaria       from "../pages/dashboard/secretaria";
-import Utilizadores     from "../pages/dashboard/utilizadores";
-import MinhaArea       from "../pages/dashboard/MinhaArea";
+import Dashboard from "../pages/dashboard/dashboard";
+import Membros from "../pages/dashboard/membros";
+import Agenda from "../pages/dashboard/agenda";
+import Tesouraria from "../pages/dashboard/tesouraria";
+import Secretaria from "../pages/dashboard/secretaria";
+import Utilizadores from "../pages/dashboard/utilizadores";
+import MinhaArea from "../pages/dashboard/MinhaArea";
 
-import ProtectedRoute   from "./ProctedRoute";
+import ProtectedRoute from "./ProctedRoute";
 
 function AppRoutes() {
   return (
     <Routes>
-      {}
-      <Route path="/"                    element={<Home />} />
-      <Route path="/escola120"           element={<Escola120 />} />
-      <Route path="/contribua"           element={<Contribua />} />
-      <Route path="/formulario"          element={<Formulario />} />
-      <Route path="/login"               element={<Login />} />
-      <Route path="/registo"             element={<Registo />} />
-      <Route path="/calendario"          element={<Calendario />} />
-      <Route path="/redefinir-password"  element={<RedefinirPassword />} />
+      <Route path="/" element={<Home />} />
+      <Route path="/escola120" element={<Escola120 />} />
+      <Route path="/contribua" element={<Contribua />} />
+      <Route path="/formulario" element={<Formulario />} />
+      <Route path="/login" element={<Login />} />
+      <Route path="/registo" element={<Registo />} />
+      <Route path="/calendario" element={<Calendario />} />
+      <Route path="/redefinir-password" element={<RedefinirPassword />} />
       <Route path="/politica-privacidade" element={<PoliticaPrivacidade />} />
-      <Route path="/termos-condicoes"    element={<TermosCondicoes />} />
+      <Route path="/termos-condicoes" element={<TermosCondicoes />} />
 
-      {}
       <Route path="/dashboard" element={
         <ProtectedRoute area="dashboard"><Dashboard /></ProtectedRoute>
       } />
@@ -59,9 +57,10 @@ function AppRoutes() {
       <Route path="/dashboard/minha-area" element={
         <ProtectedRoute><MinhaArea /></ProtectedRoute>
       } />
-      <Route path="*" element={<NotFound />} />
 
+      <Route path="*" element={<NotFound />} />
     </Routes>
   );
 }
+
 export default AppRoutes;

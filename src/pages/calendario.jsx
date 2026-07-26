@@ -15,7 +15,7 @@ function Calendario() {
   ];
 
   const [events, setEvents] = useState([]);
-  const [currentDate, setCurrentDate] = useState(new Date());
+  const [currentDate] = useState(new Date());
   const [selectedDate, setSelectedDate] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
@@ -63,12 +63,6 @@ function Calendario() {
     }),
     [events, year, month]
   );
-
-  const handlePrevMonth = () => {
-  };
-
-  const handleNextMonth = () => {
-  };
 
   const today = new Date();
   const todayString = `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, "0")}-${String(today.getDate()).padStart(2, "0")}`;

@@ -1,8 +1,8 @@
 import db from "../config/db.js";
 
 const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-// Mesma regra usada em visitantesController.js e no endpoint /membros/me —
-// um telemóvel, quando indicado, tem sempre exatamente 9 dígitos.
+
+/* Mesma regra usada em visitantesController.js e no endpoint /membros/me: um telemóvel, quando indicado, tem sempre exatamente 9 dígitos. */
 const TELEFONE_RE = /^\d{9}$/;
 const TELEFONE_MENSAGEM = "O telemóvel deve conter exatamente 9 dígitos.";
 
@@ -29,6 +29,7 @@ export const createMember = async (req, res) => {
     if (telemovel && !TELEFONE_RE.test(String(telemovel).trim())) {
       return res.status(400).json({ message: TELEFONE_MENSAGEM });
     }
+
     await query(
       `INSERT INTO membros
          (nome, email, telemovel, nascimento, sexo, estado_civil,
@@ -36,21 +37,20 @@ export const createMember = async (req, res) => {
        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
       [
         nome.trim(),
-        email?.trim()    || null,
-        telemovel        || null,
-        nascimento       || null,
-        sexo             || null,
-        estado_civil     || null,
-        morada           || null,
-        codigo_postal    || null,
-        entrada          || null,
-        batizado         || "Não",
-        estado           || "Ativo",
-        utilizador_id    || null,
+        email?.trim() || null,
+        telemovel || null,
+        nascimento || null,
+        sexo || null,
+        estado_civil || null,
+        morada || null,
+        codigo_postal || null,
+        entrada || null,
+        batizado || "Não",
+        estado || "Ativo",
+        utilizador_id || null,
       ]
     );
     res.status(201).json({ message: "Membro criado com sucesso." });
-
   } catch (e) {
     console.error("[createMember]", e);
     res.status(500).json({ message: "Erro interno do servidor." });
@@ -94,6 +94,7 @@ export const updateMember = async (req, res) => {
       entrada, batizado, estado,
       utilizador_id,
     } = req.body;
+
     if (!nome?.trim()) {
       return res.status(400).json({ message: "Nome é obrigatório." });
     }
@@ -103,6 +104,7 @@ export const updateMember = async (req, res) => {
     if (telemovel && !TELEFONE_RE.test(String(telemovel).trim())) {
       return res.status(400).json({ message: TELEFONE_MENSAGEM });
     }
+
     await query(
       `UPDATE membros
        SET nome=?, email=?, telemovel=?, nascimento=?, sexo=?,
@@ -111,22 +113,21 @@ export const updateMember = async (req, res) => {
        WHERE id=?`,
       [
         nome.trim(),
-        email?.trim()    || null,
-        telemovel        || null,
-        nascimento       || null,
-        sexo             || null,
-        estado_civil     || null,
-        morada           || null,
-        codigo_postal    || null,
-        entrada          || null,
-        batizado         || "Não",
-        estado           || "Ativo",
-        utilizador_id    || null,
+        email?.trim() || null,
+        telemovel || null,
+        nascimento || null,
+        sexo || null,
+        estado_civil || null,
+        morada || null,
+        codigo_postal || null,
+        entrada || null,
+        batizado || "Não",
+        estado || "Ativo",
+        utilizador_id || null,
         id,
       ]
     );
     res.json({ message: "Membro atualizado com sucesso." });
-
   } catch (e) {
     console.error("[updateMember]", e);
     res.status(500).json({ message: "Erro interno do servidor." });
@@ -148,7 +149,6 @@ export const updateMembroMe = async (req, res) => {
     if (telemovel && !TELEFONE_RE.test(String(telemovel).trim())) {
       return res.status(400).json({ message: TELEFONE_MENSAGEM });
     }
-
     if (codigo_postal && !/^\d{4}-\d{3}$/.test(String(codigo_postal).trim())) {
       return res.status(400).json({ message: "O código postal deve ter o formato XXXX-XXX." });
     }
@@ -202,17 +202,17 @@ export const deleteMember = async (req, res) => {
 export const getMembroMe = async (req, res) => {
   try {
     const result = await query(
-        `SELECT
-           m.id, m.nome, m.email, m.telemovel,
-           DATE_FORMAT(m.nascimento, '%Y-%m-%d') AS nascimento,
-           m.sexo, m.estado_civil, m.morada, m.codigo_postal,
-           DATE_FORMAT(m.entrada, '%Y-%m-%d')    AS entrada,
-           m.batizado, m.estado, m.foto
-         FROM membros m
-         INNER JOIN utilizadores u ON (u.id = m.utilizador_id OR u.email = m.email)
-         WHERE u.id = ?
-         LIMIT 1`,
-        [req.user.id]
+      `SELECT
+         m.id, m.nome, m.email, m.telemovel,
+         DATE_FORMAT(m.nascimento, '%Y-%m-%d') AS nascimento,
+         m.sexo, m.estado_civil, m.morada, m.codigo_postal,
+         DATE_FORMAT(m.entrada, '%Y-%m-%d')    AS entrada,
+         m.batizado, m.estado, m.foto
+       FROM membros m
+       INNER JOIN utilizadores u ON (u.id = m.utilizador_id OR u.email = m.email)
+       WHERE u.id = ?
+       LIMIT 1`,
+      [req.user.id]
     );
 
     if (result.length === 0) {
@@ -222,7 +222,6 @@ export const getMembroMe = async (req, res) => {
     }
 
     res.json(result[0]);
-
   } catch (e) {
     console.error("[getMembroMe]", e);
     res.status(500).json({ message: "Erro interno do servidor." });
@@ -245,6 +244,18 @@ export const uploadMembroFoto = async (req, res) => {
     );
 
     const affected = result?.affectedRows ?? result?.changedRows ?? 0;
+
+    /*
+    |--------------------------------------------------------------------------
+    | Fallback: cria o perfil de membro se ainda não existir
+    |--------------------------------------------------------------------------
+    |
+    | Um utilizador pode ter conta antes de ter um registo de membro
+    | associado (ex.: registo direto no site). Neste caso o UPDATE acima
+    | não afeta nenhuma linha, e o perfil é criado aqui a partir dos dados
+    | do próprio utilizador.
+    |
+    */
     if (affected === 0) {
       try {
         const users = await query(`SELECT id, nome, email FROM utilizadores WHERE id = ? LIMIT 1`, [req.user.id]);
@@ -255,11 +266,11 @@ export const uploadMembroFoto = async (req, res) => {
         await query(
           `INSERT INTO membros (nome, email, utilizador_id, foto, estado)
            VALUES (?, ?, ?, ?, ?)`,
-          [u.nome || null, u.email || null, u.id, fotoUrl, 'Ativo']
+          [u.nome || null, u.email || null, u.id, fotoUrl, "Ativo"]
         );
         return res.json({ message: "Perfil criado e foto guardada.", foto: fotoUrl });
       } catch (e) {
-        console.error('[uploadMembroFoto][create]', e);
+        console.error("[uploadMembroFoto][create]", e);
         return res.status(500).json({ message: "Erro ao criar o perfil de membro." });
       }
     }

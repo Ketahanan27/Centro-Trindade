@@ -10,114 +10,64 @@ import Atas from "../../components/secretaria/atas";
 import "../../assets/styles/dashboard/secretaria.css";
 
 function Secretaria() {
+  const [activeTab, setActiveTab] = useState("visitantes");
 
-    const [activeTab, setActiveTab] =
-        useState("visitantes");
+  return (
+    <DashboardLayout>
+      <div className="secretaria-page">
 
-    return (
+        <div className="secretaria-tabs">
 
-        <DashboardLayout>
+          <button
+            className={activeTab === "visitantes" ? "active" : ""}
+            onClick={() => setActiveTab("visitantes")}
+          >
+            Visitantes
+          </button>
 
-            <div className="secretaria-page">
+          <button
+            className={activeTab === "documentos" ? "active" : ""}
+            onClick={() => setActiveTab("documentos")}
+          >
+            Documentos
+          </button>
 
-                <div className="secretaria-tabs">
+          <button
+            className={activeTab === "relatorios" ? "active" : ""}
+            onClick={() => setActiveTab("relatorios")}
+          >
+            Relatórios
+          </button>
 
-                    <button
-                        className={
-                            activeTab === "visitantes"
-                                ? "active"
-                                : ""
-                        }
-                        onClick={() =>
-                            setActiveTab("visitantes")
-                        }
-                    >
-                        Visitantes
-                    </button>
+          <button
+            className={activeTab === "apresentacoes" ? "active" : ""}
+            onClick={() => setActiveTab("apresentacoes")}
+          >
+            Apresentações
+          </button>
 
-                    <button
-                        className={
-                            activeTab === "documentos"
-                                ? "active"
-                                : ""
-                        }
-                        onClick={() =>
-                            setActiveTab("documentos")
-                        }
-                    >
-                        Documentos
-                    </button>
+          <button
+            className={activeTab === "atas" ? "active" : ""}
+            onClick={() => setActiveTab("atas")}
+          >
+            Reuniões e Atas
+          </button>
 
-                    <button
-                        className={
-                            activeTab === "relatorios"
-                                ? "active"
-                                : ""
-                        }
-                        onClick={() =>
-                            setActiveTab("relatorios")
-                        }
-                    >
-                        Relatórios
-                    </button>
+        </div>
 
-                    <button
-                        className={
-                            activeTab === "apresentacoes"
-                                ? "active"
-                                : ""
-                        }
-                        onClick={() =>
-                            setActiveTab("apresentacoes")
-                        }
-                    >
-                        Apresentações
-                    </button>
+        <div className="secretaria-content">
 
-                    <button
-                        className={
-                            activeTab === "atas"
-                                ? "active"
-                                : ""
-                        }
-                        onClick={() =>
-                            setActiveTab("atas")
-                        }
-                    >
-                        Reuniões e Atas
-                    </button>
+          {activeTab === "visitantes" && <Visitantes />}
+          {activeTab === "documentos" && <Documentos />}
+          {activeTab === "relatorios" && <Relatorios />}
+          {activeTab === "apresentacoes" && <Apresentacoes />}
+          {activeTab === "atas" && <Atas />}
 
-                </div>
+        </div>
 
-                <div className="secretaria-content">
-
-                    {activeTab === "visitantes" &&
-                        <Visitantes />
-                    }
-
-                    {activeTab === "documentos" &&
-                        <Documentos />
-                    }
-
-                    {activeTab === "relatorios" &&
-                        <Relatorios />
-                    }
-
-                    {activeTab === "apresentacoes" &&
-                        <Apresentacoes />
-                    }
-
-                    {activeTab === "atas" &&
-                        <Atas />
-                    }
-
-                </div>
-
-            </div>
-
-        </DashboardLayout>
-
-    );
+      </div>
+    </DashboardLayout>
+  );
 }
 
 export default Secretaria;

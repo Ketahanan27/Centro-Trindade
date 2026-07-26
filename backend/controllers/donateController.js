@@ -8,9 +8,17 @@ export const createDonation = (req, res) => {
     return res.status(400).json({ error: "Dados inválidos" });
   }
 
-  // IDs sequenciais/previsíveis (Date.now()) permitem IDOR: qualquer pessoa
-  // consegue adivinhar o id de outra doação e consultar os dados pessoais
-  // associados via GET /status/:id. Um UUID v4 não é adivinhável.
+  /*
+  |--------------------------------------------------------------------------
+  | Identificador da doação
+  |--------------------------------------------------------------------------
+  |
+  | Um UUID v4 é usado em vez de um id sequencial/previsível (ex.: Date.now())
+  | precisamente porque este endpoint de consulta é público: um id adivinhável
+  | permitiria a qualquer pessoa consultar dados de outra doação via
+  | GET /status/:id (IDOR).
+  |
+  */
   const id = crypto.randomUUID();
   const pspId = `mock-${id}`;
   const donation = {
@@ -33,8 +41,8 @@ export const getDonationStatus = (req, res) => {
   const { id } = req.params;
   const donation = donations.get(id);
   if (!donation) return res.status(404).json({ error: "Not found" });
-  // Só devolve o mínimo necessário para consultar o estado — nome, telemóvel
-  // e valor não devem ser expostos a quem apenas conhece o id da doação.
+
+  /* Só o mínimo necessário para consultar o estado — nome, telemóvel e valor não devem ser expostos aqui. */
   return res.json({ id: donation.id, status: donation.status, createdAt: donation.createdAt });
 };
 

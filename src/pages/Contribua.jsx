@@ -8,7 +8,6 @@ import { apiFetch } from "../utils/api";
 import { sanitizarTelefone, validarTelefone } from "../utils/validation";
 
 function Contribua() {
-
   const [form, setForm] = useState({
     nome: "",
     telemovel: "",
@@ -21,11 +20,17 @@ function Contribua() {
   const [donationId, setDonationId] = useState(null);
   const [status, setStatus] = useState(null);
 
-  // Faz polling do estado da doação enquanto houver um donationId ativo.
-  // O intervalo é limpo (clearInterval) quando o componente desmonta ou
-  // quando é criada uma nova doação — antes, este setInterval era criado
-  // fora de qualquer useEffect e nunca era cancelado ao mudar de página,
-  // continuando a chamar a API sobre um componente já desmontado.
+  /*
+  |--------------------------------------------------------------------------
+  | Polling do estado da doação
+  |--------------------------------------------------------------------------
+  |
+  | O intervalo corre enquanto houver um donationId ativo e é sempre limpo
+  | (clearInterval) ao desmontar o componente ou ao criar uma nova doação —
+  | sem isto o polling continuaria a chamar a API mesmo depois de o
+  | utilizador sair da página.
+  |
+  */
   useEffect(() => {
     if (!donationId) return;
 
@@ -38,7 +43,7 @@ function Contribua() {
         if (json.status === "PAID" || Date.now() - start > 2 * 60 * 1000) {
           clearInterval(poll);
         }
-      } catch (err) {
+      } catch {
         clearInterval(poll);
       }
     }, 2000);
@@ -58,17 +63,14 @@ function Contribua() {
       alert("Introduza o seu nome.");
       return;
     }
-
     if (!validarTelefone(form.telemovel)) {
       alert("Introduza um número de telemóvel válido (9 dígitos).");
       return;
     }
-
     if (!form.valor || Number(form.valor) <= 0) {
       alert("Introduza um valor válido.");
       return;
     }
-
     if (form.descricao === "Selecione uma opção") {
       alert("Selecione uma descrição.");
       return;
@@ -106,11 +108,7 @@ function Contribua() {
 
         <div className="contribua-left">
 
-          <img
-            src={mbway}
-            alt="MBWay"
-            className="mbway-logo"
-          />
+          <img src={mbway} alt="MBWay" className="mbway-logo" />
 
           <p>
             Se deseja dizimar ou ofertar,
@@ -129,10 +127,7 @@ function Contribua() {
             </div>
           )}
 
-          <form
-            className="contribua-form"
-            onSubmit={handleSubmit}
-          >
+          <form className="contribua-form" onSubmit={handleSubmit}>
 
             <label>Nome *</label>
             <input
@@ -165,11 +160,7 @@ function Contribua() {
             />
 
             <label>Descrição *</label>
-            <select
-              name="descricao"
-              value={form.descricao}
-              onChange={handleChange}
-            >
+            <select name="descricao" value={form.descricao} onChange={handleChange}>
               <option disabled>Selecione uma opção</option>
               <option>Dízimos</option>
               <option>Oferta</option>
@@ -204,11 +195,7 @@ function Contribua() {
             <strong>SWIFT:</strong> CCOMPTPL
           </p>
 
-          <img
-            src={paypal}
-            alt="PayPal"
-            className="paypal-logo"
-          />
+          <img src={paypal} alt="PayPal" className="paypal-logo" />
 
         </div>
 

@@ -1,41 +1,32 @@
 import db from "../config/db.js";
 
 export const getDocumentos = (req, res) => {
-
-  db.query(
-    "SELECT * FROM documentos ORDER BY id DESC",
-    (err, results) => {
-      if (err) {
-        console.error("[getDocumentos]", err);
-        return res.status(500).json({ message: "Erro interno do servidor." });
-      }
-
-      const parsed = results.map(doc => ({
-        ...doc,
-        dados_json: (() => {
-          try {
-            return doc.dados_json
-              ? JSON.parse(doc.dados_json)
-              : {};
-          } catch {
-            return {};
-          }
-        })()
-      }));
-
-      res.json(parsed);
+  db.query("SELECT * FROM documentos ORDER BY id DESC", (err, results) => {
+    if (err) {
+      console.error("[getDocumentos]", err);
+      return res.status(500).json({ message: "Erro interno do servidor." });
     }
-  );
+
+    const parsed = results.map((doc) => ({
+      ...doc,
+      dados_json: (() => {
+        try {
+          return doc.dados_json ? JSON.parse(doc.dados_json) : {};
+        } catch {
+          return {};
+        }
+      })(),
+    }));
+
+    res.json(parsed);
+  });
 };
 
 export const createDocumento = (req, res) => {
-
   const { tipo, nome_completo, bi, data_emissao, dados_json } = req.body;
 
   if (!tipo || !nome_completo || !bi) {
-    return res.status(400).json({
-      message: "Tipo, nome e BI são obrigatórios."
-    });
+    return res.status(400).json({ message: "Tipo, nome e BI são obrigatórios." });
   }
 
   db.query(
@@ -53,18 +44,13 @@ export const createDocumento = (req, res) => {
 };
 
 export const deleteDocumento = (req, res) => {
-
   const { id } = req.params;
 
-  db.query(
-    "DELETE FROM documentos WHERE id = ?",
-    [id],
-    (err) => {
-      if (err) {
-        console.error("[deleteDocumento]", err);
-        return res.status(500).json({ message: "Erro interno do servidor." });
-      }
-      res.json({ message: "Documento eliminado com sucesso." });
+  db.query("DELETE FROM documentos WHERE id = ?", [id], (err) => {
+    if (err) {
+      console.error("[deleteDocumento]", err);
+      return res.status(500).json({ message: "Erro interno do servidor." });
     }
-  );
+    res.json({ message: "Documento eliminado com sucesso." });
+  });
 };

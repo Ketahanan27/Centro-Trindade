@@ -5,9 +5,9 @@ import "../assets/styles/home/login.css";
 import logo from "../assets/img/principal.png";
 
 function ModalRecuperar({ onClose }) {
-  const [email,   setEmail]   = useState("");
+  const [email, setEmail] = useState("");
   const [loading, setLoading] = useState(false);
-  const [status,  setStatus]  = useState(null); 
+  const [status, setStatus] = useState(null);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -15,10 +15,10 @@ function ModalRecuperar({ onClose }) {
     setStatus(null);
 
     try {
-      const res  = await fetch("/api/auth/recuperar", {
-        method:  "POST",
+      const res = await fetch("/api/auth/recuperar", {
+        method: "POST",
         headers: { "Content-Type": "application/json" },
-        body:    JSON.stringify({ email }),
+        body: JSON.stringify({ email }),
       });
       const data = await res.json().catch(() => null);
 
@@ -55,7 +55,6 @@ function ModalRecuperar({ onClose }) {
           </div>
         )}
 
-        {}
         {status?.tipo !== "sucesso" && (
           <form onSubmit={handleSubmit}>
             <div className="login-input-box" style={{ marginTop: "28px" }}>
@@ -83,11 +82,7 @@ function ModalRecuperar({ onClose }) {
         )}
 
         {status?.tipo === "sucesso" && (
-          <button
-            className="login-btn"
-            style={{ marginTop: "24px" }}
-            onClick={onClose}
-          >
+          <button className="login-btn" style={{ marginTop: "24px" }} onClick={onClose}>
             Fechar
           </button>
         )}
@@ -99,15 +94,15 @@ function ModalRecuperar({ onClose }) {
 }
 
 function Login() {
-  const navigate                    = useNavigate();
-  const [searchParams]              = useSearchParams();
-  const sessaoExpirada              = searchParams.get("sessao") === "expirada";
+  const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
+  const sessaoExpirada = searchParams.get("sessao") === "expirada";
 
-  const [formData,         setFormData]         = useState({ email: "", password: "" });
-  const [loading,          setLoading]          = useState(false);
-  const [showPassword,     setShowPassword]     = useState(false);
+  const [formData, setFormData] = useState({ email: "", password: "" });
+  const [loading, setLoading] = useState(false);
+  const [showPassword, setShowPassword] = useState(false);
   const [mostrarRecuperar, setMostrarRecuperar] = useState(false);
-  const [erroLogin,        setErroLogin]        = useState(null);
+  const [erroLogin, setErroLogin] = useState(null);
 
   useEffect(() => {
     if (sessaoExpirada) {
@@ -127,9 +122,9 @@ function Login() {
 
     try {
       const response = await fetch("/api/auth/login", {
-        method:  "POST",
+        method: "POST",
         headers: { "Content-Type": "application/json" },
-        body:    JSON.stringify(formData),
+        body: JSON.stringify(formData),
       });
 
       if (!response.ok) {
@@ -141,9 +136,8 @@ function Login() {
 
       const data = await response.json();
       localStorage.setItem("token", data.token);
-      localStorage.setItem("user",  JSON.stringify(data.user));
+      localStorage.setItem("user", JSON.stringify(data.user));
       navigate("/dashboard");
-
     } catch (error) {
       console.error("ERRO login:", error);
       setErroLogin("Não foi possível ligar ao servidor. Confirma que o backend está a correr.");
@@ -165,7 +159,6 @@ function Login() {
 
           <h2>Login</h2>
 
-          {}
           {erroLogin && (
             <div className="login-erro">
               <i className="ri-close-circle-line"></i> {erroLogin}
@@ -222,7 +215,6 @@ function Login() {
                 </button>
               </p>
 
-              {}
               <p style={{ color: "#666", fontSize: "13px" }}>
                 Para obter acesso, contacte o administrador do sistema.
               </p>
@@ -247,7 +239,6 @@ function Login() {
 
       </div>
 
-      {}
       {mostrarRecuperar && (
         <ModalRecuperar onClose={() => setMostrarRecuperar(false)} />
       )}

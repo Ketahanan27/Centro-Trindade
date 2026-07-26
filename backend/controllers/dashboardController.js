@@ -6,36 +6,49 @@ const q = (sql, params = []) =>
   );
 
 const PERFIS_FINANCAS = ["Administrador", "Tesouraria", "Pastor"];
-// Mini-lista de últimos membros: mesmo critério de acesso usado nos módulos
-// de membros/relatórios — evita expor nomes e estado de membros ao perfil
-// "Tesouraria" (que só deveria ver dados financeiros) ou a um "Membro".
-const PERFIS_MEMBROS  = ["Administrador", "Secretaria", "Pastor"];
+
+/*
+|--------------------------------------------------------------------------
+| Perfis autorizados a ver a mini-lista de últimos membros
+|--------------------------------------------------------------------------
+|
+| Mesmo critério de acesso usado nos módulos de membros/relatórios — evita
+| expor nomes e estado de membros ao perfil "Tesouraria" (que só deveria
+| ver dados financeiros) ou a um "Membro".
+|
+*/
+const PERFIS_MEMBROS = ["Administrador", "Secretaria", "Pastor"];
 
 export const getDashboardStats = async (req, res) => {
   try {
     const podeVerFinancas = PERFIS_FINANCAS.includes(req.user?.perfil);
-    const podeVerMembros  = PERFIS_MEMBROS.includes(req.user?.perfil);
+    const podeVerMembros = PERFIS_MEMBROS.includes(req.user?.perfil);
 
     const [
-      [totalMembros   = { total: 0 }],
-      [totalEventos   = { total: 0 }],
-      [totalReceitas  = { total: 0 }],
+      [totalMembros = { total: 0 }],
+      [totalEventos = { total: 0 }],
+      [totalReceitas = { total: 0 }],
       [totalUtilizadores = { total: 0 }],
       proximosEventos,
       ultimosMembros,
       ultimosMovimentos,
       graficoAnual,
     ] = await Promise.all([
-
       q("SELECT COUNT(*) AS total FROM membros WHERE estado = 'Ativo'"),
 
       q(`SELECT COUNT(*) AS total
          FROM eventos
          WHERE data_evento >= CURDATE() AND estado = 'Agendado'`),
 
-      // As queries financeiras só correm quando o perfil tem permissão —
-      // antes corriam sempre e só a resposta escondia o resultado, o que
-      // desperdiçava trabalho na BD para nada.
+      /*
+      |--------------------------------------------------------------------
+      | Consultas financeiras só correm com permissão
+      |--------------------------------------------------------------------
+      |
+      | Antes corriam sempre e só a resposta escondia o resultado, o que
+      | desperdiçava trabalho na base de dados para nada.
+      |
+      */
       podeVerFinancas
         ? q(`SELECT COALESCE(SUM(valor), 0) AS total
              FROM tesouraria
@@ -94,9 +107,9 @@ export const getDashboardStats = async (req, res) => {
 
     res.json({
       stats: {
-        membros:      totalMembros.total,
-        eventos:      totalEventos.total,
-        receitas:     podeVerFinancas ? Number(totalReceitas.total).toFixed(2) : null,
+        membros: totalMembros.total,
+        eventos: totalEventos.total,
+        receitas: podeVerFinancas ? Number(totalReceitas.total).toFixed(2) : null,
         utilizadores: totalUtilizadores.total,
       },
       proximosEventos,
@@ -105,7 +118,6 @@ export const getDashboardStats = async (req, res) => {
       graficoAnual,
       podeVerFinancas,
     });
-
   } catch (err) {
     console.error("[getDashboardStats]", err);
     res.status(500).json({ message: "Erro interno do servidor." });

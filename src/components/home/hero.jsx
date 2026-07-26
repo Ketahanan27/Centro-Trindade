@@ -40,7 +40,6 @@ function Hero() {
           Enquanto vivemos neste mundo, somos sustentados pela intercessão do
           Espírito Santo.
         </p>
-        
       </div>
 
       <div className="hero-image">

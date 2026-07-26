@@ -19,6 +19,7 @@ import { writeLimiter } from "../middleware/rateLimit.js";
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
+
 const upload = multer({
   storage: multer.diskStorage({
     destination: (req, file, cb) => cb(null, path.join(__dirname, "../uploads")),
@@ -36,17 +37,24 @@ const upload = multer({
   limits: { fileSize: 2 * 1024 * 1024 },
 });
 
-// O mimetype do multipart/form-data é enviado pelo cliente e pode ser
-// falsificado — este middleware confirma o conteúdo real do ficheiro já
-// gravado em disco, lendo a assinatura binária (magic bytes), antes de o
-// aceitar. Como /uploads é servido como estático, isto evita que um
-// ficheiro disfarçado de imagem (ex. .html com mimetype "image/png"
-// forjado) fique acessível publicamente.
+/*
+|--------------------------------------------------------------------------
+| Validação da assinatura binária da imagem
+|--------------------------------------------------------------------------
+|
+| O mimetype do multipart/form-data é enviado pelo cliente e pode ser
+| falsificado. Este middleware confirma o conteúdo real do ficheiro já
+| gravado em disco, lendo os primeiros bytes (magic bytes), antes de o
+| aceitar. Como /uploads é servido como estático, isto evita que um
+| ficheiro disfarçado de imagem (ex.: .html com mimetype "image/png"
+| forjado) fique acessível publicamente.
+|
+*/
 const ASSINATURAS_IMAGEM = [
-  { bytes: [0xff, 0xd8, 0xff] },                                   // JPEG
-  { bytes: [0x89, 0x50, 0x4e, 0x47, 0x0d, 0x0a, 0x1a, 0x0a] },      // PNG
-  { bytes: [0x47, 0x49, 0x46, 0x38] },                              // GIF87a/89a
-  { bytes: [0x52, 0x49, 0x46, 0x46], offset: { at: 8, bytes: [0x57, 0x45, 0x42, 0x50] } }, // WEBP (RIFF....WEBP)
+  { bytes: [0xff, 0xd8, 0xff] },
+  { bytes: [0x89, 0x50, 0x4e, 0x47, 0x0d, 0x0a, 0x1a, 0x0a] },
+  { bytes: [0x47, 0x49, 0x46, 0x38] },
+  { bytes: [0x52, 0x49, 0x46, 0x46], offset: { at: 8, bytes: [0x57, 0x45, 0x42, 0x50] } },
 ];
 
 const validarAssinaturaImagem = (req, res, next) => {
@@ -83,8 +91,8 @@ const router = express.Router();
 router.get("/me", verifyToken, getMembroMe);
 router.put("/me", verifyToken, writeLimiter, updateMembroMe);
 router.post("/me/foto", verifyToken, writeLimiter, upload.single("foto"), validarAssinaturaImagem, uploadMembroFoto);
-router.get("/",    verifyToken, permit("Administrador", "Secretaria", "Pastor"), getMembers);
-router.post("/",   verifyToken, permit("Administrador", "Secretaria"), writeLimiter, createMember);
+router.get("/", verifyToken, permit("Administrador", "Secretaria", "Pastor"), getMembers);
+router.post("/", verifyToken, permit("Administrador", "Secretaria"), writeLimiter, createMember);
 router.put("/:id", verifyToken, permit("Administrador", "Secretaria"), writeLimiter, updateMember);
 router.delete("/:id", verifyToken, permit("Administrador", "Secretaria"), writeLimiter, deleteMember);
 

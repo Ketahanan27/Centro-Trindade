@@ -1,7 +1,7 @@
-import bcrypt     from "bcrypt";
-import jwt        from "jsonwebtoken";
-import crypto     from "crypto";
-import db         from "../config/db.js";
+import bcrypt from "bcrypt";
+import jwt from "jsonwebtoken";
+import crypto from "crypto";
+import db from "../config/db.js";
 import nodemailer from "nodemailer";
 
 const query = (sql, params = []) =>
@@ -10,12 +10,18 @@ const query = (sql, params = []) =>
   );
 
 const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-
 const PERFIS_VALIDOS = ["Administrador", "Pastor", "Secretaria", "Tesouraria", "Membro"];
 
-// Mensagem única de credenciais inválidas, usada para email inexistente,
-// conta inativa e password errada — impede que um atacante enumere contas
-// válidas observando respostas diferentes (OWASP A07 / M2).
+/*
+|--------------------------------------------------------------------------
+| Mensagem genérica de credenciais inválidas
+|--------------------------------------------------------------------------
+|
+| Reaproveitada para email inexistente, conta inativa e password errada —
+| impede que um atacante enumere contas válidas observando respostas
+| diferentes (OWASP A07 / M2).
+|
+*/
 const CREDENCIAIS_INVALIDAS = { message: "Credenciais inválidas." };
 
 const criarTransporter = () =>
@@ -51,7 +57,6 @@ export const register = async (req, res) => {
     );
 
     res.status(201).json({ message: "Conta criada com sucesso." });
-
   } catch (e) {
     console.error("[register]", e);
     res.status(500).json({ message: "Erro interno do servidor." });
@@ -66,21 +71,24 @@ export const login = async (req, res) => {
       return res.status(400).json({ message: "Preencha todos os campos." });
     }
 
-    const result = await query(
-      "SELECT * FROM utilizadores WHERE email = ?",
-      [email.trim()]
-    );
-
+    const result = await query("SELECT * FROM utilizadores WHERE email = ?", [email.trim()]);
     if (result.length === 0) {
       return res.status(401).json(CREDENCIAIS_INVALIDAS);
     }
 
     const user = result[0];
 
-    // Antes esta verificação devolvia uma mensagem distinta ("Conta
-    // inativa..."), o que permitia a um atacante distinguir "email não
-    // existe" de "email existe mas está inativo" — uma enumeração de contas.
-    // Agora devolve a mesma mensagem genérica que password errada.
+    /*
+    |------------------------------------------------------------------
+    | Conta inativa tratada como credenciais inválidas
+    |------------------------------------------------------------------
+    |
+    | Devolver aqui uma mensagem distinta ("Conta inativa...") permitiria
+    | a um atacante distinguir "email não existe" de "email existe mas
+    | está inativo" — uma enumeração de contas. Por isso a resposta é a
+    | mesma genérica usada para password errada.
+    |
+    */
     if (user.estado !== "Ativo") {
       return res.status(401).json(CREDENCIAIS_INVALIDAS);
     }
@@ -93,9 +101,7 @@ export const login = async (req, res) => {
     query("UPDATE utilizadores SET ultimo_acesso = NOW() WHERE id = ?", [user.id])
       .catch((e) => console.warn("[login] ultimo_acesso:", e.message));
 
-    // Fixa explicitamente o algoritmo de assinatura (ver também
-    // middleware/auth.js), para eliminar qualquer ambiguidade/downgrade de
-    // algoritmo entre a emissão e a verificação do token.
+    /* Algoritmo de assinatura fixado explicitamente (ver também middleware/auth.js). */
     const token = jwt.sign(
       { id: user.id, perfil: user.perfil },
       process.env.JWT_SECRET,
@@ -106,7 +112,6 @@ export const login = async (req, res) => {
       token,
       user: { id: user.id, nome: user.nome, email: user.email, perfil: user.perfil },
     });
-
   } catch (e) {
     console.error("[login]", e);
     res.status(500).json({ message: "Erro interno do servidor." });
@@ -120,10 +125,17 @@ export const recuperarPassword = async (req, res) => {
       return res.status(400).json({ message: "Email obrigatório." });
     }
 
-    // Resposta sempre igual (200 + mensagem genérica), exista ou não a
-    // conta — caso contrário o próprio status HTTP permite enumerar emails
-    // registados (OWASP A07 / M3). O email só é enviado quando a conta
-    // existe e está ativa.
+    /*
+    |------------------------------------------------------------------
+    | Resposta sempre igual, exista ou não a conta
+    |------------------------------------------------------------------
+    |
+    | Se o status HTTP variasse consoante o email existisse, isso já
+    | seria suficiente para enumerar contas registadas (OWASP A07 / M3).
+    | O email de recuperação só é enviado quando a conta existe e está
+    | ativa — mas a resposta ao cliente é sempre a mesma.
+    |
+    */
     const MENSAGEM_GENERICA = {
       message: "Se existir uma conta ativa com este email, foi enviado um link de recuperação.",
     };
@@ -137,9 +149,9 @@ export const recuperarPassword = async (req, res) => {
       return res.json(MENSAGEM_GENERICA);
     }
 
-    const user   = result[0];
-    const token  = crypto.randomBytes(32).toString("hex");
-    const expiry = new Date(Date.now() + 30 * 60 * 1000); 
+    const user = result[0];
+    const token = crypto.randomBytes(32).toString("hex");
+    const expiry = new Date(Date.now() + 30 * 60 * 1000);
 
     await query("DELETE FROM password_resets WHERE utilizador_id = ?", [user.id]);
     await query(
@@ -150,8 +162,8 @@ export const recuperarPassword = async (req, res) => {
     const link = `${process.env.FRONTEND_URL}/redefinir-password?token=${token}`;
 
     await criarTransporter().sendMail({
-      from:    `"Centro Trindade" <${process.env.EMAIL_USER}>`,
-      to:      email.trim(),
+      from: `"Centro Trindade" <${process.env.EMAIL_USER}>`,
+      to: email.trim(),
       subject: "🔐 Recuperação de Palavra-passe — Centro Trindade",
       html: `<div style="font-family:Arial,sans-serif;max-width:600px;margin:0 auto">
         <div style="background:#0044ff;color:#fff;padding:30px;text-align:center;border-radius:12px 12px 0 0">
@@ -166,7 +178,6 @@ export const recuperarPassword = async (req, res) => {
     });
 
     res.json(MENSAGEM_GENERICA);
-
   } catch (e) {
     console.error("[recuperarPassword]", e.message);
     if (e.code === "EAUTH" || e.responseCode >= 500) {
@@ -211,7 +222,6 @@ export const redefinirPassword = async (req, res) => {
     await query("UPDATE password_resets SET usado = 1 WHERE id = ?", [reset.id]);
 
     res.json({ message: "Palavra-passe atualizada com sucesso!" });
-
   } catch (e) {
     console.error("[redefinirPassword]", e);
     res.status(500).json({ message: "Erro interno do servidor." });
@@ -229,6 +239,7 @@ export const getUsers = async (req, res) => {
     );
     res.json(result);
   } catch (e) {
+    /* Compatibilidade com bases de dados antigas onde a coluna ultimo_acesso ainda não existe. */
     if (e.code === "ER_BAD_FIELD_ERROR") {
       try {
         const result = await query(
@@ -261,10 +272,7 @@ export const criarUtilizador = async (req, res) => {
 
     const perfilFinal = PERFIS_VALIDOS.includes(perfil) ? perfil : "Membro";
 
-    const existe = await query(
-      "SELECT id FROM utilizadores WHERE email = ?",
-      [email.trim()]
-    );
+    const existe = await query("SELECT id FROM utilizadores WHERE email = ?", [email.trim()]);
     if (existe.length > 0) {
       return res.status(400).json({ message: "Email já registado." });
     }
@@ -277,8 +285,8 @@ export const criarUtilizador = async (req, res) => {
     );
 
     const userId = insertResult.insertId;
-    const token  = crypto.randomBytes(32).toString("hex");
-    const expiry = new Date(Date.now() + 48 * 60 * 60 * 1000); 
+    const token = crypto.randomBytes(32).toString("hex");
+    const expiry = new Date(Date.now() + 48 * 60 * 60 * 1000);
 
     await query(
       "INSERT INTO password_resets (utilizador_id, token, expiry) VALUES (?, ?, ?)",
@@ -289,8 +297,8 @@ export const criarUtilizador = async (req, res) => {
 
     try {
       await criarTransporter().sendMail({
-        from:    `"Centro Trindade" <${process.env.EMAIL_USER}>`,
-        to:      email.trim(),
+        from: `"Centro Trindade" <${process.env.EMAIL_USER}>`,
+        to: email.trim(),
         subject: "🎉 Bem-vindo ao Centro Trindade — Configure a sua conta",
         html: `<div style="font-family:Arial,sans-serif;max-width:600px;margin:0 auto">
           <div style="background:#0044ff;color:#fff;padding:30px;text-align:center;border-radius:12px 12px 0 0">
@@ -310,7 +318,6 @@ export const criarUtilizador = async (req, res) => {
         message: "Utilizador criado, mas o email falhou. Verifique as credenciais de email no .env.",
       });
     }
-
   } catch (e) {
     console.error("[criarUtilizador]", e);
     res.status(500).json({ message: "Erro interno do servidor." });
@@ -325,7 +332,6 @@ export const updateUser = async (req, res) => {
     if (Number(id) === req.user.id) {
       return res.status(400).json({ message: "Não pode alterar o seu próprio perfil ou estado aqui." });
     }
-
     if (perfil && !PERFIS_VALIDOS.includes(perfil)) {
       return res.status(400).json({ message: "Perfil inválido." });
     }
@@ -336,7 +342,6 @@ export const updateUser = async (req, res) => {
     );
 
     res.json({ message: "Utilizador atualizado com sucesso." });
-
   } catch (e) {
     console.error("[updateUser]", e);
     res.status(500).json({ message: "Erro interno do servidor." });
@@ -354,7 +359,6 @@ export const deleteUser = async (req, res) => {
     await query("DELETE FROM utilizadores WHERE id = ?", [id]);
 
     res.json({ message: "Utilizador eliminado com sucesso." });
-
   } catch (e) {
     console.error("[deleteUser]", e);
     res.status(500).json({ message: "Erro interno do servidor." });
@@ -365,18 +369,14 @@ export const resetUserPassword = async (req, res) => {
   try {
     const { id } = req.params;
 
-    const result = await query(
-      "SELECT email, nome FROM utilizadores WHERE id = ?",
-      [id]
-    );
-
+    const result = await query("SELECT email, nome FROM utilizadores WHERE id = ?", [id]);
     if (result.length === 0) {
       return res.status(404).json({ message: "Utilizador não encontrado." });
     }
 
-    const user   = result[0];
-    const token  = crypto.randomBytes(32).toString("hex");
-    const expiry = new Date(Date.now() + 24 * 60 * 60 * 1000); 
+    const user = result[0];
+    const token = crypto.randomBytes(32).toString("hex");
+    const expiry = new Date(Date.now() + 24 * 60 * 60 * 1000);
 
     await query("DELETE FROM password_resets WHERE utilizador_id = ?", [id]);
     await query(
@@ -387,8 +387,8 @@ export const resetUserPassword = async (req, res) => {
     const link = `${process.env.FRONTEND_URL}/redefinir-password?token=${token}`;
 
     await criarTransporter().sendMail({
-      from:    `"Centro Trindade" <${process.env.EMAIL_USER}>`,
-      to:      user.email,
+      from: `"Centro Trindade" <${process.env.EMAIL_USER}>`,
+      to: user.email,
       subject: "🔐 Reset de Palavra-passe — Centro Trindade",
       html: `<div style="font-family:Arial,sans-serif;max-width:600px;margin:0 auto">
         <div style="background:#0044ff;color:#fff;padding:30px;text-align:center;border-radius:12px 12px 0 0">
@@ -403,7 +403,6 @@ export const resetUserPassword = async (req, res) => {
     });
 
     res.json({ message: `Link de reset enviado para ${user.email}.` });
-
   } catch (e) {
     console.error("[resetUserPassword]", e.message);
     res.status(500).json({ message: "Erro ao enviar email ou erro interno." });

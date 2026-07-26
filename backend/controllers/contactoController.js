@@ -5,9 +5,17 @@ const criarTransporter = () =>
     service: "gmail",
     auth: {
       user: process.env.EMAIL_USER,
-      pass: process.env.EMAIL_PASS, 
+      pass: process.env.EMAIL_PASS,
     },
   });
+
+function escapeHtml(str) {
+  return String(str ?? "")
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;");
+}
 
 export const enviarContacto = async (req, res) => {
   const { nome, telefone, email, assunto, mensagem } = req.body;
@@ -24,10 +32,20 @@ export const enviarContacto = async (req, res) => {
 
   const transporter = criarTransporter();
 
+  /*
+  |--------------------------------------------------------------------------
+  | Email interno para a igreja
+  |--------------------------------------------------------------------------
+  |
+  | Todos os valores vindos do formulário passam por escapeHtml antes de
+  | entrarem no template — o campo "mensagem" em particular é texto livre
+  | do visitante e não pode ser interpretado como HTML.
+  |
+  */
   const emailIgreja = {
-    from:    `"Website Centro Trindade" <${process.env.EMAIL_USER}>`,
-    to:      process.env.EMAIL_DESTINO,
-    replyTo: email,                         
+    from: `"Website Centro Trindade" <${process.env.EMAIL_USER}>`,
+    to: process.env.EMAIL_DESTINO,
+    replyTo: email,
     subject: `📩 Novo Contacto: ${assunto?.trim() || "Sem assunto"} — ${nome}`,
     html: `
       <!DOCTYPE html>
@@ -93,8 +111,8 @@ export const enviarContacto = async (req, res) => {
   };
 
   const emailConfirmacao = {
-    from:    `"Centro Trindade" <${process.env.EMAIL_USER}>`,
-    to:      email,
+    from: `"Centro Trindade" <${process.env.EMAIL_USER}>`,
+    to: email,
     subject: "✅ Recebemos a sua mensagem — Centro Trindade",
     html: `
       <!DOCTYPE html>
@@ -161,11 +179,3 @@ export const enviarContacto = async (req, res) => {
     });
   }
 };
-
-function escapeHtml(str) {
-  return String(str ?? "")
-    .replace(/&/g, "&amp;")
-    .replace(/</g, "&lt;")
-    .replace(/>/g, "&gt;")
-    .replace(/"/g, "&quot;");
-}

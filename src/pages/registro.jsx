@@ -41,8 +41,8 @@ function Registo() {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          nome:   formData.nome,
-          email:  formData.email,
+          nome: formData.nome,
+          email: formData.email,
           password: formData.password,
         }),
       });
@@ -58,7 +58,6 @@ function Registo() {
       alert("Conta criada com sucesso.");
       setLoading(false);
       navigate("/login");
-
     } catch (error) {
       console.error(error);
       alert("Erro ao comunicar com o servidor.");
@@ -152,11 +151,7 @@ function Registo() {
               administrador do sistema depois de criar a conta.
             </p>
 
-            <button
-              type="submit"
-              className="login-btn"
-              disabled={loading}
-            >
+            <button type="submit" className="login-btn" disabled={loading}>
               {loading ? "A criar..." : "Criar Conta"}
             </button>
 

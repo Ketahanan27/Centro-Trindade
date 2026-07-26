@@ -1,24 +1,19 @@
 import db from "../config/db.js";
 
 export const getVisitantes = (req, res) => {
-
-  db.query(
-    "SELECT * FROM visitantes ORDER BY data_visita DESC",
-    (err, result) => {
-      if (err) {
-        console.error("[getVisitantes]", err);
-        return res.status(500).json({ message: "Erro interno do servidor." });
-      }
-      res.json(result);
+  db.query("SELECT * FROM visitantes ORDER BY data_visita DESC", (err, result) => {
+    if (err) {
+      console.error("[getVisitantes]", err);
+      return res.status(500).json({ message: "Erro interno do servidor." });
     }
-  );
+    res.json(result);
+  });
 };
 
 export const createVisitante = (req, res) => {
-
   const {
     nome, telefone, email, data_visita,
-    convidado_por, observacoes, estado
+    convidado_por, observacoes, estado,
   } = req.body;
 
   if (!nome?.trim()) {
@@ -54,12 +49,10 @@ export const createVisitante = (req, res) => {
 };
 
 export const updateVisitante = (req, res) => {
-
   const { id } = req.params;
-
   const {
     nome, telefone, email, data_visita,
-    convidado_por, observacoes, estado
+    convidado_por, observacoes, estado,
   } = req.body;
 
   if (!nome?.trim()) {
@@ -97,18 +90,13 @@ export const updateVisitante = (req, res) => {
 };
 
 export const deleteVisitante = (req, res) => {
-
   const { id } = req.params;
 
-  db.query(
-    "DELETE FROM visitantes WHERE id = ?",
-    [id],
-    (err) => {
-      if (err) {
-        console.error("[deleteVisitante]", err);
-        return res.status(500).json({ message: "Erro interno do servidor." });
-      }
-      res.json({ message: "Visitante eliminado com sucesso" });
+  db.query("DELETE FROM visitantes WHERE id = ?", [id], (err) => {
+    if (err) {
+      console.error("[deleteVisitante]", err);
+      return res.status(500).json({ message: "Erro interno do servidor." });
     }
-  );
+    res.json({ message: "Visitante eliminado com sucesso" });
+  });
 };

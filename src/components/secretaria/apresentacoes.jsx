@@ -5,6 +5,8 @@ import { apiFetch } from "../../utils/api";
 import { useListaRemota, executarAcaoCrud } from "../../utils/useCrud";
 import "../../assets/styles/dashboard/apresentacoes.css";
 
+const FORM_VAZIO = { data_apresentacao: "", quantidade: "", observacoes: "" };
+
 function Apresentacoes() {
   const { soLeitura } = usePerfil();
 
@@ -16,10 +18,7 @@ function Apresentacoes() {
   const [showModal, setShowModal] = useState(false);
   const [editId, setEditId] = useState(null);
   const [filtroAno, setFiltroAno] = useState("Todos");
-
-  const [formData, setFormData] = useState({
-    data_apresentacao: "", quantidade: "", observacoes: ""
-  });
+  const [formData, setFormData] = useState(FORM_VAZIO);
 
   const handleChange = (e) => setFormData({ ...formData, [e.target.name]: e.target.value });
 
@@ -27,24 +26,31 @@ function Apresentacoes() {
   const totalCriancas = apresentacoes.reduce((t, i) => t + Number(i.quantidade), 0);
 
   const anosDisponiveis = [...new Set(
-    apresentacoes.map(i => new Date(i.data_apresentacao).getFullYear())
+    apresentacoes.map((i) => new Date(i.data_apresentacao).getFullYear())
   )].sort((a, b) => b - a);
 
   const apresentacoesFiltradas = apresentacoes.filter((item) => {
     const matchPesquisa = (item.observacoes || "").toLowerCase().includes(search.toLowerCase());
-    const matchAno = filtroAno === "Todos" ? true
+    const matchAno = filtroAno === "Todos"
+      ? true
       : new Date(item.data_apresentacao).getFullYear().toString() === filtroAno;
     return matchPesquisa && matchAno;
   });
 
   const clearForm = () => {
-    setFormData({ data_apresentacao: "", quantidade: "", observacoes: "" });
+    setFormData(FORM_VAZIO);
     setEditId(null);
   };
 
   const handleCreate = async () => {
-    if (!formData.data_apresentacao) { toast.aviso("Selecione uma data."); return; }
-    if (!formData.quantidade || Number(formData.quantidade) <= 0) { toast.aviso("Quantidade inválida."); return; }
+    if (!formData.data_apresentacao) {
+      toast.aviso("Selecione uma data.");
+      return;
+    }
+    if (!formData.quantidade || Number(formData.quantidade) <= 0) {
+      toast.aviso("Quantidade inválida.");
+      return;
+    }
     await executarAcaoCrud(
       apiFetch("/api/apresentacoes", { method: "POST", body: JSON.stringify(formData) }),
       { aoSucesso: () => { carregarApresentacoes(); clearForm(); setShowModal(false); } }
@@ -55,7 +61,8 @@ function Apresentacoes() {
     setEditId(item.id);
     setFormData({
       data_apresentacao: item.data_apresentacao?.split("T")[0] || "",
-      quantidade: item.quantidade || "", observacoes: item.observacoes || ""
+      quantidade: item.quantidade || "",
+      observacoes: item.observacoes || "",
     });
     setShowModal(true);
   };
@@ -96,14 +103,18 @@ function Apresentacoes() {
       </div>
 
       <div className="search-box">
-        <input type="text" placeholder="Pesquisar observações..."
-          value={search} onChange={(e) => setSearch(e.target.value)} />
+        <input
+          type="text"
+          placeholder="Pesquisar observações..."
+          value={search}
+          onChange={(e) => setSearch(e.target.value)}
+        />
       </div>
 
       <div className="filter-box">
         <select value={filtroAno} onChange={(e) => setFiltroAno(e.target.value)}>
           <option>Todos</option>
-          {anosDisponiveis.map(ano => <option key={ano}>{ano}</option>)}
+          {anosDisponiveis.map((ano) => <option key={ano}>{ano}</option>)}
         </select>
       </div>
 
@@ -119,9 +130,11 @@ function Apresentacoes() {
           </thead>
           <tbody>
             {apresentacoesFiltradas.length === 0 ? (
-              <tr><td colSpan="4" className="empty-row">
-                {apresentacoes.length === 0 ? "Nenhum registo encontrado." : "Nenhum resultado para o filtro aplicado."}
-              </td></tr>
+              <tr>
+                <td colSpan="4" className="empty-row">
+                  {apresentacoes.length === 0 ? "Nenhum registo encontrado." : "Nenhum resultado para o filtro aplicado."}
+                </td>
+              </tr>
             ) : (
               apresentacoesFiltradas.map((item) => (
                 <tr key={item.id}>
@@ -129,10 +142,16 @@ function Apresentacoes() {
                   <td><span className="quantity-badge">{item.quantidade}</span></td>
                   <td className="obs-cell">{item.observacoes}</td>
                   <td className="actions">
-                    {!soLeitura && (<><button className="edit" onClick={() => handleSelect(item)}>
-                      <i className="ri-pencil-line"></i></button>
-                      <button className="delete" onClick={() => handleDelete(item.id)}>
-                        <i className="ri-delete-bin-line"></i></button></>)}
+                    {!soLeitura && (
+                      <>
+                        <button className="edit" onClick={() => handleSelect(item)}>
+                          <i className="ri-pencil-line"></i>
+                        </button>
+                        <button className="delete" onClick={() => handleDelete(item.id)}>
+                          <i className="ri-delete-bin-line"></i>
+                        </button>
+                      </>
+                    )}
                   </td>
                 </tr>
               ))
@@ -149,12 +168,18 @@ function Apresentacoes() {
               <button onClick={() => setShowModal(false)}><i className="ri-close-line"></i></button>
             </div>
             <div className="grid">
-              <div className="field"><label>Data da Apresentação</label>
-                <input type="date" name="data_apresentacao" value={formData.data_apresentacao} onChange={handleChange} /></div>
-              <div className="field"><label>Quantidade de Crianças</label>
-                <input type="number" min="1" name="quantidade" value={formData.quantidade} onChange={handleChange} /></div>
-              <div className="field full"><label>Observações</label>
-                <textarea rows="4" name="observacoes" value={formData.observacoes} onChange={handleChange} /></div>
+              <div className="field">
+                <label>Data da Apresentação</label>
+                <input type="date" name="data_apresentacao" value={formData.data_apresentacao} onChange={handleChange} />
+              </div>
+              <div className="field">
+                <label>Quantidade de Crianças</label>
+                <input type="number" min="1" name="quantidade" value={formData.quantidade} onChange={handleChange} />
+              </div>
+              <div className="field full">
+                <label>Observações</label>
+                <textarea rows="4" name="observacoes" value={formData.observacoes} onChange={handleChange} />
+              </div>
             </div>
             <div className="form-actions">
               <button className="save" onClick={editId ? handleEdit : handleCreate}>Guardar</button>

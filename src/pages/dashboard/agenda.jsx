@@ -7,11 +7,18 @@ import { formatarData } from "../../utils/data";
 import { useListaRemota, executarAcaoCrud } from "../../utils/useCrud";
 import "../../assets/styles/dashboard/agenda.css";
 
+const MESES = [
+  "Janeiro", "Fevereiro", "Março", "Abril", "Maio", "Junho",
+  "Julho", "Agosto", "Setembro", "Outubro", "Novembro", "Dezembro",
+];
+
+const FORM_VAZIO = {
+  titulo: "", descricao: "", data_evento: "",
+  hora_evento: "", local_evento: "", estado: "Agendado",
+};
+
 function Agenda() {
   const { soLeitura } = usePerfil();
-
-  const months = ["Janeiro", "Fevereiro", "Março", "Abril", "Maio", "Junho",
-    "Julho", "Agosto", "Setembro", "Outubro", "Novembro", "Dezembro"];
 
   const [currentDate, setCurrentDate] = useState(new Date());
   const [selectedDate, setSelectedDate] = useState(null);
@@ -21,11 +28,7 @@ function Agenda() {
     "Não foi possível carregar a agenda. Tente novamente."
   );
   const [editId, setEditId] = useState(null);
-
-  const [formData, setFormData] = useState({
-    titulo: "", descricao: "", data_evento: "",
-    hora_evento: "", local_evento: "", estado: "Agendado"
-  });
+  const [formData, setFormData] = useState(FORM_VAZIO);
 
   const year = currentDate.getFullYear();
   const month = currentDate.getMonth();
@@ -40,22 +43,26 @@ function Agenda() {
     const dateString = `${year}-${String(month + 1).padStart(2, "0")}-${String(day).padStart(2, "0")}`;
     const today = new Date();
     const isToday = day === today.getDate() && month === today.getMonth() && year === today.getFullYear();
-    const temEvento = events.some(e => e.data_evento?.substring(0, 10) === dateString);
+    const temEvento = events.some((e) => e.data_evento?.substring(0, 10) === dateString);
     days.push(
-      <div key={dateString}
+      <div
+        key={dateString}
         className={`day ${isToday ? "today" : ""} ${temEvento ? "has-event" : ""} ${selectedDate === dateString ? "selected" : ""}`}
         onClick={() => {
-          setSelectedDate(dateString); setSelectedEvent(null);
-          setFormData(p => ({ ...p, data_evento: dateString }));
-        }}>
+          setSelectedDate(dateString);
+          setSelectedEvent(null);
+          setFormData((p) => ({ ...p, data_evento: dateString }));
+        }}
+      >
         {day}
       </div>
     );
   }
 
   const clearForm = () => {
-    setFormData({ titulo: "", descricao: "", data_evento: "", hora_evento: "", local_evento: "", estado: "Agendado" });
-    setEditId(null); setSelectedEvent(null);
+    setFormData(FORM_VAZIO);
+    setEditId(null);
+    setSelectedEvent(null);
   };
 
   const handleCreate = async () => {
@@ -66,7 +73,10 @@ function Agenda() {
   };
 
   const handleEdit = async () => {
-    if (!editId) { toast.aviso("Selecione um evento."); return; }
+    if (!editId) {
+      toast.aviso("Selecione um evento.");
+      return;
+    }
     await executarAcaoCrud(
       apiFetch(`/api/eventos/${editId}`, { method: "PUT", body: JSON.stringify(formData) }),
       { aoSucesso: () => { carregarEventos(); clearForm(); } }
@@ -83,11 +93,12 @@ function Agenda() {
   };
 
   const eventosDoDia = selectedDate
-    ? events.filter(e => e.data_evento?.substring(0, 10) === selectedDate) : [];
+    ? events.filter((e) => e.data_evento?.substring(0, 10) === selectedDate)
+    : [];
 
   const hoje = new Date().toISOString().split("T")[0];
 
-  const eventosDoMes = events.filter(e => {
+  const eventosDoMes = events.filter((e) => {
     const d = new Date(e.data_evento);
     return d.getMonth() === month && d.getFullYear() === year;
   });
@@ -108,17 +119,26 @@ function Agenda() {
         <div className="calendar-box">
           <div className="calendar-header">
             <button onClick={() => setCurrentDate(new Date(year, month - 1, 1))}>
-              <i className="ri-arrow-left-s-line"></i></button>
-            <h2>{months[month]} {year}</h2>
+              <i className="ri-arrow-left-s-line"></i>
+            </button>
+            <h2>{MESES[month]} {year}</h2>
             <button onClick={() => setCurrentDate(new Date(year, month + 1, 1))}>
-              <i className="ri-arrow-right-s-line"></i></button>
-            <button className="today-btn" onClick={() => {
-              const h = new Date(); setCurrentDate(h);
-              setSelectedDate(h.toISOString().split("T")[0]); setSelectedEvent(null);
-            }}>Hoje</button>
+              <i className="ri-arrow-right-s-line"></i>
+            </button>
+            <button
+              className="today-btn"
+              onClick={() => {
+                const h = new Date();
+                setCurrentDate(h);
+                setSelectedDate(h.toISOString().split("T")[0]);
+                setSelectedEvent(null);
+              }}
+            >
+              Hoje
+            </button>
           </div>
           <div className="weekdays">
-            {["Dom", "Seg", "Ter", "Qua", "Qui", "Sex", "Sáb"].map(d => <div key={d}>{d}</div>)}
+            {["Dom", "Seg", "Ter", "Qua", "Qui", "Sex", "Sáb"].map((d) => <div key={d}>{d}</div>)}
           </div>
           <div className="calendar-days">{days}</div>
         </div>
@@ -132,16 +152,19 @@ function Agenda() {
           <div className="event-list">
             {selectedDate && eventosDoDia.length ? (
               eventosDoDia.map((e) => (
-                <div key={e.id}
+                <div
+                  key={e.id}
                   className={`event-item ${selectedEvent === e.id ? "selected" : ""}`}
                   onClick={() => {
-                    setSelectedEvent(e.id); setEditId(e.id);
+                    setSelectedEvent(e.id);
+                    setEditId(e.id);
                     setFormData({
                       titulo: e.titulo, descricao: e.descricao,
                       data_evento: String(e.data_evento).slice(0, 10),
-                      hora_evento: e.hora_evento, local_evento: e.local_evento, estado: e.estado
+                      hora_evento: e.hora_evento, local_evento: e.local_evento, estado: e.estado,
                     });
-                  }}>
+                  }}
+                >
                   <strong>{e.titulo}</strong><br />{e.hora_evento}h<br />{e.descricao}
                 </div>
               ))
@@ -151,7 +174,7 @@ function Agenda() {
                 {historicoMes.length === 0 ? (
                   <p className="empty-message">Nenhum evento neste mês.</p>
                 ) : (
-                  historicoMes.map(e => (
+                  historicoMes.map((e) => (
                     <div key={e.id} className="event-item">
                       <strong>{e.titulo}</strong><br />
                       {formatarData(String(e.data_evento))}<br />{e.hora_evento}
@@ -167,16 +190,35 @@ function Agenda() {
           <>
             <div className="event-form">
               <h3>Dados da atividade</h3>
-              <input type="text" placeholder="Título"
-                value={formData.titulo} onChange={e => setFormData({ ...formData, titulo: e.target.value })} />
-              <input type="date" value={formData.data_evento} min={hoje}
-                onChange={e => setFormData({ ...formData, data_evento: e.target.value })} />
-              <input type="time" value={formData.hora_evento}
-                onChange={e => setFormData({ ...formData, hora_evento: e.target.value })} />
-              <input type="text" placeholder="Local"
-                value={formData.local_evento} onChange={e => setFormData({ ...formData, local_evento: e.target.value })} />
-              <textarea rows="4" placeholder="Descrição"
-                value={formData.descricao} onChange={e => setFormData({ ...formData, descricao: e.target.value })} />
+              <input
+                type="text"
+                placeholder="Título"
+                value={formData.titulo}
+                onChange={(e) => setFormData({ ...formData, titulo: e.target.value })}
+              />
+              <input
+                type="date"
+                value={formData.data_evento}
+                min={hoje}
+                onChange={(e) => setFormData({ ...formData, data_evento: e.target.value })}
+              />
+              <input
+                type="time"
+                value={formData.hora_evento}
+                onChange={(e) => setFormData({ ...formData, hora_evento: e.target.value })}
+              />
+              <input
+                type="text"
+                placeholder="Local"
+                value={formData.local_evento}
+                onChange={(e) => setFormData({ ...formData, local_evento: e.target.value })}
+              />
+              <textarea
+                rows="4"
+                placeholder="Descrição"
+                value={formData.descricao}
+                onChange={(e) => setFormData({ ...formData, descricao: e.target.value })}
+              />
             </div>
 
             <div className="crud-buttons">

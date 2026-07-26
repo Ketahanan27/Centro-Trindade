@@ -1,3 +1,8 @@
+/*
+|--------------------------------------------------------------------------
+| Secção de vídeo institucional
+|--------------------------------------------------------------------------
+*/
 .video-section {
   display: grid;
   grid-template-columns: 1fr 1fr;
@@ -18,9 +23,6 @@
   text-align: center;
 }
 
-.video-content .btn {
-  margin-top: 20px;
-}
 .video-content h2 {
   color: white;
   font-size: 3rem;
@@ -32,13 +34,16 @@
   margin: 1.5rem 0;
 }
 
-
 .video-content .btn {
   display: inline-block;
   margin: 20px auto 0;
 }
 
-
+/*
+|--------------------------------------------------------------------------
+| Responsivo
+|--------------------------------------------------------------------------
+*/
 @media (max-width: 900px) {
   .video-section {
     grid-template-columns: 1fr;
@@ -53,7 +58,6 @@
     height: 300px;
   }
 }
-
 
 @media (max-width: 600px) {
   .video-section {

@@ -2,19 +2,19 @@ import { NavLink, useNavigate } from "react-router-dom";
 import { getPerfil, getUser, temAcesso } from "../../utils/rbac";
 
 const NAV_ITEMS = [
-  { to: "/dashboard",               icon: "ri-dashboard-line",          label: "Dashboard",    area: "dashboard"     },
-  { to: "/dashboard/membros",       icon: "ri-team-line",               label: "Membros",      area: "membros"       },
-  { to: "/dashboard/agenda",        icon: "ri-calendar-event-line",     label: "Agenda",       area: "agenda"        },
-  { to: "/dashboard/tesouraria",    icon: "ri-money-euro-circle-line",  label: "Tesouraria",   area: "tesouraria"    },
-  { to: "/dashboard/secretaria",    icon: "ri-file-list-3-line",        label: "Secretaria",   area: "secretaria"    },
-  { to: "/dashboard/utilizadores",  icon: "ri-user-settings-line",      label: "Utilizadores", area: "utilizadores"  },
-  { to: "/dashboard/minha-area",     icon: "ri-account-circle-line",     label: "Minha Área",   area: null            },
+  { to: "/dashboard", icon: "ri-dashboard-line", label: "Dashboard", area: "dashboard" },
+  { to: "/dashboard/membros", icon: "ri-team-line", label: "Membros", area: "membros" },
+  { to: "/dashboard/agenda", icon: "ri-calendar-event-line", label: "Agenda", area: "agenda" },
+  { to: "/dashboard/tesouraria", icon: "ri-money-euro-circle-line", label: "Tesouraria", area: "tesouraria" },
+  { to: "/dashboard/secretaria", icon: "ri-file-list-3-line", label: "Secretaria", area: "secretaria" },
+  { to: "/dashboard/utilizadores", icon: "ri-user-settings-line", label: "Utilizadores", area: "utilizadores" },
+  { to: "/dashboard/minha-area", icon: "ri-account-circle-line", label: "Minha Área", area: null },
 ];
 
 function Sidebar() {
   const navigate = useNavigate();
-  const perfil   = getPerfil();
-  const user     = getUser();
+  const perfil = getPerfil();
+  const user = getUser();
 
   const logout = () => {
     localStorage.removeItem("token");
@@ -22,8 +22,8 @@ function Sidebar() {
     navigate("/login");
   };
 
-  const itensVisiveis = NAV_ITEMS.filter(item =>
-    item.area === null || temAcesso(perfil, item.area)
+  const itensVisiveis = NAV_ITEMS.filter(
+    (item) => item.area === null || temAcesso(perfil, item.area)
   );
 
   return (
@@ -35,7 +35,7 @@ function Sidebar() {
       </div>
 
       <ul>
-        {itensVisiveis.map(item => (
+        {itensVisiveis.map((item) => (
           <li key={item.area}>
             <NavLink to={item.to}>
               <i className={item.icon}></i>

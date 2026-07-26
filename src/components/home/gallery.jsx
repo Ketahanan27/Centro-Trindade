@@ -31,15 +31,11 @@ function Gallery() {
   const [paused, setPaused] = useState(false);
 
   const nextSlide = useCallback(() => {
-    setCurrent((prev) =>
-      prev === images.length - 1 ? 0 : prev + 1
-    );
+    setCurrent((prev) => (prev === images.length - 1 ? 0 : prev + 1));
   }, []);
 
   const prevSlide = useCallback(() => {
-    setCurrent((prev) =>
-      prev === 0 ? images.length - 1 : prev - 1
-    );
+    setCurrent((prev) => (prev === 0 ? images.length - 1 : prev - 1));
   }, []);
 
   useEffect(() => {
@@ -61,10 +57,7 @@ function Gallery() {
         onMouseEnter={() => setPaused(true)}
         onMouseLeave={() => setPaused(false)}
       >
-        <button
-          className="slider-btn prev"
-          onClick={prevSlide}
-        >
+        <button className="slider-btn prev" onClick={prevSlide}>
           ❮
         </button>
 
@@ -74,10 +67,7 @@ function Gallery() {
           className="slider-image"
         />
 
-        <button
-          className="slider-btn next"
-          onClick={nextSlide}
-        >
+        <button className="slider-btn next" onClick={nextSlide}>
           ❯
         </button>
       </div>
@@ -86,9 +76,7 @@ function Gallery() {
         {images.map((_, index) => (
           <span
             key={index}
-            className={
-              current === index ? "dot active" : "dot"
-            }
+            className={current === index ? "dot active" : "dot"}
             onClick={() => setCurrent(index)}
           ></span>
         ))}

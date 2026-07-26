@@ -7,10 +7,17 @@ import "../../assets/styles/dashboard/minha-area.css";
 
 const CODIGO_POSTAL_RE = /^\d{4}-\d{3}$/;
 
-// Placeholder local (SVG inline em base64) usado quando o membro ainda
-// não tem foto ou quando a foto configurada falha a carregar. Evita
-// depender de um serviço externo (via.placeholder.com), que exigiria
-// abrir a Content-Security-Policy a mais um domínio de terceiros.
+/*
+|--------------------------------------------------------------------------
+| Avatar de substituição
+|--------------------------------------------------------------------------
+|
+| SVG embutido em base64, usado quando o membro ainda não tem foto ou
+| quando a foto configurada falha a carregar. Evita depender de um
+| serviço externo (ex.: via.placeholder.com), que exigiria abrir a
+| Content-Security-Policy a mais um domínio de terceiros.
+|
+*/
 const AVATAR_PLACEHOLDER =
   "data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIyNjAiIGhlaWdodD0iMjYwIj48cmVjdCB3aWR0aD0iMjYwIiBoZWlnaHQ9IjI2MCIgZmlsbD0iI2UyZThmMCIvPjxjaXJjbGUgY3g9IjEzMCIgY3k9IjEwMCIgcj0iNDUiIGZpbGw9IiNhMGFlYzAiLz48ZWxsaXBzZSBjeD0iMTMwIiBjeT0iMjEyIiByeD0iNzgiIHJ5PSI1OCIgZmlsbD0iI2EwYWVjMCIvPjwvc3ZnPg==";
 
@@ -223,7 +230,9 @@ function MinhaArea() {
       const f = String(membro.foto);
       if (f.startsWith("http")) return f;
       return `${API_BASE}${f}`;
-    } catch { return membro.foto; }
+    } catch {
+      return membro.foto;
+    }
   })();
 
   const avatarSrc = resolvedAvatar;

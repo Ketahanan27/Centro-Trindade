@@ -4,9 +4,9 @@ import Layout from "../components/Layout";
 const FORM_VAZIO = { nome: "", telefone: "", email: "", assunto: "", mensagem: "" };
 
 function Formulario() {
-  const [form,    setForm]    = useState(FORM_VAZIO);
+  const [form, setForm] = useState(FORM_VAZIO);
   const [loading, setLoading] = useState(false);
-  const [status,  setStatus]  = useState(null); 
+  const [status, setStatus] = useState(null);
 
   function handleChange(e) {
     setForm({ ...form, [e.target.name]: e.target.value });
@@ -20,9 +20,9 @@ function Formulario() {
 
     try {
       const res = await fetch("/api/contacto", {
-        method:  "POST",
+        method: "POST",
         headers: { "Content-Type": "application/json" },
-        body:    JSON.stringify(form),
+        body: JSON.stringify(form),
       });
 
       const data = await res.json().catch(() => null);
@@ -34,7 +34,6 @@ function Formulario() {
 
       setStatus({ tipo: "sucesso", texto: data?.message ?? "Mensagem enviada com sucesso!" });
       setForm(FORM_VAZIO);
-
     } catch {
       setStatus({ tipo: "erro", texto: "Não foi possível ligar ao servidor. Tente novamente." });
     } finally {

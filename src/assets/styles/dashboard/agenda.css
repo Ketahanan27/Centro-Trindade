@@ -1,225 +1,214 @@
+/*
+|--------------------------------------------------------------------------
+| Página de Agenda (calendário interno de eventos)
+|--------------------------------------------------------------------------
+*/
 .agenda-container {
-    display: grid;
-    grid-template-columns: 2fr 1fr;
-    gap: 25px;
+  display: grid;
+  grid-template-columns: 2fr 1fr;
+  gap: 25px;
 }
 
-
-
-
-
 .calendar-box {
-    background: #1f1f1f;
-    border-radius: 15px;
-    padding: 25px;
-    box-shadow: 0 0 15px rgba(0, 68, 255, .25);
+  background: #1f1f1f;
+  border-radius: 15px;
+  padding: 25px;
+  box-shadow: 0 0 15px rgba(0, 68, 255, .25);
 }
 
 .calendar-header {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    margin-bottom: 20px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 20px;
 }
 
 .calendar-header h2 {
-    font-size: 1.5rem;
-    color: #fff;
+  font-size: 1.5rem;
+  color: #fff;
 }
 
 .calendar-header button {
-    background: #0044ff;
-    border: none;
-    color: white;
-    width: 40px;
-    height: 40px;
-    border-radius: 8px;
-    cursor: pointer;
-    transition: .3s;
+  background: #0044ff;
+  border: none;
+  color: white;
+  width: 40px;
+  height: 40px;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: .3s;
 }
 
 .calendar-header button:hover {
-    background: #001c68;
+  background: #001c68;
 }
 
 .weekdays {
-    display: grid;
-    grid-template-columns: repeat(7, 1fr);
-    margin-bottom: 10px;
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  margin-bottom: 10px;
 }
 
 .weekdays div {
-    text-align: center;
-    padding: 10px;
-    color: #0044ff;
-    font-weight: 600;
+  text-align: center;
+  padding: 10px;
+  color: #0044ff;
+  font-weight: 600;
 }
 
 .calendar-days {
-    display: grid;
-    grid-template-columns: repeat(7, 1fr);
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
 }
 
 .day {
-    height: 90px;
-    border: 1px solid #2f2f2f;
-    color: #ddd;
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    cursor: pointer;
-    position: relative;
-    transition: .3s;
+  height: 90px;
+  border: 1px solid #2f2f2f;
+  color: #ddd;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  cursor: pointer;
+  position: relative;
+  transition: .3s;
 }
 
 .day:hover {
-    background: #0044ff20;
+  background: #0044ff20;
 }
 
 .today {
-    background: #0044ff;
-    color: white;
-    font-weight: bold;
+  background: #0044ff;
+  color: white;
+  font-weight: bold;
 }
 
 .selected {
-    outline: 3px solid #0044ff;
+  outline: 3px solid #0044ff;
 }
 
 .has-event::after {
-    content: "";
-    width: 10px;
-    height: 10px;
-    background: #00ff88;
-    border-radius: 50%;
-    position: absolute;
-    bottom: 8px;
+  content: "";
+  width: 10px;
+  height: 10px;
+  background: #00ff88;
+  border-radius: 50%;
+  position: absolute;
+  bottom: 8px;
 }
 
 .empty-day {
-    height: 90px;
+  height: 90px;
 }
 
 .today-btn {
-    width: auto !important;
-    padding: 0 12px;
+  width: auto !important;
+  padding: 0 12px;
 }
 
-
-
-
-
 .events-box {
-    background: #1f1f1f;
-    border-radius: 15px;
-    padding: 25px;
-    box-shadow: 0 0 15px rgba(0, 68, 255, .25);
+  background: #1f1f1f;
+  border-radius: 15px;
+  padding: 25px;
+  box-shadow: 0 0 15px rgba(0, 68, 255, .25);
 }
 
 .events-box h2 {
-    margin-bottom: 15px;
-    color: white;
+  margin-bottom: 15px;
+  color: white;
 }
 
 .selected-date {
-    margin-bottom: 20px;
-    color: #ccc;
+  margin-bottom: 20px;
+  color: #ccc;
 }
 
 .selected-date span {
-    color: #0044ff;
-    font-weight: 600;
+  color: #0044ff;
+  font-weight: 600;
 }
 
 .event-list {
-    min-height: 180px;
-    margin-bottom: 20px;
+  min-height: 180px;
+  margin-bottom: 20px;
 }
 
 .event-item {
-    background: #2a2a2a;
-    padding: 12px;
-    border-radius: 8px;
-    margin-bottom: 10px;
-    color: #ddd;
-    cursor: pointer;
-    transition: .3s;
+  background: #2a2a2a;
+  padding: 12px;
+  border-radius: 8px;
+  margin-bottom: 10px;
+  color: #ddd;
+  cursor: pointer;
+  transition: .3s;
 }
 
 .event-item:hover {
-    background: #333;
+  background: #333;
 }
 
 .event-item.selected {
-    border: 2px solid #0044ff;
-    background: #1c2f70;
+  border: 2px solid #0044ff;
+  background: #1c2f70;
 }
 
 .empty-message {
-    color: #999;
+  color: #999;
 }
 
 .event-counter {
-    color: #999;
-    margin-bottom: 15px;
-    font-size: .9rem;
+  color: #999;
+  margin-bottom: 15px;
+  font-size: .9rem;
 }
 
-
-
-
-
 .event-form {
-    display: flex;
-    flex-direction: column;
-    gap: 10px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
 }
 
 .event-form h3 {
-    margin-bottom: 10px;
-    color: white;
+  margin-bottom: 10px;
+  color: white;
 }
 
 .event-form input,
 .event-form textarea {
-    background: #2a2a2a;
-    border: 1px solid #333;
-    color: white;
-    padding: 12px;
-    border-radius: 8px;
-    outline: none;
-    transition: .3s;
+  background: #2a2a2a;
+  border: 1px solid #333;
+  color: white;
+  padding: 12px;
+  border-radius: 8px;
+  outline: none;
+  transition: .3s;
 }
 
 .event-form input:focus,
 .event-form textarea:focus {
-    border-color: #0044ff;
-    box-shadow: 0 0 0 2px rgba(0, 68, 255, .2);
+  border-color: #0044ff;
+  box-shadow: 0 0 0 2px rgba(0, 68, 255, .2);
 }
 
-
-
-
-
 .crud-buttons {
-    display: grid;
-    grid-template-columns: 1fr 1fr;
-    gap: 10px;
-    margin-top: 20px;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+  margin-top: 20px;
 }
 
 .crud-buttons button {
-    border: none;
-    padding: 12px;
-    border-radius: 8px;
-    cursor: pointer;
-    font-weight: 600;
-    transition: .3s;
+  border: none;
+  padding: 12px;
+  border-radius: 8px;
+  cursor: pointer;
+  font-weight: 600;
+  transition: .3s;
 }
 
 .crud-buttons button:hover {
-    opacity: .8;
-    transform: translateY(-1px);
+  opacity: .8;
+  transform: translateY(-1px);
 }
 
 .btn-create { background: #0044ff; color: white; }
@@ -228,51 +217,51 @@
 .btn-clear  { background: #666;    color: white; }
 
 .save-btn {
-    width: 100%;
-    margin-top: 15px;
-    padding: 14px;
-    background: #0044ff;
-    color: white;
-    border: none;
-    border-radius: 10px;
-    cursor: pointer;
-    font-size: 1rem;
-    font-weight: 600;
-    transition: .3s;
+  width: 100%;
+  margin-top: 15px;
+  padding: 14px;
+  background: #0044ff;
+  color: white;
+  border: none;
+  border-radius: 10px;
+  cursor: pointer;
+  font-size: 1rem;
+  font-weight: 600;
+  transition: .3s;
 }
 
 .save-btn:hover {
-    background: #001c68;
+  background: #001c68;
 }
 
-
-
-
-
+/*
+|--------------------------------------------------------------------------
+| Responsivo
+|--------------------------------------------------------------------------
+*/
 @media (max-width: 1000px) {
-    .agenda-container {
-        grid-template-columns: 1fr;
-    }
+  .agenda-container {
+    grid-template-columns: 1fr;
+  }
 }
 
 @media (max-width: 600px) {
 
-    
-    .agenda-container {
-        gap: 15px;
-    }
+  .agenda-container {
+    gap: 15px;
+  }
 
-    .day {
-        height: 60px;
-        font-size: .9rem;
-    }
+  .day {
+    height: 60px;
+    font-size: .9rem;
+  }
 
-    .weekdays div {
-        font-size: .8rem;
-    }
+  .weekdays div {
+    font-size: .8rem;
+  }
 
-    .calendar-box,
-    .events-box {
-        padding: 15px;
-    }
+  .calendar-box,
+  .events-box {
+    padding: 15px;
+  }
 }

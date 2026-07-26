@@ -1,3 +1,8 @@
+/*
+|--------------------------------------------------------------------------
+| Barra de navegação
+|--------------------------------------------------------------------------
+*/
 .navbar {
   max-width: 1200px;
   margin: auto;
@@ -8,7 +13,7 @@
   align-items: center;
 
   position: relative;
-  
+
   z-index: 100;
 }
 
@@ -53,8 +58,6 @@
   width: 70%;
 }
 
-
-
 .desktop-actions {
   display: flex;
   align-items: center;
@@ -79,8 +82,6 @@
   transform: translateY(-2px);
 }
 
-
-
 .menu-icon {
   display: none;
   color: white;
@@ -99,8 +100,15 @@
   display: none;
 }
 
-
-
+/*
+|--------------------------------------------------------------------------
+| Menu móvel
+|--------------------------------------------------------------------------
+|
+| Abaixo dos 900px o menu horizontal dá lugar a um painel suspenso por
+| baixo do cabeçalho, alternado pela classe "is-open" aplicada via JS.
+|
+*/
 @media (max-width: 900px) {
 
   .menu-icon {
@@ -125,7 +133,7 @@
     padding: 2rem 1rem;
 
     background: #1a1a1a;
-    
+
     border-radius: 15px;
     border: 1px solid #333;
     box-shadow: 0 8px 32px rgba(0, 0, 0, .5);

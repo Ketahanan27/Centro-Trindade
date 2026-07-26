@@ -6,42 +6,39 @@ import { sanitizarTelefone } from "../../utils/validation";
 import { formatarData } from "../../utils/data";
 import { useListaRemota, executarAcaoCrud } from "../../utils/useCrud";
 import { usePerfil } from "../../routes/ProctedRoute";
-import { toast } from "../../utils/toast";
 import "../../assets/styles/dashboard/membros.css";
 
 const API_BASE = import.meta.env.VITE_API_URL ?? "";
 
+const FORM_VAZIO = {
+  nome: "", morada: "", codigo_postal: "",
+  email: "", telemovel: "", nascimento: "",
+  sexo: "Masculino", estado_civil: "Solteiro(a)",
+  entrada: "", batizado: "Não", estado: "Ativo",
+};
+
 function Membros() {
   const { soLeitura } = usePerfil();
 
-  const [showModal, setShowModal]       = useState(false);
-  const [showDetails, setShowDetails]   = useState(false);
+  const [showModal, setShowModal] = useState(false);
+  const [showDetails, setShowDetails] = useState(false);
   const [selectedMember, setSelectedMember] = useState(null);
-  const [editId, setEditId]             = useState(null);
-  const [pesquisa, setPesquisa]         = useState("");
-  const [membros, , carregarMembros]    = useListaRemota(
+  const [editId, setEditId] = useState(null);
+  const [pesquisa, setPesquisa] = useState("");
+  const [membros, , carregarMembros] = useListaRemota(
     "/api/membros",
     "Não foi possível carregar os membros. Tente novamente."
   );
 
-  const [formData, setFormData] = useState({
-    nome: "", morada: "", codigo_postal: "",
-    email: "", telemovel: "", nascimento: "",
-    sexo: "Masculino", estado_civil: "Solteiro(a)",
-    entrada: "", batizado: "Não", estado: "Ativo"
-  });
+  const [formData, setFormData] = useState(FORM_VAZIO);
+
   const handleChange = (e) => {
     const { name, value } = e.target;
     setFormData({ ...formData, [name]: name === "telemovel" ? sanitizarTelefone(value) : value });
   };
 
   const limparFormulario = () => {
-    setFormData({
-      nome: "", morada: "", codigo_postal: "",
-      email: "", telemovel: "", nascimento: "",
-      sexo: "Masculino", estado_civil: "Solteiro(a)",
-      entrada: "", batizado: "Não", estado: "Ativo"
-    });
+    setFormData(FORM_VAZIO);
     setEditId(null);
   };
 
@@ -59,17 +56,17 @@ function Membros() {
   const editarMembro = (membro) => {
     const limparData = (d) => (!d ? "" : String(d).split("T")[0]);
     setFormData({
-      nome:          membro.nome          || "",
-      email:         membro.email         || "",
-      telemovel:     membro.telemovel     || "",
-      nascimento:    limparData(membro.nascimento),
-      sexo:          membro.sexo          || "Masculino",
-      estado_civil:  membro.estado_civil  || "Solteiro(a)",
-      morada:        membro.morada        || "",
+      nome: membro.nome || "",
+      email: membro.email || "",
+      telemovel: membro.telemovel || "",
+      nascimento: limparData(membro.nascimento),
+      sexo: membro.sexo || "Masculino",
+      estado_civil: membro.estado_civil || "Solteiro(a)",
+      morada: membro.morada || "",
       codigo_postal: membro.codigo_postal || "",
-      entrada:       limparData(membro.entrada),
-      batizado:      membro.batizado      || "Não",
-      estado:        membro.estado        || "Ativo",
+      entrada: limparData(membro.entrada),
+      batizado: membro.batizado || "Não",
+      estado: membro.estado || "Ativo",
     });
     setEditId(membro.id);
     setShowModal(true);
@@ -99,7 +96,6 @@ function Membros() {
     <DashboardLayout>
       <div className="container">
 
-        {}
         {soLeitura && (
           <div className="banner-leitura">
             <i className="ri-eye-line"></i>
@@ -110,15 +106,19 @@ function Membros() {
         <div className="page-header">
           <h1>Membros</h1>
           {!soLeitura && (
-          <button className="btn-primary" onClick={() => { limparFormulario(); setShowModal(true); }}>
-            <i className="ri-user-add-line"></i> Novo Membro
-          </button>
+            <button className="btn-primary" onClick={() => { limparFormulario(); setShowModal(true); }}>
+              <i className="ri-user-add-line"></i> Novo Membro
+            </button>
           )}
         </div>
 
         <div className="search-box">
-          <input type="text" placeholder="Pesquisar membro..."
-            value={pesquisa} onChange={(e) => setPesquisa(e.target.value)} />
+          <input
+            type="text"
+            placeholder="Pesquisar membro..."
+            value={pesquisa}
+            onChange={(e) => setPesquisa(e.target.value)}
+          />
         </div>
 
         <div className="table-wrapper">
@@ -164,7 +164,6 @@ function Membros() {
 
       </div>
 
-      {}
       {showModal && createPortal(
         <div className="modal active">
           <div className="modal-content">
@@ -174,33 +173,64 @@ function Membros() {
             </div>
             <form onSubmit={handleSubmit}>
               <div className="grid">
-                <div className="field"><label>Nome</label>
-                  <input type="text" name="nome" required value={formData.nome} onChange={handleChange}/></div>
-                <div className="field"><label>Email</label>
-                  <input type="email" name="email" required value={formData.email} onChange={handleChange}/></div>
-                <div className="field"><label>Telemóvel</label>
-                  <input type="text" name="telemovel" maxLength="9" value={formData.telemovel} onChange={handleChange}/></div>
-                <div className="field"><label>Data Nascimento</label>
-                  <input type="date" name="nascimento" value={formData.nascimento} onChange={handleChange}/></div>
-                <div className="field"><label>Sexo</label>
+                <div className="field">
+                  <label>Nome</label>
+                  <input type="text" name="nome" required value={formData.nome} onChange={handleChange} />
+                </div>
+                <div className="field">
+                  <label>Email</label>
+                  <input type="email" name="email" required value={formData.email} onChange={handleChange} />
+                </div>
+                <div className="field">
+                  <label>Telemóvel</label>
+                  <input type="text" name="telemovel" maxLength="9" value={formData.telemovel} onChange={handleChange} />
+                </div>
+                <div className="field">
+                  <label>Data Nascimento</label>
+                  <input type="date" name="nascimento" value={formData.nascimento} onChange={handleChange} />
+                </div>
+                <div className="field">
+                  <label>Sexo</label>
                   <select name="sexo" value={formData.sexo} onChange={handleChange}>
-                    <option>Masculino</option><option>Feminino</option></select></div>
-                <div className="field"><label>Estado Civil</label>
+                    <option>Masculino</option>
+                    <option>Feminino</option>
+                  </select>
+                </div>
+                <div className="field">
+                  <label>Estado Civil</label>
                   <select name="estado_civil" value={formData.estado_civil} onChange={handleChange}>
-                    <option>Solteiro(a)</option><option>Casado(a)</option>
-                    <option>Divorciado(a)</option><option>Viúvo(a)</option></select></div>
-                <div className="field"><label>Morada</label>
-                  <input type="text" name="morada" value={formData.morada} onChange={handleChange}/></div>
-                <div className="field"><label>Código Postal</label>
-                  <input type="text" name="codigo_postal" value={formData.codigo_postal} onChange={handleChange}/></div>
-                <div className="field"><label>Data Entrada</label>
-                  <input type="date" name="entrada" value={formData.entrada} onChange={handleChange}/></div>
-                <div className="field"><label>Batizado</label>
+                    <option>Solteiro(a)</option>
+                    <option>Casado(a)</option>
+                    <option>Divorciado(a)</option>
+                    <option>Viúvo(a)</option>
+                  </select>
+                </div>
+                <div className="field">
+                  <label>Morada</label>
+                  <input type="text" name="morada" value={formData.morada} onChange={handleChange} />
+                </div>
+                <div className="field">
+                  <label>Código Postal</label>
+                  <input type="text" name="codigo_postal" value={formData.codigo_postal} onChange={handleChange} />
+                </div>
+                <div className="field">
+                  <label>Data Entrada</label>
+                  <input type="date" name="entrada" value={formData.entrada} onChange={handleChange} />
+                </div>
+                <div className="field">
+                  <label>Batizado</label>
                   <select name="batizado" value={formData.batizado} onChange={handleChange}>
-                    <option>Sim</option><option>Não</option></select></div>
-                <div className="field"><label>Estado</label>
+                    <option>Sim</option>
+                    <option>Não</option>
+                  </select>
+                </div>
+                <div className="field">
+                  <label>Estado</label>
                   <select name="estado" value={formData.estado} onChange={handleChange}>
-                    <option>Ativo</option><option>Inativo</option></select></div>
+                    <option>Ativo</option>
+                    <option>Inativo</option>
+                  </select>
+                </div>
               </div>
               <div className="form-actions">
                 <button type="submit" className="save">Guardar</button>

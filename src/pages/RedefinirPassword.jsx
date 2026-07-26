@@ -4,15 +4,15 @@ import "../assets/styles/home/login.css";
 import logo from "../assets/img/principal.png";
 
 function RedefinirPassword() {
-  const [searchParams]    = useSearchParams();
-  const navigate          = useNavigate();
-  const token             = searchParams.get("token");
+  const [searchParams] = useSearchParams();
+  const navigate = useNavigate();
+  const token = searchParams.get("token");
 
-  const [form,    setForm]    = useState({ nova_password: "", confirmar: "" });
+  const [form, setForm] = useState({ nova_password: "", confirmar: "" });
   const [loading, setLoading] = useState(false);
-  const [status,  setStatus]  = useState(null); 
-  const [mostrarNova,   setMostrarNova]   = useState(false);
-  const [mostrarConf,   setMostrarConf]   = useState(false);
+  const [status, setStatus] = useState(null);
+  const [mostrarNova, setMostrarNova] = useState(false);
+  const [mostrarConf, setMostrarConf] = useState(false);
 
   useEffect(() => {
     if (!token) {
@@ -20,8 +20,7 @@ function RedefinirPassword() {
     }
   }, [token]);
 
-  const handleChange = (e) =>
-    setForm({ ...form, [e.target.name]: e.target.value });
+  const handleChange = (e) => setForm({ ...form, [e.target.name]: e.target.value });
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -40,10 +39,10 @@ function RedefinirPassword() {
     setStatus(null);
 
     try {
-      const res  = await fetch("/api/auth/redefinir", {
-        method:  "POST",
+      const res = await fetch("/api/auth/redefinir", {
+        method: "POST",
         headers: { "Content-Type": "application/json" },
-        body:    JSON.stringify({ token, nova_password: form.nova_password }),
+        body: JSON.stringify({ token, nova_password: form.nova_password }),
       });
       const data = await res.json().catch(() => null);
 
@@ -53,9 +52,7 @@ function RedefinirPassword() {
       }
 
       setStatus({ tipo: "sucesso", texto: data?.message ?? "Palavra-passe atualizada com sucesso!" });
-
       setTimeout(() => navigate("/login"), 2500);
-
     } catch {
       setStatus({ tipo: "erro", texto: "Não foi possível ligar ao servidor." });
     } finally {
@@ -77,7 +74,6 @@ function RedefinirPassword() {
 
           <h2>Nova Palavra-passe</h2>
 
-          {}
           {status && (
             <div
               className={`recuperar-status recuperar-status--${status.tipo}`}
@@ -92,7 +88,6 @@ function RedefinirPassword() {
             </div>
           )}
 
-          {}
           {token && status?.tipo !== "sucesso" && (
             <form onSubmit={handleSubmit}>
 
@@ -110,7 +105,7 @@ function RedefinirPassword() {
                 <i
                   className={mostrarNova ? "ri-eye-off-line" : "ri-eye-line"}
                   style={{ cursor: "pointer" }}
-                  onClick={() => setMostrarNova(v => !v)}
+                  onClick={() => setMostrarNova((v) => !v)}
                 />
               </div>
 
@@ -128,7 +123,7 @@ function RedefinirPassword() {
                 <i
                   className={mostrarConf ? "ri-eye-off-line" : "ri-eye-line"}
                   style={{ cursor: "pointer" }}
-                  onClick={() => setMostrarConf(v => !v)}
+                  onClick={() => setMostrarConf((v) => !v)}
                 />
               </div>
 

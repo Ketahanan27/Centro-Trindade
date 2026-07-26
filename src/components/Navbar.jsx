@@ -5,7 +5,6 @@ import logo from "../assets/img/principal.png";
 
 function Navbar() {
   const [menuOpen, setMenuOpen] = useState(false);
-
   const navRef = useRef(null);
 
   useEffect(() => {

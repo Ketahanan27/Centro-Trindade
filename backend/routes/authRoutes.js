@@ -8,15 +8,15 @@ import {
 
 const router = express.Router();
 
-router.post("/register",  authLimiter, register);
-router.post("/login",     authLimiter, login);
+router.post("/register", authLimiter, register);
+router.post("/login", authLimiter, login);
 router.post("/recuperar", authLimiter, recuperarPassword);
 router.post("/redefinir", authLimiter, redefinirPassword);
 
-router.get("/users",            verifyToken, adminOnly, getUsers);
-router.post("/users",           verifyToken, adminOnly, writeLimiter, criarUtilizador);
-router.put("/users/:id",        verifyToken, adminOnly, writeLimiter, updateUser);
-router.delete("/users/:id",     verifyToken, adminOnly, writeLimiter, deleteUser);
+router.get("/users", verifyToken, adminOnly, getUsers);
+router.post("/users", verifyToken, adminOnly, writeLimiter, criarUtilizador);
+router.put("/users/:id", verifyToken, adminOnly, writeLimiter, updateUser);
+router.delete("/users/:id", verifyToken, adminOnly, writeLimiter, deleteUser);
 router.post("/users/:id/reset", verifyToken, adminOnly, writeLimiter, resetUserPassword);
 
 export default router;

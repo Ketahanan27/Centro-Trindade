@@ -1,3 +1,8 @@
+/*
+|--------------------------------------------------------------------------
+| Página de contribuições (dízimos, ofertas, MBWay)
+|--------------------------------------------------------------------------
+*/
 .contribua {
   max-width: 1200px;
   margin: 0 auto;
@@ -5,7 +10,7 @@
   display: grid;
   grid-template-columns: 1fr 1fr;
   gap: 60px;
-  
+
   align-items: start;
 }
 
@@ -68,7 +73,6 @@
   background-color: #141212;
 }
 
-
 .contribua-right {
   padding-top: 30px;
   color: white;
@@ -92,7 +96,6 @@
   color: white;
 }
 
-
 .contribua-sucesso {
   background: rgba(16, 185, 129, .15);
   border: 1px solid #10b981;
@@ -113,6 +116,11 @@
   border-radius: 10px;
 }
 
+/*
+|--------------------------------------------------------------------------
+| Responsivo
+|--------------------------------------------------------------------------
+*/
 @media (max-width: 768px) {
   .contribua {
     grid-template-columns: 1fr;
@@ -125,7 +133,6 @@
     width: 100%;
   }
 
-  
   .contribua-right {
     border-left: none;
     border-top: 1px solid #333;

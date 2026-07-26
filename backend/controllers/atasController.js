@@ -1,7 +1,6 @@
 import db from "../config/db.js";
 
 export const getAtas = (req, res) => {
-
   db.query(
     `SELECT
        id,
@@ -27,10 +26,9 @@ export const getAtas = (req, res) => {
 };
 
 export const createAta = (req, res) => {
-
   const {
     titulo, data, hora, local,
-    participantes, resumo, decisoes, observacoes
+    participantes, resumo, decisoes, observacoes,
   } = req.body;
 
   if (!titulo?.trim()) {
@@ -75,11 +73,10 @@ export const createAta = (req, res) => {
 };
 
 export const updateAta = (req, res) => {
-
   const { id } = req.params;
   const {
     titulo, data, hora, local,
-    participantes, resumo, decisoes, observacoes
+    participantes, resumo, decisoes, observacoes,
   } = req.body;
 
   if (!titulo?.trim()) {
@@ -118,34 +115,25 @@ export const updateAta = (req, res) => {
         console.error("[updateAta]", err);
         return res.status(500).json({ message: "Erro interno do servidor." });
       }
-
       if (result.affectedRows === 0) {
         return res.status(404).json({ message: "Reunião não encontrada." });
       }
-
       res.json({ message: "Reunião atualizada com sucesso." });
     }
   );
 };
 
 export const deleteAta = (req, res) => {
-
   const { id } = req.params;
 
-  db.query(
-    "DELETE FROM atas WHERE id = ?",
-    [id],
-    (err, result) => {
-      if (err) {
-        console.error("[deleteAta]", err);
-        return res.status(500).json({ message: "Erro interno do servidor." });
-      }
-
-      if (result.affectedRows === 0) {
-        return res.status(404).json({ message: "Reunião não encontrada." });
-      }
-
-      res.json({ message: "Reunião eliminada com sucesso." });
+  db.query("DELETE FROM atas WHERE id = ?", [id], (err, result) => {
+    if (err) {
+      console.error("[deleteAta]", err);
+      return res.status(500).json({ message: "Erro interno do servidor." });
     }
-  );
+    if (result.affectedRows === 0) {
+      return res.status(404).json({ message: "Reunião não encontrada." });
+    }
+    res.json({ message: "Reunião eliminada com sucesso." });
+  });
 };

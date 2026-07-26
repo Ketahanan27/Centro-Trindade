@@ -4,8 +4,19 @@ import Card from "../../components/dashboard/card";
 import { apiFetch } from "../../utils/api";
 import "../../assets/styles/dashboard/dashboard.css";
 
-const MESES = ["","Jan","Fev","Mar","Abr","Mai","Jun","Jul","Ago","Set","Out","Nov","Dez"];
+const MESES = ["", "Jan", "Fev", "Mar", "Abr", "Mai", "Jun", "Jul", "Ago", "Set", "Out", "Nov", "Dez"];
 
+/*
+|--------------------------------------------------------------------------
+| Gráfico de barras de receitas/despesas
+|--------------------------------------------------------------------------
+|
+| Desenha um SVG à mão (sem biblioteca de gráficos) com uma barra de
+| receitas e uma de despesas por mês. Os valores em falta em "dados" são
+| preenchidos com zero para garantir sempre as 12 colunas do ano, e a
+| escala vertical é calculada a partir do maior valor encontrado.
+|
+*/
 function GraficoBarras({ dados }) {
   if (!dados || dados.length === 0) {
     return (
@@ -17,7 +28,7 @@ function GraficoBarras({ dados }) {
 
   const completo = Array.from({ length: 12 }, (_, i) => {
     const mes = i + 1;
-    const found = dados.find(d => Number(d.mes) === mes);
+    const found = dados.find((d) => Number(d.mes) === mes);
     return {
       mes,
       receitas: Number(found?.receitas ?? 0),
@@ -25,19 +36,20 @@ function GraficoBarras({ dados }) {
     };
   });
 
-  const W = 700, H = 280;
+  const W = 700;
+  const H = 280;
   const PAD = { top: 24, right: 20, bottom: 50, left: 64 };
   const chartW = W - PAD.left - PAD.right;
-  const chartH = H - PAD.top  - PAD.bottom;
+  const chartH = H - PAD.top - PAD.bottom;
 
   const maxVal = Math.max(
     1,
-    ...completo.map(d => Math.max(d.receitas, d.despesas))
+    ...completo.map((d) => Math.max(d.receitas, d.despesas))
   );
 
-  const colW  = chartW / 12;
-  const barW  = Math.min(colW * 0.32, 22);
-  const gap   = 3;
+  const colW = chartW / 12;
+  const barW = Math.min(colW * 0.32, 22);
+  const gap = 3;
   const ticks = [0, 0.25, 0.5, 0.75, 1];
 
   const yPos = (val) => PAD.top + chartH * (1 - val / maxVal);
@@ -48,8 +60,7 @@ function GraficoBarras({ dados }) {
       style={{ width: "100%", height: "auto", display: "block" }}
       aria-label="Gráfico de receitas e despesas mensais"
     >
-      {}
-      {ticks.map(f => {
+      {ticks.map((f) => {
         const y = PAD.top + chartH * (1 - f);
         return (
           <g key={f}>
@@ -68,15 +79,13 @@ function GraficoBarras({ dados }) {
         );
       })}
 
-      {}
       {completo.map(({ mes, receitas, despesas }) => {
-        const cx   = PAD.left + (mes - 0.5) * colW;
+        const cx = PAD.left + (mes - 0.5) * colW;
         const recH = (receitas / maxVal) * chartH;
         const desH = (despesas / maxVal) * chartH;
 
         return (
           <g key={mes}>
-            {}
             <rect
               x={cx - barW - gap / 2}
               y={yPos(receitas)}
@@ -86,7 +95,6 @@ function GraficoBarras({ dados }) {
               rx="3"
               opacity={receitas === 0 ? 0.15 : 1}
             />
-            {}
             {receitas > 0 && recH > 18 && (
               <text
                 x={cx - barW / 2 - gap / 2}
@@ -99,7 +107,6 @@ function GraficoBarras({ dados }) {
               </text>
             )}
 
-            {}
             <rect
               x={cx + gap / 2}
               y={yPos(despesas)}
@@ -109,7 +116,6 @@ function GraficoBarras({ dados }) {
               rx="3"
               opacity={despesas === 0 ? 0.15 : 1}
             />
-            {}
             {despesas > 0 && desH > 18 && (
               <text
                 x={cx + barW / 2 + gap / 2}
@@ -122,7 +128,6 @@ function GraficoBarras({ dados }) {
               </text>
             )}
 
-            {}
             <text
               x={cx}
               y={H - PAD.bottom + 16}
@@ -136,19 +141,18 @@ function GraficoBarras({ dados }) {
         );
       })}
 
-      {}
-      <rect x={PAD.left}      y={H - 16} width="10" height="10" fill="#0044ff" rx="2" />
-      <text x={PAD.left + 14} y={H -  7} fill="#aaa" fontSize="11">Receitas</text>
+      <rect x={PAD.left} y={H - 16} width="10" height="10" fill="#0044ff" rx="2" />
+      <text x={PAD.left + 14} y={H - 7} fill="#aaa" fontSize="11">Receitas</text>
       <rect x={PAD.left + 84} y={H - 16} width="10" height="10" fill="#ff3333" rx="2" />
-      <text x={PAD.left + 98} y={H -  7} fill="#aaa" fontSize="11">Despesas</text>
+      <text x={PAD.left + 98} y={H - 7} fill="#aaa" fontSize="11">Despesas</text>
     </svg>
   );
 }
 
 function Dashboard() {
-  const [dados,   setDados]   = useState(null);
+  const [dados, setDados] = useState(null);
   const [loading, setLoading] = useState(true);
-  const [erro,    setErro]    = useState(null);
+  const [erro, setErro] = useState(null);
 
   const carregarDados = useCallback(async () => {
     setLoading(true);
@@ -166,7 +170,9 @@ function Dashboard() {
     }
   }, []);
 
-  useEffect(() => { carregarDados(); }, [carregarDados]);
+  useEffect(() => {
+    carregarDados();
+  }, [carregarDados]);
 
   if (loading) {
     return (
@@ -196,7 +202,6 @@ function Dashboard() {
   return (
     <DashboardLayout>
 
-      {}
       <section className="cards">
         <Card
           icon="ri-team-line"
@@ -222,7 +227,6 @@ function Dashboard() {
         />
       </section>
 
-      {}
       <section className="dashboard-grid">
 
         <div className="panel">
@@ -265,7 +269,6 @@ function Dashboard() {
 
       {podeVerFinancas && (
         <>
-          {}
           <section className="panel">
             <div className="dash-panel-header">
               <h2><i className="ri-bar-chart-2-line"></i> Relatórios Financeiros</h2>
@@ -275,7 +278,6 @@ function Dashboard() {
             <GraficoBarras dados={graficoAnual} />
           </section>
 
-          {}
           <section className="panel">
             <h2><i className="ri-exchange-dollar-line"></i> Últimos Movimentos</h2>
 

@@ -1,7 +1,15 @@
 const BASE = import.meta.env.VITE_API_URL ?? "";
 
-console.log("API BASE =", BASE);
-
+/*
+|--------------------------------------------------------------------------
+| Rotas que não devem disparar o logout automático em caso de 401
+|--------------------------------------------------------------------------
+|
+| Login, recuperação/redefinição de password e contacto são acessíveis sem
+| sessão — um 401 nestas rotas é uma credencial errada, não uma sessão
+| expirada, por isso não deve limpar o token nem redirecionar.
+|
+*/
 const ROTAS_PUBLICAS = [
   "/api/auth/login",
   "/api/auth/recuperar",
@@ -43,6 +51,5 @@ export const apiFetchArray = async (path, options = {}) => {
     throw new Error(body.message ?? `Erro HTTP ${res.status}`);
   }
 
-  const data = await res.json();
-  return data;
+  return res.json();
 };

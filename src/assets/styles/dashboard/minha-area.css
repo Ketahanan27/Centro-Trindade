@@ -1,11 +1,13 @@
-
-
+/*
+|--------------------------------------------------------------------------
+| Página "A Minha Área" (perfil do membro)
+|--------------------------------------------------------------------------
+*/
 .minha-area-page {
   width: 100%;
   max-width: 900px;
   margin-inline: auto;
 }
-
 
 .minha-area-header {
   display: flex;
@@ -49,7 +51,6 @@
   font-size: 0.85rem;
   font-weight: 600;
 }
-
 
 .minha-area-grid {
   display: grid;
@@ -157,7 +158,6 @@
   word-break: break-word;
 }
 
-
 .minha-area-loading {
   text-align: center;
   padding: 60px;
@@ -181,10 +181,6 @@
   text-align: center;
   color: #ff9800;
   margin-bottom: 20px;
-}
-
-
-.minha-area-aviso {
   margin-top: 22px;
 }
 
@@ -202,7 +198,6 @@
   color: white;
 }
 
-
 .minha-area-rodape {
   color: #555;
   font-size: 0.85rem;
@@ -210,6 +205,11 @@
   margin-top: 10px;
 }
 
+/*
+|--------------------------------------------------------------------------
+| Cartão de foto de perfil
+|--------------------------------------------------------------------------
+*/
 .minha-area-card-big {
   display: grid;
   grid-template-columns: 1fr;
@@ -333,7 +333,11 @@
   gap: 16px;
 }
 
-
+/*
+|--------------------------------------------------------------------------
+| Responsivo
+|--------------------------------------------------------------------------
+*/
 @media (max-width: 1200px) {
   .minha-area-page {
     padding: 0 18px 18px;

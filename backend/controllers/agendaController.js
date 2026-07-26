@@ -7,29 +7,31 @@ export const createEvent = (req, res) => {
     data_evento,
     hora_evento,
     local_evento,
-    estado
+    estado,
   } = req.body;
+
   if (!titulo?.trim()) {
     return res.status(400).json({ message: "O título é obrigatório." });
   }
-
   if (!data_evento) {
     return res.status(400).json({ message: "A data é obrigatória." });
   }
+
   const hoje = new Date();
   hoje.setHours(0, 0, 0, 0);
   const dataEvento = new Date(data_evento);
   dataEvento.setHours(0, 0, 0, 0);
+
   if (dataEvento < hoje) {
-    return res.status(400).json({
-      message: "Não é permitido criar eventos em datas passadas."
-    });
+    return res.status(400).json({ message: "Não é permitido criar eventos em datas passadas." });
   }
+
   const sql = `
     INSERT INTO eventos
       (titulo, descricao, data_evento, hora_evento, local_evento, estado)
     VALUES (?, ?, ?, ?, ?, ?)
   `;
+
   db.query(
     sql,
     [titulo, descricao, data_evento, hora_evento, local_evento, estado],
@@ -44,7 +46,6 @@ export const createEvent = (req, res) => {
 };
 
 export const getEvents = (req, res) => {
-
   const sql = `
     SELECT
       id,
@@ -68,36 +69,30 @@ export const getEvents = (req, res) => {
 };
 
 export const updateEvent = (req, res) => {
-
   const { id } = req.params;
-
   const {
     titulo,
     descricao,
     data_evento,
     hora_evento,
     local_evento,
-    estado
+    estado,
   } = req.body;
 
   if (!titulo?.trim()) {
     return res.status(400).json({ message: "O título é obrigatório." });
   }
-
   if (!data_evento) {
     return res.status(400).json({ message: "A data é obrigatória." });
   }
 
   const hoje = new Date();
   hoje.setHours(0, 0, 0, 0);
-
   const dataEvento = new Date(data_evento);
   dataEvento.setHours(0, 0, 0, 0);
 
   if (dataEvento < hoje) {
-    return res.status(400).json({
-      message: "Não é permitido alterar eventos passados."
-    });
+    return res.status(400).json({ message: "Não é permitido alterar eventos passados." });
   }
 
   const sql = `
@@ -122,44 +117,31 @@ export const updateEvent = (req, res) => {
 };
 
 export const deleteEvent = (req, res) => {
-
   const { id } = req.params;
 
-  db.query(
-    "SELECT data_evento FROM eventos WHERE id = ?",
-    [id],
-    (err, result) => {
+  db.query("SELECT data_evento FROM eventos WHERE id = ?", [id], (err, result) => {
+    if (err) {
+      console.error("[deleteEvent select]", err);
+      return res.status(500).json({ message: "Erro interno do servidor." });
+    }
+    if (result.length === 0) {
+      return res.status(404).json({ message: "Evento não encontrado." });
+    }
+
+    const hoje = new Date();
+    hoje.setHours(0, 0, 0, 0);
+    const dataEvento = new Date(result[0].data_evento);
+
+    if (dataEvento < hoje) {
+      return res.status(400).json({ message: "Eventos já realizados não podem ser eliminados." });
+    }
+
+    db.query("DELETE FROM eventos WHERE id = ?", [id], (err) => {
       if (err) {
-        console.error("[deleteEvent select]", err);
+        console.error("[deleteEvent delete]", err);
         return res.status(500).json({ message: "Erro interno do servidor." });
       }
-
-      if (result.length === 0) {
-        return res.status(404).json({ message: "Evento não encontrado." });
-      }
-
-      const hoje = new Date();
-      hoje.setHours(0, 0, 0, 0);
-
-      const dataEvento = new Date(result[0].data_evento);
-
-      if (dataEvento < hoje) {
-        return res.status(400).json({
-          message: "Eventos já realizados não podem ser eliminados."
-        });
-      }
-
-      db.query(
-        "DELETE FROM eventos WHERE id = ?",
-        [id],
-        (err) => {
-          if (err) {
-            console.error("[deleteEvent delete]", err);
-            return res.status(500).json({ message: "Erro interno do servidor." });
-          }
-          res.json({ message: "Evento eliminado com sucesso" });
-        }
-      );
-    }
-  );
+      res.json({ message: "Evento eliminado com sucesso" });
+    });
+  });
 };

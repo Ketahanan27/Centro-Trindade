@@ -5,9 +5,9 @@ import "../assets/styles/toast.css";
 
 const ICONES = {
   sucesso: "ri-checkbox-circle-line",
-  erro:    "ri-close-circle-line",
-  aviso:   "ri-alert-line",
-  info:    "ri-information-line",
+  erro: "ri-close-circle-line",
+  aviso: "ri-alert-line",
+  info: "ri-information-line",
 };
 
 function ToastContainer() {
