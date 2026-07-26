@@ -7,6 +7,13 @@ import "../../assets/styles/dashboard/minha-area.css";
 
 const CODIGO_POSTAL_RE = /^\d{4}-\d{3}$/;
 
+// Placeholder local (SVG inline em base64) usado quando o membro ainda
+// não tem foto ou quando a foto configurada falha a carregar. Evita
+// depender de um serviço externo (via.placeholder.com), que exigiria
+// abrir a Content-Security-Policy a mais um domínio de terceiros.
+const AVATAR_PLACEHOLDER =
+  "data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIyNjAiIGhlaWdodD0iMjYwIj48cmVjdCB3aWR0aD0iMjYwIiBoZWlnaHQ9IjI2MCIgZmlsbD0iI2UyZThmMCIvPjxjaXJjbGUgY3g9IjEzMCIgY3k9IjEwMCIgcj0iNDUiIGZpbGw9IiNhMGFlYzAiLz48ZWxsaXBzZSBjeD0iMTMwIiBjeT0iMjEyIiByeD0iNzgiIHJ5PSI1OCIgZmlsbD0iI2EwYWVjMCIvPjwvc3ZnPg==";
+
 function MinhaArea() {
   const [membro, setMembro] = useState(null);
   const [loading, setLoading] = useState(true);
@@ -183,7 +190,7 @@ function MinhaArea() {
         const full = raw.startsWith("http") ? raw : `${API_BASE}${raw}`;
         fotoVal = `${full}?t=${Date.now()}`;
       }
-      setMembro((prev) => (prev ? { ...prev, foto: fotoVal } : prev));
+      setMembro((prev) => ({ ...(prev ?? {}), foto: fotoVal }));
       setFotoFile(null);
       setErro(null);
       setFeedback({ type: "success", message: data.message });
@@ -211,7 +218,7 @@ function MinhaArea() {
 
   const resolvedAvatar = (() => {
     if (preview) return preview;
-    if (!membro?.foto) return "https://via.placeholder.com/260x260?text=Perfil";
+    if (!membro?.foto) return AVATAR_PLACEHOLDER;
     try {
       const f = String(membro.foto);
       if (f.startsWith("http")) return f;
@@ -230,7 +237,7 @@ function MinhaArea() {
               src={avatarSrc}
               alt="Foto de perfil"
               onError={(e) => {
-                e.currentTarget.src = "https://via.placeholder.com/260x260?text=Perfil";
+                e.currentTarget.src = AVATAR_PLACEHOLDER;
               }}
             />
             <label className="file-button">

@@ -10,20 +10,31 @@
     CSP: restringe de onde o browser pode carregar/scripts/estilos/ligar-se.
     connect-src inclui o backend local de desenvolvimento (porta 5000); ao
     publicar em produção, adicionar aqui o domínio real da API.
+    img-src inclui o backend (porta 5000) porque as fotos de perfil dos
+    membros são servidas a partir daí (origem diferente do frontend).
+    style-src/font-src incluem os domínios do Google Fonts usados em index.css.
+    frame-src permite incorporar o vídeo do YouTube usado na página inicial
+    (videosection.jsx).
+    Nota: 'frame-ancestors' não tem efeito quando definido via <meta> (é
+    ignorado pelo browser) — só funciona como cabeçalho HTTP. Para proteção
+    real contra clickjacking em produção, definir X-Frame-Options ou
+    Content-Security-Policy: frame-ancestors como cabeçalho HTTP no servidor
+    que serve o frontend (ex.: no dev-server do Vite ou no servidor de
+    produção/CDN), por isso foi removido daqui.
   -->
   <meta http-equiv="Content-Security-Policy"
 content="
 default-src 'self';
-img-src 'self' data: blob:;
-style-src 'self' 'unsafe-inline';
+img-src 'self' data: blob: http://localhost:5000 http://127.0.0.1:5000;
+style-src 'self' 'unsafe-inline' https://fonts.googleapis.com;
 script-src 'self';
 connect-src 'self'
 http://localhost:5000
 http://127.0.0.1:5000;
-font-src 'self' data:;
+font-src 'self' data: https://fonts.gstatic.com;
+frame-src 'self' https://www.youtube.com;
 object-src 'none';
 base-uri 'self';
-frame-ancestors 'none';
 ">
 
   <title>TRINDADE</title>

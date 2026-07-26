@@ -73,6 +73,30 @@ app.use((err, req, res, next) => {
 });
 
 const PORT = process.env.PORT || 5000;
-app.listen(PORT, () => {
-  console.log(`Servidor ativo na porta ${PORT}`);
+// Vincula explicitamente a 127.0.0.1 (ajustável via HOST no .env) em vez de
+// deixar o Node escolher a interface por omissão — evita ambiguidades
+// IPv4/IPv6 que por vezes fazem "está a ouvir" e "inacessível" coexistirem.
+const HOST = process.env.HOST || "127.0.0.1";
+
+const httpServer = app.listen(PORT, HOST, () => {
+  console.log(`Servidor ativo em http://${HOST}:${PORT}`);
+});
+
+// Sem este handler, uma falha ao abrir a porta (ex.: EADDRINUSE — porta já
+// ocupada por outro processo, muitas vezes um processo anterior do nodemon
+// que não terminou corretamente) não fica visível: o processo pode parecer
+// "pendurado" enquanto nenhum socket TCP está realmente disponível.
+httpServer.on("error", (err) => {
+  if (err.code === "EADDRINUSE") {
+    console.error(
+      `[ERRO] A porta ${PORT} já está em uso por outro processo. ` +
+      `Termine esse processo (ex.: noutra janela do terminal, ou noutra ` +
+      `instância de "npm run server" ainda ativa) ou defina PORT=<outra porta> no .env.`
+    );
+  } else if (err.code === "EACCES") {
+    console.error(`[ERRO] Sem permissão para usar a porta ${PORT}. Tente uma porta acima de 1024.`);
+  } else {
+    console.error("[ERRO] Falha ao iniciar o servidor:", err);
+  }
+  process.exit(1);
 });

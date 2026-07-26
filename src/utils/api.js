@@ -1,5 +1,7 @@
 const BASE = import.meta.env.VITE_API_URL ?? "";
 
+console.log("API BASE =", BASE);
+
 const ROTAS_PUBLICAS = [
   "/api/auth/login",
   "/api/auth/recuperar",
@@ -42,5 +44,5 @@ export const apiFetchArray = async (path, options = {}) => {
   }
 
   const data = await res.json();
-  return Array.isArray(data) ? data : [];
+  return data;
 };

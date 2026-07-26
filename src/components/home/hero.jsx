@@ -1,4 +1,4 @@
-import familia from "../../assets/img/familia.jpg";
+import familia from "../../assets/img/familia1.jpg";
 
 function Hero() {
   return (

@@ -1,31 +1,29 @@
 import { useState, useEffect, useCallback } from "react";
 
-import img1 from "../../assets/img/IMG1.jpg";
-import img2 from "../../assets/img/IMG2.jpg";
-import img3 from "../../assets/img/IMG3.jpg";
-import img4 from "../../assets/img/IMG4.jpg";
-import img5 from "../../assets/img/IMG5.jpg";
-import img6 from "../../assets/img/IMG6.jpg";
-import img7 from "../../assets/img/IMG7.jpg";
-import img8 from "../../assets/img/IMG8.jpg";
-import img10 from "../../assets/img/IMG10.jpg";
-import img11 from "../../assets/img/IMG11.jpg";
-import img13 from "../../assets/img/IMG13.jpg";
-import img14 from "../../assets/img/IMG14.jpg";
-import img15 from "../../assets/img/IMG15.jpg";
-import img16 from "../../assets/img/IMG16.jpg";
-import img17 from "../../assets/img/IMG17.jpg";
-import img18 from "../../assets/img/IMG18.jpg";
-import img20 from "../../assets/img/IMG20.jpg";
-import img21 from "../../assets/img/IMG21.jpg";
-import img22 from "../../assets/img/IMG22.jpg";
-import img23 from "../../assets/img/IMG23.jpg";
+import img1 from "../../assets/img/Djamel1.jpeg";
+import img2 from "../../assets/img/Djamel2.jpeg";
+import img3 from "../../assets/img/Djamel3.jpeg";
+import img4 from "../../assets/img/Djamel4.jpeg";
+import img5 from "../../assets/img/Djamel5.jpeg";
+import img6 from "../../assets/img/Djamel6.jpeg";
+import img7 from "../../assets/img/Djamel7.jpeg";
+import img8 from "../../assets/img/Djamel8.jpeg";
+import img9 from "../../assets/img/Djamel9.jpeg";
+import img10 from "../../assets/img/Djamel10.jpeg";
+import img11 from "../../assets/img/Djamel11.jpeg";
+import img12 from "../../assets/img/Djamel12.jpeg";
+import img13 from "../../assets/img/Djamel13.jpeg";
+import img14 from "../../assets/img/Djamel14.jpeg";
+import img15 from "../../assets/img/Djamel15.jpeg";
+import img16 from "../../assets/img/Djamel16.jpeg";
+import img17 from "../../assets/img/Djamel17.jpeg";
+import img18 from "../../assets/img/Djamel18.jpeg";
 
 const images = [
-  img8, img1, img4, img5, img13, img23,
-  img3, img18, img21, img22, img11, img2,
-  img6, img7, img10, img14, img15, img17,
-  img20, img16,
+  img1, img2, img3, img4, img5,
+  img6, img7, img8, img9, img10,
+  img11, img12, img13, img14, img15,
+  img16, img17, img18,
 ];
 
 function Gallery() {
@@ -36,7 +34,7 @@ function Gallery() {
     setCurrent((prev) =>
       prev === images.length - 1 ? 0 : prev + 1
     );
-  }, []); 
+  }, []);
 
   const prevSlide = useCallback(() => {
     setCurrent((prev) =>
