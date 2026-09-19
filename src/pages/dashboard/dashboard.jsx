@@ -216,8 +216,8 @@ function Dashboard() {
         {podeVerFinancas && (
           <Card
             icon="ri-money-euro-circle-line"
-            title="Receitas do Mês"
-            value={`${Number(stats.receitas).toFixed(2)} €`}
+            title="Valor Restante"
+            value={`${Number(stats.saldo).toFixed(2)} €`}
           />
         )}
         <Card
@@ -241,25 +241,6 @@ function Dashboard() {
               <div key={ev.id} className="event-item">
                 <span>{ev.titulo}</span>
                 <strong>{ev.data}</strong>
-              </div>
-            ))
-          )}
-        </div>
-
-        <div className="panel">
-          <h2>
-            <i className="ri-user-add-line"></i> Últimos Membros
-          </h2>
-
-          {ultimosMembros.length === 0 ? (
-            <p className="dash-vazio">Sem membros registados.</p>
-          ) : (
-            ultimosMembros.map((m) => (
-              <div key={m.id} className="event-item">
-                <span>{m.nome}</span>
-                <span className={m.estado === "Ativo" ? "dash-badge-ativo" : "dash-badge-inativo"}>
-                  {m.estado}
-                </span>
               </div>
             ))
           )}

@@ -267,13 +267,12 @@ function Utilizadores() {
                   <th>Email</th>
                   <th>Perfil</th>
                   <th>Estado</th>
-                  <th>Último Acesso</th>
                   <th>Ações</th>
                 </tr>
               </thead>
               <tbody>
                 {filtrados.length === 0 ? (
-                  <tr><td colSpan="6" className="empty-row">Nenhum utilizador encontrado.</td></tr>
+                  <tr><td colSpan="5" className="empty-row">Nenhum utilizador encontrado.</td></tr>
                 ) : (
                   filtrados.map((user) => (
                     <tr key={user.id} className={user.id === eu.id ? "row-eu" : ""}>
@@ -288,7 +287,6 @@ function Utilizadores() {
                           {user.estado}
                         </span>
                       </td>
-                      <td>{user.ultimo_acesso || "Nunca"}</td>
                       <td className="actions">
                         <button
                           className="view"

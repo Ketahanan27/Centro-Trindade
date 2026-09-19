@@ -239,24 +239,12 @@ function Relatorios() {
     linha("Total de Visitantes", g.visitantes_total ?? "—");
     linha("Convertidos", g.convertidos ?? "—");
     linha("Próximos Eventos", g.proximos_eventos ?? "—");
-    linha(`Receitas (${ano})`, `${Number(g.receitas_ano ?? 0).toFixed(2)} €`);
-    linha(`Despesas (${ano})`, `${Number(g.despesas_ano ?? 0).toFixed(2)} €`);
-    linha("Saldo", `${(Number(g.receitas_ano ?? 0) - Number(g.despesas_ano ?? 0)).toFixed(2)} €`);
-    y += 4;
-
     secao("Membros por Estado");
     dados.membrosEstado.forEach((m) => linha(m.estado, m.total));
     y += 4;
 
     secao("Visitantes por Estado");
     dados.visitantesEstado.forEach((v) => linha(v.estado, v.total));
-    y += 4;
-
-    secao(`Financeiro Mensal — ${ano}`);
-    dados.financeiroMensal.forEach((f) => {
-      linha(MESES_PT[f.mes], `Receitas: ${Number(f.receitas).toFixed(2)} €  |  Despesas: ${Number(f.despesas).toFixed(2)} €`);
-    });
-    if (!dados.financeiroMensal.length) linha("—", "Sem movimentos registados");
     y += 4;
 
     secao(`Eventos por Mês — ${ano}`);
@@ -290,7 +278,6 @@ function Relatorios() {
   }
 
   const g = dados.geral;
-  const saldo = Number(g.receitas_ano ?? 0) - Number(g.despesas_ano ?? 0);
 
   return (
     <div className="secretaria-container rel-root">
@@ -328,20 +315,6 @@ function Relatorios() {
             <p className="rel-stat-lbl">Convertidos</p>
           </div>
         </div>
-        <div className="rel-stat-card receita">
-          <i className="ri-arrow-up-circle-line"></i>
-          <div>
-            <p className="rel-stat-val">{Number(g.receitas_ano ?? 0).toFixed(2)} €</p>
-            <p className="rel-stat-lbl">Receitas {ano}</p>
-          </div>
-        </div>
-        <div className={`rel-stat-card ${saldo >= 0 ? "positivo" : "negativo"}`}>
-          <i className={`ri-${saldo >= 0 ? "arrow-up" : "arrow-down"}-circle-line`}></i>
-          <div>
-            <p className="rel-stat-val">{saldo.toFixed(2)} €</p>
-            <p className="rel-stat-lbl">Saldo {ano}</p>
-          </div>
-        </div>
       </div>
 
       <div className="rel-row-2">
@@ -351,23 +324,6 @@ function Relatorios() {
           </h2>
           <Donut dados={dados.visitantesEstado} campoLabel="estado" />
         </div>
-      </div>
-
-      <div className="rel-panel">
-        <h2 className="rel-panel-title">
-          <i className="ri-bar-chart-2-line"></i> Financeiro Mensal — {ano}
-        </h2>
-        {dados.financeiroMensal.length === 0 ? (
-          <p style={{ color: "#666" }}>Sem movimentos financeiros em {ano}.</p>
-        ) : (
-          <BarrasMensal
-            dadosBrutos={dados.financeiroMensal}
-            campos={[
-              { chave: "receitas", label: "Receitas", cor: "#0044ff" },
-              { chave: "despesas", label: "Despesas", cor: "#ff3333" },
-            ]}
-          />
-        )}
       </div>
 
       <div className="rel-row-2">

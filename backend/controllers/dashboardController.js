@@ -28,6 +28,7 @@ export const getDashboardStats = async (req, res) => {
       [totalMembros = { total: 0 }],
       [totalEventos = { total: 0 }],
       [totalReceitas = { total: 0 }],
+      [totalDespesas = { total: 0 }],
       [totalUtilizadores = { total: 0 }],
       proximosEventos,
       ultimosMembros,
@@ -53,6 +54,14 @@ export const getDashboardStats = async (req, res) => {
         ? q(`SELECT COALESCE(SUM(valor), 0) AS total
              FROM tesouraria
              WHERE natureza = 'Receita'
+               AND MONTH(data) = MONTH(CURDATE())
+               AND YEAR(data)  = YEAR(CURDATE())`)
+        : Promise.resolve([{ total: 0 }]),
+
+      podeVerFinancas
+        ? q(`SELECT COALESCE(SUM(valor), 0) AS total
+             FROM tesouraria
+             WHERE natureza = 'Despesa'
                AND MONTH(data) = MONTH(CURDATE())
                AND YEAR(data)  = YEAR(CURDATE())`)
         : Promise.resolve([{ total: 0 }]),
@@ -105,11 +114,17 @@ export const getDashboardStats = async (req, res) => {
         : Promise.resolve([]),
     ]);
 
+    const saldoMes = podeVerFinancas
+      ? Number(totalReceitas.total) - Number(totalDespesas.total)
+      : null;
+
     res.json({
       stats: {
         membros: totalMembros.total,
         eventos: totalEventos.total,
         receitas: podeVerFinancas ? Number(totalReceitas.total).toFixed(2) : null,
+        despesas: podeVerFinancas ? Number(totalDespesas.total).toFixed(2) : null,
+        saldo: podeVerFinancas ? Number(saldoMes).toFixed(2) : null,
         utilizadores: totalUtilizadores.total,
       },
       proximosEventos,

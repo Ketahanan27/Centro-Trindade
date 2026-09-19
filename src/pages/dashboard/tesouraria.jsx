@@ -1,4 +1,5 @@
 import { useState, useEffect, useCallback, useMemo } from "react";
+import { jsPDF } from "jspdf";
 import DashboardLayout from "../../components/dashboard/dashboardlayout";
 import { usePerfil } from "../../routes/ProctedRoute";
 import { toast } from "../../utils/toast";
@@ -6,7 +7,7 @@ import { apiFetch, apiFetchArray } from "../../utils/api";
 import "../../assets/styles/dashboard/tesouraria.css";
 
 const TIPOS = {
-  Receita: ["Dízimo", "Oferta", "Voto", "Contribuição", "Doação", "Ação Social", "T-Shirts", "Outros"],
+  Receita: ["Dízimo", "Físico", "Oferta", "Voto", "Contribuição", "Doação", "Ação Social", "T-Shirts", "Outros"],
   Despesa: ["Água", "Luz", "Internet", "Manutenção", "Compras", "Caixa", "Outros"],
 };
 
@@ -174,25 +175,108 @@ function Tesouraria() {
     return Object.entries(mapa).sort((a, b) => b[1] - a[1]);
   }, [movimentos]);
 
-  const exportarCSV = () => {
-    const linhas = [["Natureza", "Tipo", "Valor (€)", "Data", "Observações"]];
-    movimentos.forEach((mov) => {
-      linhas.push([
+  const exportarPDF = (listaMovimentos = movimentos, titulo = "Tesouraria — Relatório") => {
+    if (!listaMovimentos.length) {
+      toast.aviso(
+        titulo.includes("Dia")
+          ? "Não há movimentos para o dia selecionado."
+          : "Não há movimentos para exportar."
+      );
+      return;
+    }
+
+    const doc = new jsPDF({ unit: "pt", format: "a4" });
+    const pageWidth = doc.internal.pageSize.getWidth();
+    const pageHeight = doc.internal.pageSize.getHeight();
+    const margin = 36;
+    const tableWidth = pageWidth - margin * 2;
+    const colWidths = [70, 110, 70, 75, tableWidth - 325];
+    const headers = ["Natureza", "Tipo", "Valor", "Data", "Observações"];
+    const rowHeightBase = 20;
+
+    const desenharCabecalho = (startY) => {
+      doc.setFillColor(0, 68, 255);
+      doc.rect(0, 0, pageWidth, 48, "F");
+      doc.setTextColor(255, 255, 255);
+      doc.setFont("helvetica", "bold");
+      doc.setFontSize(18);
+      doc.text(titulo, pageWidth / 2, 28, { align: "center" });
+
+      doc.setTextColor(0, 0, 0);
+      doc.setFontSize(10);
+      doc.setFont("helvetica", "normal");
+      doc.text(`Gerado em: ${new Date().toLocaleDateString("pt-PT")}`, margin, 62);
+      doc.text(`Movimentos: ${listaMovimentos.length}`, pageWidth - margin, 62, { align: "right" });
+
+      let x = margin;
+      doc.setFillColor(234, 238, 255);
+      doc.setTextColor(0, 68, 255);
+      doc.setFontSize(9);
+      doc.setFont("helvetica", "bold");
+
+      headers.forEach((header, index) => {
+        doc.rect(x, startY, colWidths[index], 22, "F");
+        doc.text(String(header), x + 6, startY + 14);
+        x += colWidths[index];
+      });
+    };
+
+    let y = 90;
+    desenharCabecalho(y - 24);
+    y += 22;
+
+    doc.setTextColor(0, 0, 0);
+    doc.setFont("helvetica", "normal");
+    doc.setFontSize(8.5);
+
+    listaMovimentos.forEach((mov) => {
+      const row = [
         mov.natureza,
         mov.tipo,
-        Number(mov.valor).toFixed(2),
-        mov.data,
-        mov.observacao || "",
-      ]);
+        `${Number(mov.valor).toFixed(2)} €`,
+        formatarData(mov.data),
+        mov.observacao || "—",
+      ];
+
+      const linesByCell = row.map((valor, index) =>
+        doc.splitTextToSize(String(valor), colWidths[index] - 8)
+      );
+      const rowHeight = Math.max(rowHeightBase, ...linesByCell.map((lines) => lines.length * 9 + 8));
+
+      if (y + rowHeight > pageHeight - margin) {
+        doc.addPage();
+        y = 40;
+        desenharCabecalho(y - 24);
+        y += 22;
+      }
+
+      let x = margin;
+      row.forEach((valor, index) => {
+        const textLines = linesByCell[index];
+        doc.rect(x, y, colWidths[index], rowHeight, "S");
+        textLines.forEach((line, lineIndex) => {
+          doc.text(line, x + 6, y + 10 + lineIndex * 9);
+        });
+        x += colWidths[index];
+      });
+
+      y += rowHeight;
     });
-    const csv = linhas.map((l) => l.join(";")).join("\r\n");
-    const blob = new Blob(["\FEFF" + csv], { type: "text/csv;charset=utf-8" });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement("a");
-    a.href = url;
-    a.download = `tesouraria_${dataHoje()}.csv`;
-    a.click();
-    URL.revokeObjectURL(url);
+
+    const nomeArquivo = titulo.includes("Dia")
+      ? `tesouraria_dia_${(form.data || dataHoje())}.pdf`
+      : `tesouraria_${dataHoje()}.pdf`;
+
+    doc.save(nomeArquivo);
+  };
+
+  const exportarPDFDia = () => {
+    const dataSelecionada = form.data || dataHoje();
+    const movimentosDoDia = movimentos.filter((mov) => mov.data === dataSelecionada);
+    exportarPDF(
+      movimentosDoDia,
+      `Tesouraria — Dia ${formatarData(dataSelecionada)}`
+    );
   };
 
   const formatarData = (d) =>
@@ -315,8 +399,11 @@ function Tesouraria() {
                 <option value="Receita">Receitas</option>
                 <option value="Despesa">Despesas</option>
               </select>
-              <button className="btn-export" onClick={exportarCSV}>
-                Exportar CSV
+              <button className="btn-export" onClick={() => exportarPDF()}>
+                GERAL
+              </button>
+              <button className="btn-export" onClick={exportarPDFDia}>
+                DIÁRIO
               </button>
             </div>
 
