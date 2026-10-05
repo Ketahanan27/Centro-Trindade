@@ -3,6 +3,7 @@ import express from "express";
 import {
   createEvent,
   getEvents,
+  getPublicEvents,
   updateEvent,
   deleteEvent,
 } from "../controllers/agendaController.js";
@@ -12,7 +13,8 @@ import { publicReadLimiter, writeLimiter } from "../middleware/rateLimit.js";
 
 const router = express.Router();
 
-router.get("/", publicReadLimiter, getEvents);
+router.get("/", publicReadLimiter, getPublicEvents);
+router.get("/internos", verifyToken, permit("Administrador", "Secretaria", "Pastor"), getEvents);
 
 router.post("/", verifyToken, permit("Administrador", "Secretaria"), writeLimiter, createEvent);
 router.put("/:id", verifyToken, permit("Administrador", "Secretaria"), writeLimiter, updateEvent);

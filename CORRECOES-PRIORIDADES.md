@@ -84,3 +84,14 @@ Verificação da Tesouraria: db:prepare executado com sucesso na base configurad
 - As três áreas validam IDs antes da consulta; alterações/eliminações sem registo respondem 404 e conflitos de referências/duplicados respondem 409.
 - Campos livres: observações/participantes até 10 000 caracteres; resumo/decisões de atas até 30 000 caracteres. Nenhum texto existente foi reduzido ou reescrito.
 - Treze testes isolados, lint direcionado e compilação passaram. Não foram criados, alterados ou eliminados registos reais nos testes.
+
+### Agenda: validação e visibilidade
+
+- Eventos existentes e novos têm publico=false por omissão. Nenhum evento foi aprovado automaticamente para divulgação.
+- GET /api/eventos devolve apenas eventos públicos Agendados, filtrados no PostgreSQL, com campos definidos e Cache-Control no-store.
+- GET /api/eventos/internos exige sessão e perfil Administrador, Secretaria ou Pastor e mantém todos os eventos na gestão.
+- Gestão inclui opções de Estado e Visibilidade; indicar Público divulga título, descrição, data, hora e local no calendário do site.
+- Validação de título/local, descrição multilinear, calendário real, hora, estado, booleano de visibilidade e IDs antes da query.
+- Novos eventos não aceitam datas passadas; eventos históricos podem ser corrigidos, sem permitir eliminação de eventos passados. A eliminação usa uma condição na própria query e distingue 400 de 404.
+- Datas de referência calculadas em Europe/Lisbon, sem depender do fuso horário do servidor.
+- Sete testes de Agenda, lint direcionado e compilação passaram. Nenhum evento real criado ou eliminado; coluna de visibilidade adicionada preservando os dados existentes.

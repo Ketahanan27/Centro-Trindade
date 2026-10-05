@@ -1,6 +1,6 @@
 import { InputError, objeto, texto, emailNormalizado, escolha, data, validarId } from './inputValidation.js';
 
-function notas(value, label, max = 10000) {
+export function notas(value, label, max = 10000) {
   if (value == null || value === '') return null;
   if (typeof value !== 'string' || Array.from(value).some((char) => {
     const code = char.codePointAt(0);
@@ -32,4 +32,12 @@ export function validarAta(payload) {
   const hora = texto(body.hora, 'Hora', 8, true);
   if (!/^(?:[01]\d|2[0-3]):[0-5]\d(?::[0-5]\d)?$/.test(hora)) throw new InputError('Hora inválida. Use HH:MM ou HH:MM:SS.');
   return { titulo: texto(body.titulo, 'Título', 255, true), data: dataObrigatoria(body.data, 'Data da reunião'), hora, local: texto(body.local, 'Local', 255), participantes: notas(body.participantes, 'Participantes'), resumo: notas(body.resumo, 'Resumo', 30000), decisoes: notas(body.decisoes, 'Decisões', 30000), observacoes: notas(body.observacoes, 'Observações') };
+}
+
+export function validarEvento(payload) {
+  const body = objeto(payload);
+  const hora = texto(body.hora_evento, 'Hora', 8);
+  if (hora && !/^(?:[01]\d|2[0-3]):[0-5]\d(?::[0-5]\d)?$/.test(hora)) throw new InputError('Hora inválida. Use HH:MM ou HH:MM:SS.');
+  if (body.publico !== undefined && typeof body.publico !== 'boolean') throw new InputError('A visibilidade deve ser pública ou interna.');
+  return { titulo: texto(body.titulo, 'Título', 150, true), descricao: notas(body.descricao, 'Descrição'), data_evento: dataObrigatoria(body.data_evento, 'Data do evento'), hora_evento: hora, local_evento: texto(body.local_evento, 'Local', 255), estado: escolha(body.estado, 'Estado', ['Agendado', 'Concluído', 'Cancelado'], 'Agendado'), publico: body.publico ?? false };
 }

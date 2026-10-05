@@ -14,7 +14,7 @@ const MESES = [
 
 const FORM_VAZIO = {
   titulo: "", descricao: "", data_evento: "",
-  hora_evento: "", local_evento: "", estado: "Agendado",
+  hora_evento: "", local_evento: "", estado: "Agendado", publico: false,
 };
 
 function Agenda() {
@@ -24,7 +24,7 @@ function Agenda() {
   const [selectedDate, setSelectedDate] = useState(null);
   const [selectedEvent, setSelectedEvent] = useState(null);
   const [events, , carregarEventos] = useListaRemota(
-    "/api/eventos",
+    "/api/eventos/internos",
     "Não foi possível carregar a agenda. Tente novamente."
   );
   const [editId, setEditId] = useState(null);
@@ -161,11 +161,11 @@ function Agenda() {
                     setFormData({
                       titulo: e.titulo, descricao: e.descricao,
                       data_evento: String(e.data_evento).slice(0, 10),
-                      hora_evento: e.hora_evento, local_evento: e.local_evento, estado: e.estado,
+                      hora_evento: e.hora_evento || "", local_evento: e.local_evento || "", estado: e.estado, publico: e.publico,
                     });
                   }}
                 >
-                  <strong>{e.titulo}</strong><br />{e.hora_evento}h<br />{e.descricao}
+                  <strong>{e.titulo}</strong><br />{e.hora_evento}h<br />{e.descricao}<br />{e.publico ? "Público" : "Interno"} — {e.estado}
                 </div>
               ))
             ) : (
@@ -199,7 +199,7 @@ function Agenda() {
               <input
                 type="date"
                 value={formData.data_evento}
-                min={hoje}
+                min={editId ? undefined : hoje}
                 onChange={(e) => setFormData({ ...formData, data_evento: e.target.value })}
               />
               <input
@@ -219,6 +219,16 @@ function Agenda() {
                 value={formData.descricao}
                 onChange={(e) => setFormData({ ...formData, descricao: e.target.value })}
               />
+              <label htmlFor="evento-estado">Estado</label>
+              <select id="evento-estado" value={formData.estado} onChange={(e) => setFormData({ ...formData, estado: e.target.value })}>
+                <option>Agendado</option><option>Concluído</option><option>Cancelado</option>
+              </select>
+              <label htmlFor="evento-visibilidade">Visibilidade</label>
+              <select id="evento-visibilidade" value={formData.publico ? "publico" : "interno"} onChange={(e) => setFormData({ ...formData, publico: e.target.value === "publico" })}>
+                <option value="interno">Interno — apenas na gestão da Agenda</option>
+                <option value="publico">Público — divulgar no calendário do site</option>
+              </select>
+              <p>Eventos públicos agendados divulgam o título, descrição, data, hora e local.</p>
             </div>
 
             <div className="crud-buttons">

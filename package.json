@@ -18,6 +18,7 @@
     "test:invites": "node --test backend/tests/convites.test.js",
     "test:validation": "node --test backend/tests/input-validation.test.js",
     "test:secretaria": "node --test backend/tests/secretaria-validation.test.js",
+    "test:agenda": "node --test backend/tests/agenda.test.js",
     "tokens:protect": "node backend/scripts/hash_reset_tokens.js",
     "build": "vite build",
     "build:vercel": "node scripts/build-vercel.js",

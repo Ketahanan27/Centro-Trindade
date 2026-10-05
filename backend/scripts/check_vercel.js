@@ -22,6 +22,7 @@ try {
   assert.equal((await fetch(base + '/')).status, 200);
   assert.equal((await fetch(base + '/api/auth/users')).status, 401);
   assert.equal((await fetch(base + '/api/membros/1/foto')).status, 401);
+  assert.equal((await fetch(base + '/api/eventos/internos')).status, 401);
   const missing = await fetch(base + '/api/rota-inexistente');
   assert.equal(missing.status, 404);
   assert.match(missing.headers.get('content-type'), /application\/json/);
