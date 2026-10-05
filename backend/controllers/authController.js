@@ -1,7 +1,7 @@
 import bcrypt from "bcrypt";
 import jwt from "jsonwebtoken";
 import crypto from "crypto";
-import db from "../config/db.js";
+import db, { pool } from "../config/db.js";
 import nodemailer from "nodemailer";
 
 const query = (sql, params = []) =>
@@ -11,6 +11,9 @@ const query = (sql, params = []) =>
 
 const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 const PERFIS_VALIDOS = ["Administrador", "Pastor", "Secretaria", "Tesouraria", "Membro"];
+const escapeHtml = (value) => String(value ?? "").replace(/[&<>"']/g, (char) => ({
+  "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;",
+})[char]);
 
 /*
 |--------------------------------------------------------------------------
@@ -30,37 +33,8 @@ const criarTransporter = () =>
     auth: { user: process.env.EMAIL_USER, pass: process.env.EMAIL_PASS },
   });
 
-export const register = async (req, res) => {
-  try {
-    const { nome, email, password } = req.body;
-
-    if (!nome?.trim() || !email?.trim() || !password) {
-      return res.status(400).json({ message: "Preencha todos os campos obrigatórios." });
-    }
-    if (!EMAIL_RE.test(email)) {
-      return res.status(400).json({ message: "Formato de email inválido." });
-    }
-    if (password.length < 8) {
-      return res.status(400).json({ message: "A palavra-passe deve ter pelo menos 8 caracteres." });
-    }
-
-    const existe = await query("SELECT id FROM utilizadores WHERE email = $1", [email.trim()]);
-    if (existe.length > 0) {
-      return res.status(400).json({ message: "Email já registado." });
-    }
-
-    const hash = await bcrypt.hash(password, 10);
-
-    await query(
-      "INSERT INTO utilizadores (nome, email, password, perfil) VALUES ($1, $2, $3, $4) RETURNING id",
-      [nome.trim(), email.trim(), hash, "Membro"]
-    );
-
-    res.status(201).json({ message: "Conta criada com sucesso." });
-  } catch (e) {
-    console.error("[register]", e);
-    res.status(500).json({ message: "Erro interno do servidor." });
-  }
+export const register = (_req, res) => {
+  return res.status(403).json({ message: "As contas são criadas por convite do administrador. Contacte a igreja." });
 };
 
 export const login = async (req, res) => {
@@ -103,7 +77,7 @@ export const login = async (req, res) => {
 
     /* Algoritmo de assinatura fixado explicitamente (ver também middleware/auth.js). */
     const token = jwt.sign(
-      { id: user.id, perfil: user.perfil },
+      { id: user.id, perfil: user.perfil, session_version: user.session_version },
       process.env.JWT_SECRET,
       { expiresIn: "1d", algorithm: "HS256" }
     );
@@ -169,7 +143,7 @@ export const recuperarPassword = async (req, res) => {
         <div style="background:#0044ff;color:#fff;padding:30px;text-align:center;border-radius:12px 12px 0 0">
           <h1 style="margin:0">Centro Trindade</h1></div>
         <div style="padding:30px;background:#fff">
-          <h2 style="color:#0044ff">Olá, ${user.nome}!</h2>
+          <h2 style="color:#0044ff">Olá, ${escapeHtml(user.nome)}!</h2>
           <p>Recebemos um pedido para recuperar a palavra-passe da sua conta.</p>
           <a href="${link}" style="display:block;width:fit-content;margin:24px auto;padding:14px 32px;background:#0044ff;color:#fff;text-decoration:none;border-radius:10px;font-weight:700">
             Redefinir Palavra-passe</a>
@@ -188,43 +162,46 @@ export const recuperarPassword = async (req, res) => {
 };
 
 export const redefinirPassword = async (req, res) => {
+  let client;
   try {
     const { token, nova_password } = req.body;
 
-    if (!token || !nova_password) {
+    if (typeof token !== "string" || typeof nova_password !== "string" || !token || !nova_password) {
       return res.status(400).json({ message: "Token e nova palavra-passe são obrigatórios." });
     }
     if (nova_password.length < 8) {
       return res.status(400).json({ message: "A palavra-passe deve ter pelo menos 8 caracteres." });
     }
 
-    const result = await query(
-      "SELECT id, utilizador_id, expiry, usado FROM password_resets WHERE token = $1",
+    const hash = await bcrypt.hash(nova_password, 10);
+    client = await pool.connect();
+    await client.query("BEGIN");
+    const result = await client.query(
+      `UPDATE password_resets SET usado = 1
+       WHERE token = $1 AND usado = 0 AND expiry > NOW()
+       RETURNING id, utilizador_id`,
       [token]
     );
-
-    if (result.length === 0) {
-      return res.status(400).json({ message: "Link inválido ou já utilizado." });
+    if (result.rowCount !== 1) {
+      await client.query("ROLLBACK");
+      return res.status(400).json({ message: "Link inválido, expirado ou já utilizado." });
     }
-
-    const reset = result[0];
-
-    if (reset.usado) {
-      return res.status(400).json({ message: "Este link já foi utilizado. Solicite um novo." });
-    }
-    if (new Date() > new Date(reset.expiry)) {
-      return res.status(400).json({ message: "Link expirado. Solicite um novo." });
-    }
-
-    const hash = await bcrypt.hash(nova_password, 10);
-
-    await query("UPDATE utilizadores SET password = $1 WHERE id = $2", [hash, reset.utilizador_id]);
-    await query("UPDATE password_resets SET usado = 1 WHERE id = $1", [reset.id]);
+    const reset = result.rows[0];
+    const updated = await client.query(
+      "UPDATE utilizadores SET password = $1, session_version = session_version + 1 WHERE id = $2",
+      [hash, reset.utilizador_id]
+    );
+    if (updated.rowCount !== 1) throw new Error("Conta não encontrada.");
+    await client.query("UPDATE password_resets SET usado = 1 WHERE utilizador_id = $1", [reset.utilizador_id]);
+    await client.query("COMMIT");
 
     res.json({ message: "Palavra-passe atualizada com sucesso!" });
   } catch (e) {
+    if (client) await client.query("ROLLBACK").catch(() => {});
     console.error("[redefinirPassword]", e);
     res.status(500).json({ message: "Erro interno do servidor." });
+  } finally {
+    client?.release();
   }
 };
 
@@ -304,7 +281,7 @@ export const criarUtilizador = async (req, res) => {
           <div style="background:#0044ff;color:#fff;padding:30px;text-align:center;border-radius:12px 12px 0 0">
             <h1 style="margin:0">Centro Trindade</h1></div>
           <div style="padding:30px;background:#fff">
-            <h2 style="color:#0044ff">Olá, ${nome.trim()}!</h2>
+            <h2 style="color:#0044ff">Olá, ${escapeHtml(nome.trim())}!</h2>
             <p>Foi criada uma conta com o perfil <strong>${perfilFinal}</strong>.</p>
             <a href="${link}" style="display:block;width:fit-content;margin:24px auto;padding:14px 32px;background:#0044ff;color:#fff;text-decoration:none;border-radius:10px;font-weight:700">
               Configurar Conta</a>
@@ -337,7 +314,7 @@ export const updateUser = async (req, res) => {
     }
 
     await query(
-      "UPDATE utilizadores SET nome = $1, perfil = $2, estado = $3 WHERE id = $4",
+      "UPDATE utilizadores SET nome = $1, perfil = $2, estado = $3, session_version = session_version + 1 WHERE id = $4",
       [nome, perfil, estado, id]
     );
 
@@ -394,7 +371,7 @@ export const resetUserPassword = async (req, res) => {
         <div style="background:#0044ff;color:#fff;padding:30px;text-align:center;border-radius:12px 12px 0 0">
           <h1 style="margin:0">Centro Trindade</h1></div>
         <div style="padding:30px;background:#fff">
-          <h2 style="color:#0044ff">Olá, ${user.nome}!</h2>
+          <h2 style="color:#0044ff">Olá, ${escapeHtml(user.nome)}!</h2>
           <p>O administrador solicitou o reset da sua palavra-passe.</p>
           <a href="${link}" style="display:block;width:fit-content;margin:24px auto;padding:14px 32px;background:#0044ff;color:#fff;text-decoration:none;border-radius:10px;font-weight:700">
             Redefinir Palavra-passe</a>

@@ -1,15 +1,12 @@
 import { useState } from "react";
 import { usePerfil } from "../../routes/ProctedRoute";
-import { jsPDF } from "jspdf";
+import { TITULOS_DOCUMENTO } from "../../../shared/documentos.js";
+import { criarDocumentoPDF, emitirDocumentoPDF } from "../../utils/documentoPdf.js";
+import { formatarData } from "../../utils/data.js";
+import { toast } from "../../utils/toast.js";
 import { apiFetch } from "../../utils/api";
 import { useListaRemota, executarAcaoCrud } from "../../utils/useCrud";
 import "../../assets/styles/dashboard/documentos.css";
-
-const TITULOS_DOCUMENTO = {
-  Batismo: "Declaração de Batismo",
-  Membro: "Declaração de Membro",
-  Recomendacao: "Carta de Recomendação",
-};
 
 function Documentos() {
   const { soLeitura } = usePerfil();
@@ -27,95 +24,29 @@ function Documentos() {
 
   const handleChange = (e) => setFormData({ ...formData, [e.target.name]: e.target.value });
 
-  const criarCabecalho = (doc, titulo) => {
-    doc.setFont("helvetica", "bold");
-    doc.setFontSize(18);
-    doc.text("MINISTÉRIO CENTRO TRINDADE", 105, 20, { align: "center" });
-    doc.setFontSize(11);
-    doc.text("Secretaria Geral", 105, 28, { align: "center" });
-    doc.line(20, 35, 190, 35);
-    doc.setFontSize(16);
-    doc.text(titulo, 105, 50, { align: "center" });
-  };
-
-  const criarRodape = (doc) => {
-    doc.text(`Emitido em ${new Date().toLocaleDateString("pt-PT")}`, 20, 220);
-    doc.line(20, 250, 80, 250);
-    doc.text("Pastor", 25, 258);
-    doc.line(120, 250, 180, 250);
-    doc.text("Secretária", 138, 258);
-  };
-
-  const gerarBatismo = () => {
-    const doc = new jsPDF();
-    criarCabecalho(doc, "DECLARAÇÃO DE BATISMO");
-    doc.setFontSize(12);
-    doc.text(
-      `Declaramos que ${formData.nome_completo}, BI nº ${formData.bi}, nascido(a) em ${new Date(formData.data_nascimento).toLocaleDateString("pt-PT")}, foi batizado(a) em ${new Date(formData.data_batismo).toLocaleDateString("pt-PT")}.`,
-      20, 80, { maxWidth: 170, align: "justify" }
-    );
-    criarRodape(doc);
-    doc.save(`Declaracao_Batismo_${formData.nome_completo}.pdf`);
-  };
-
-  const gerarMembro = () => {
-    const doc = new jsPDF();
-    criarCabecalho(doc, "DECLARAÇÃO DE MEMBRO");
-    doc.setFontSize(12);
-    doc.text(
-      `Declaramos que ${formData.nome_completo}, BI nº ${formData.bi}, é membro desta igreja desde ${new Date(formData.data_entrada).toLocaleDateString("pt-PT")}, estado ${formData.estado}.`,
-      20, 80, { maxWidth: 170, align: "justify" }
-    );
-    criarRodape(doc);
-    doc.save(`Declaracao_Membro_${formData.nome_completo}.pdf`);
-  };
-
-  const gerarRecomendacao = () => {
-    const doc = new jsPDF();
-    criarCabecalho(doc, "CARTA DE RECOMENDAÇÃO");
-    doc.setFontSize(12);
-    doc.text(
-      `Recomendamos ${formData.nome_completo}, BI nº ${formData.bi}, membro desde ${new Date(formData.data_entrada).toLocaleDateString("pt-PT")}, para a igreja ${formData.igreja_destino}.`,
-      20, 80, { maxWidth: 170, align: "justify" }
-    );
-    if (formData.motivo) doc.text(`Motivo: ${formData.motivo}`, 20, 120, { maxWidth: 170 });
-    criarRodape(doc);
-    doc.save(`Carta_Recomendacao_${formData.nome_completo}.pdf`);
-  };
-
-  /*
-  |--------------------------------------------------------------------------
-  | Registo do documento emitido
-  |--------------------------------------------------------------------------
-  |
-  | gerarPDF() chama esta função antes de desenhar o PDF, mas o PDF é
-  | sempre gerado mesmo que este pedido falhe — por isso a mensagem de
-  | erro de rede aqui é explícita quanto a essa diferença, em vez de usar
-  | o aviso genérico do executarAcaoCrud.
-  |
-  */
-  const salvarDocumento = async () => {
-    await executarAcaoCrud(
-      apiFetch("/api/documentos", {
-        method: "POST",
-        body: JSON.stringify({
-          tipo: tipoDocumento, nome_completo: formData.nome_completo,
-          bi: formData.bi, data_emissao: new Date().toISOString().split("T")[0],
-          dados_json: formData,
-        }),
-      }),
-      {
-        aoSucesso: carregarDocumentos,
-        mensagemErroRede: "Não foi possível ligar ao servidor. O PDF foi gerado, mas o registo não foi guardado.",
-      }
-    );
-  };
+  const [emitindo, setEmitindo] = useState(false);
 
   const gerarPDF = async () => {
-    await salvarDocumento();
-    if (tipoDocumento === "Batismo") gerarBatismo();
-    if (tipoDocumento === "Membro") gerarMembro();
-    if (tipoDocumento === "Recomendacao") gerarRecomendacao();
+    if (emitindo || soLeitura) return;
+    const hoje = new Date();
+    const dataEmissao = `${hoje.getFullYear()}-${String(hoje.getMonth() + 1).padStart(2, "0")}-${String(hoje.getDate()).padStart(2, "0")}`;
+    const registo = {
+      tipo: tipoDocumento, nome_completo: formData.nome_completo.trim(),
+      bi: formData.bi.trim(), data_emissao: dataEmissao,
+      dados_json: { ...formData },
+    };
+    setEmitindo(true);
+    try {
+      const emitido = await emitirDocumentoPDF(registo, (snapshot) => executarAcaoCrud(
+        apiFetch("/api/documentos", { method: "POST", body: JSON.stringify(snapshot) }),
+        { mensagemErroRede: "Não foi possível guardar o documento. O PDF não foi emitido." }
+      ));
+      if (emitido) carregarDocumentos();
+    } catch (erro) {
+      toast.erro(erro.message || "Não foi possível gerar o documento.");
+    } finally {
+      setEmitindo(false);
+    }
   };
 
   const eliminarDocumento = async (id) => {
@@ -127,10 +58,12 @@ function Documentos() {
   };
 
   const reimprimir = (doc) => {
-    setFormData(doc.dados_json || {});
-    if (doc.tipo === "Batismo") gerarBatismo();
-    if (doc.tipo === "Membro") gerarMembro();
-    if (doc.tipo === "Recomendacao") gerarRecomendacao();
+    try {
+      const pdf = criarDocumentoPDF(doc);
+      pdf.doc.save(pdf.nomeFicheiro);
+    } catch (erro) {
+      toast.erro(`Não foi possível reimprimir: ${erro.message}`);
+    }
   };
 
   return (
@@ -213,10 +146,13 @@ function Documentos() {
             )}
           </div>
           <div className="form-actions">
-            <button className="save" onClick={gerarPDF}>Gerar PDF</button>
+            <button className="save" onClick={gerarPDF} disabled={emitindo}>{emitindo ? "A emitir..." : "Gerar PDF"}</button>
           </div>
 
           <br /><br />
+
+        </div>
+      )}
 
           <div className="table-wrapper">
             <table>
@@ -232,7 +168,7 @@ function Documentos() {
                       <td>{doc.tipo}</td>
                       <td>{doc.nome_completo}</td>
                       <td>{doc.bi}</td>
-                      <td>{new Date(doc.data_emissao).toLocaleDateString("pt-PT")}</td>
+                      <td>{formatarData(doc.data_emissao)}</td>
                       <td>
                         <button className="edit" onClick={() => reimprimir(doc)}>Reimprimir</button>
                         {!soLeitura && <button className="delete" onClick={() => eliminarDocumento(doc.id)}>Eliminar</button>}
@@ -244,8 +180,6 @@ function Documentos() {
             </table>
           </div>
 
-        </div>
-      )}
     </div>
   );
 }

@@ -1,4 +1,5 @@
 import jwt from "jsonwebtoken";
+import db from "../config/db.js";
 
 /*
 |--------------------------------------------------------------------------
@@ -12,7 +13,7 @@ import jwt from "jsonwebtoken";
 | como chave pública RS256.
 |
 */
-export const verifyToken = (req, res, next) => {
+export const verifyToken = async (req, res, next) => {
   const authHeader = req.headers["authorization"];
   const token = authHeader && authHeader.split(" ")[1];
 
@@ -22,9 +23,24 @@ export const verifyToken = (req, res, next) => {
 
   try {
     const decoded = jwt.verify(token, process.env.JWT_SECRET, { algorithms: ["HS256"] });
-    req.user = decoded;
-    next();
-  } catch {
+    if (!Number.isSafeInteger(decoded.id) || decoded.id <= 0 || !Number.isSafeInteger(decoded.session_version)) {
+      return res.status(401).json({ message: "Sessão expirada. Inicie sessão novamente." });
+    }
+    const users = await db.query(
+      "SELECT id, perfil, estado, session_version FROM utilizadores WHERE id = $1",
+      [decoded.id]
+    );
+    const user = users[0];
+    if (!user || user.estado !== "Ativo" || user.session_version !== decoded.session_version) {
+      return res.status(401).json({ message: "Sessão expirada. Inicie sessão novamente." });
+    }
+    req.user = { id: user.id, perfil: user.perfil };
+    return next();
+  } catch (error) {
+    if (!(error instanceof jwt.JsonWebTokenError)) {
+      console.error("[verifyToken]", error.code ?? "erro");
+      return res.status(503).json({ message: "Não foi possível verificar a sessão. Tente novamente." });
+    }
     return res.status(401).json({ message: "Token inválido ou expirado." });
   }
 };

@@ -56,22 +56,6 @@ app.use(cors({
   credentials: true,
 }));
 
-/*
-|--------------------------------------------------------------------------
-| Ficheiros estáticos de upload
-|--------------------------------------------------------------------------
-|
-| O frontend, servido pelo Vite noutra origem/porta, carrega imagens
-| diretamente de /uploads. Só esta rota precisa do CORP relaxado para
-| "cross-origin"; o resto da API mantém a política por omissão do Helmet.
-|
-*/
-if (!process.env.VERCEL) app.use(
-  "/uploads",
-  helmet.crossOriginResourcePolicy({ policy: "cross-origin" }),
-  express.static(uploadDir)
-);
-
 app.use(express.json());
 
 app.get("/", (_req, res) => res.send("Backend ERP ativo"));

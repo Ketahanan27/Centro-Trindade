@@ -1,6 +1,5 @@
 import { useState } from "react";
-import { jsPDF } from "jspdf";
-import logo from "../../assets/img/principal.png";
+import { criarAtaPDF } from "../../utils/exportacoesPdf.js";
 import { usePerfil } from "../../routes/ProctedRoute";
 import { toast } from "../../utils/toast";
 import { apiFetch } from "../../utils/api";
@@ -128,79 +127,7 @@ function Atas() {
     setSelectedMeeting(meetingToPrint);
     setShowDetails(true);
 
-    const doc = new jsPDF({ unit: "pt", format: "a4" });
-    const margin = 40;
-    const headerHeight = 80;
-    let cursorY = margin + headerHeight;
-
-    const drawHeader = () => {
-      if (logo) {
-        try {
-          doc.addImage(logo, "PNG", margin, 20, 90, 40);
-        } catch (error) {
-          console.warn("Logo não pôde ser adicionada ao PDF:", error);
-        }
-      }
-      doc.setFontSize(16);
-      doc.setFont("helvetica", "bold");
-      doc.text("Centro Trindade", margin + 110, 35);
-      doc.setFontSize(10);
-      doc.setFont("helvetica", "normal");
-      doc.text("Atas de reuniões oficial", margin + 110, 52);
-      doc.setDrawColor(200);
-      doc.setLineWidth(0.5);
-      doc.line(margin, margin + headerHeight - 10, 555, margin + headerHeight - 10);
-    };
-
-    const drawFooter = (pageNumber, totalPages) => {
-      const footerY = 820;
-      doc.setDrawColor(200);
-      doc.setLineWidth(0.5);
-      doc.line(margin, footerY - 10, 555, footerY - 10);
-      doc.setFontSize(10);
-      doc.text(`Gerado em ${new Date().toLocaleDateString("pt-PT")}`, margin, footerY);
-      doc.text(`Página ${pageNumber} de ${totalPages}`, 555, footerY, { align: "right" });
-    };
-
-    const printLine = (text, options = {}) => {
-      const fontSize = options.fontSize || 12;
-      const lineHeight = fontSize * 1.6;
-      doc.setFontSize(fontSize);
-      doc.setFont("helvetica", "normal");
-      const textLines = doc.splitTextToSize(text, 520);
-      textLines.forEach((line) => {
-        if (cursorY > 760) {
-          doc.addPage();
-          cursorY = margin + headerHeight;
-          drawHeader();
-        }
-        doc.text(line, margin, cursorY);
-        cursorY += lineHeight;
-      });
-      cursorY += 8;
-    };
-
-    drawHeader();
-
-    doc.setFontSize(18);
-    doc.setFont("helvetica", "bold");
-    doc.text("Ata de Reunião", margin, cursorY);
-    cursorY += 30;
-
-    printLine(`Título: ${meetingToPrint.titulo}`, { fontSize: 12 });
-    printLine(`Data: ${new Date(meetingToPrint.data).toLocaleDateString("pt-PT")}`, { fontSize: 12 });
-    printLine(`Hora: ${meetingToPrint.hora}`, { fontSize: 12 });
-    printLine(`Local: ${meetingToPrint.local}`, { fontSize: 12 });
-    printLine(`Participantes: ${meetingToPrint.participantes || "-"}`, { fontSize: 12 });
-    printLine(`Resumo: ${meetingToPrint.resumo || "-"}`, { fontSize: 12 });
-    printLine(`Decisões: ${meetingToPrint.decisoes || "-"}`, { fontSize: 12 });
-    printLine(`Observações: ${meetingToPrint.observacoes || "-"}`, { fontSize: 12 });
-
-    const totalPages = doc.internal.getNumberOfPages();
-    for (let i = 1; i <= totalPages; i += 1) {
-      doc.setPage(i);
-      drawFooter(i, totalPages);
-    }
+    const doc = criarAtaPDF(meetingToPrint);
 
     const fileName = `Ata_${meetingToPrint.titulo.replace(/[^a-zA-Z0-9_-]/g, "_").slice(0, 50)}.pdf`;
     doc.save(fileName);

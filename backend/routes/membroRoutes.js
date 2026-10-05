@@ -1,4 +1,5 @@
 import express from "express";
+import { getMembroFoto } from "../controllers/membroFotoController.js";
 import multer from "multer";
 import { detectImage } from "../config/photoStorage.js";
 
@@ -49,6 +50,7 @@ const validarAssinaturaImagem = (req, res, next) => {
 const router = express.Router();
 
 router.get("/me", verifyToken, getMembroMe);
+router.get("/:id/foto", verifyToken, getMembroFoto);
 router.put("/me", verifyToken, writeLimiter, updateMembroMe);
 router.post("/me/foto", verifyToken, writeLimiter, upload.single("foto"), validarAssinaturaImagem, uploadMembroFoto);
 router.get("/", verifyToken, permit("Administrador", "Secretaria", "Pastor"), getMembers);

@@ -1,24 +1,35 @@
 import { useState } from "react";
 import { createPortal } from "react-dom";
 import DashboardLayout from "../../components/dashboard/dashboardlayout";
-import { apiFetch } from "../../utils/api";
+import AuthenticatedPhoto from "../../components/AuthenticatedPhoto";
+import { apiFetch, apiFetchArray } from "../../utils/api";
+import { toast } from "../../utils/toast";
 import { sanitizarTelefone } from "../../utils/validation";
 import { formatarData } from "../../utils/data";
 import { useListaRemota, executarAcaoCrud } from "../../utils/useCrud";
 import { usePerfil } from "../../routes/ProctedRoute";
 import "../../assets/styles/dashboard/membros.css";
 
-const API_BASE = import.meta.env.VITE_API_URL ?? "";
 
 const FORM_VAZIO = {
   nome: "", morada: "", codigo_postal: "",
   email: "", telemovel: "", nascimento: "",
   sexo: "Masculino", estado_civil: "Solteiro(a)",
   entrada: "", batizado: "Não", estado: "Ativo",
+  utilizador_id: "",
 };
 
 function Membros() {
-  const { soLeitura } = usePerfil();
+  const { soLeitura, perfil } = usePerfil();
+  const [contas, setContas] = useState([]);
+  const [contasErro, setContasErro] = useState(false);
+
+  const carregarContas = async () => {
+    if (perfil !== "Administrador") return;
+    setContasErro(false);
+    try { setContas(await apiFetchArray("/api/auth/users")); }
+    catch { setContasErro(true); toast.erro("Não foi possível carregar as contas. Feche e abra o formulário para tentar novamente."); }
+  };
 
   const [showModal, setShowModal] = useState(false);
   const [showDetails, setShowDetails] = useState(false);
@@ -44,10 +55,13 @@ function Membros() {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+    const payload = { ...formData };
+    if (perfil !== "Administrador" || contasErro) delete payload.utilizador_id;
+    else payload.utilizador_id = formData.utilizador_id ? Number(formData.utilizador_id) : null;
     await executarAcaoCrud(
       apiFetch(
         editId ? `/api/membros/${editId}` : "/api/membros",
-        { method: editId ? "PUT" : "POST", body: JSON.stringify(formData) }
+        { method: editId ? "PUT" : "POST", body: JSON.stringify(payload) }
       ),
       { aoSucesso: () => { carregarMembros(); limparFormulario(); setShowModal(false); } }
     );
@@ -67,8 +81,10 @@ function Membros() {
       entrada: limparData(membro.entrada),
       batizado: membro.batizado || "Não",
       estado: membro.estado || "Ativo",
+      utilizador_id: membro.utilizador_id ?? "",
     });
     setEditId(membro.id);
+    carregarContas();
     setShowModal(true);
   };
 
@@ -84,8 +100,7 @@ function Membros() {
     if (!foto) return "";
     const value = String(foto).trim();
     if (!value) return "";
-    if (value.startsWith("http")) return value;
-    return value.startsWith("/") ? `${API_BASE}${value}` : `${API_BASE}/${value}`;
+    return value;
   };
 
   const membrosFiltrados = membros.filter(
@@ -106,7 +121,7 @@ function Membros() {
         <div className="page-header">
           <h1>Membros</h1>
           {!soLeitura && (
-            <button className="btn-primary" onClick={() => { limparFormulario(); setShowModal(true); }}>
+            <button className="btn-primary" onClick={() => { limparFormulario(); carregarContas(); setShowModal(true); }}>
               <i className="ri-user-add-line"></i> Novo Membro
             </button>
           )}
@@ -173,6 +188,18 @@ function Membros() {
             </div>
             <form onSubmit={handleSubmit}>
               <div className="grid">
+                {perfil === "Administrador" && (
+                  <div className="field">
+                    <label htmlFor="membro-conta">Conta associada</label>
+                    <select id="membro-conta" name="utilizador_id" value={formData.utilizador_id} onChange={handleChange} disabled={contasErro}>
+                      <option value="">Sem conta associada</option>
+                      {contas.filter((c) => c.estado === "Ativo" || c.id === Number(formData.utilizador_id)).map((c) => (
+                        <option key={c.id} value={c.id}>{c.nome} — {c.email}</option>
+                      ))}
+                    </select>
+                    <small>Associe apenas a conta da pessoa cuja identidade confirmou.</small>
+                  </div>
+                )}
                 <div className="field">
                   <label>Nome</label>
                   <input type="text" name="nome" required value={formData.nome} onChange={handleChange} />
@@ -253,7 +280,7 @@ function Membros() {
             <div className="details-wrapper">
               <div className="details-profile-card">
                 {getAvatarSrc(selectedMember.foto) ? (
-                  <img
+                  <AuthenticatedPhoto
                     className="details-avatar"
                     src={getAvatarSrc(selectedMember.foto)}
                     alt={`Foto de perfil de ${selectedMember.nome || "membro"}`}

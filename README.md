@@ -73,9 +73,11 @@ Após o login, o utilizador é encaminhado para o dashboard, onde poderá aceder
 - Driver Node.js `pg`
 - MySQL / MySQL Workbench como origem do backup migrado
 
-A API usa `DATABASE_URL` no `.env`. Executar `npm run db:prepare` para
-preparar a coluna de último acesso e `npm run test:postgres` para verificar
-a migração. Ver [instruções da migração](migration/README.md).
+A API usa `DATABASE_URL` no `.env`. Executar `npm run db:prepare` antes da
+publicação para preparar as colunas de último acesso/sessões e a unicidade das
+associações de contas. `npm run test:security` e `npm run test:vercel` usam
+fixtures isoladas. `npm run test:postgres` exige `TEST_DATABASE_URL` de uma
+base separada, já preparada. Ver [instruções da migração](migration/README.md).
 
 ## Ferramentas
 

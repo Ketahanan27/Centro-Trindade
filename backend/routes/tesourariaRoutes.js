@@ -1,4 +1,5 @@
 import express from "express";
+import { getHistorico } from "../controllers/tesourariaEscrita.js";
 
 import {
   getMovimentos,
@@ -12,6 +13,7 @@ import { verifyToken, permit } from "../middleware/auth.js";
 import { writeLimiter } from "../middleware/rateLimit.js";
 
 const router = express.Router();
+router.get("/historico", verifyToken, permit("Administrador", "Tesouraria", "Pastor"), getHistorico);
 
 router.get("/resumo", verifyToken, permit("Administrador", "Tesouraria", "Pastor"), getResumo);
 router.get("/", verifyToken, permit("Administrador", "Tesouraria", "Pastor"), getMovimentos);

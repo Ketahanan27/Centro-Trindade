@@ -3,6 +3,7 @@ import { apiFetch } from "../../utils/api";
 import { validarTelefone, TELEFONE_MENSAGEM_ERRO } from "../../utils/validation";
 import { formatarData as fmtData } from "../../utils/data";
 import DashboardLayout from "../../components/dashboard/dashboardlayout";
+import AuthenticatedPhoto from "../../components/AuthenticatedPhoto";
 import "../../assets/styles/dashboard/minha-area.css";
 
 const CODIGO_POSTAL_RE = /^\d{4}-\d{3}$/;
@@ -54,12 +55,16 @@ function MinhaArea() {
       return {};
     }
   }, []);
-  const API_BASE = import.meta.env.VITE_API_URL ?? "";
 
   useEffect(() => {
     apiFetch("/api/membros/me")
       .then(async (res) => {
-        if (!res.ok) throw new Error(`HTTP ${res.status}`);
+        if (!res.ok) {
+          const message = res.status === 404
+            ? "O seu registo de membro ainda não está associado à sua conta. Peça ao administrador para fazer a associação em Membros → Editar → Conta associada."
+            : "Não foi possível carregar o seu perfil. Tente novamente dentro de instantes.";
+          throw new Error(message);
+        }
         return res.json();
       })
       .then((data) => {
@@ -76,27 +81,22 @@ function MinhaArea() {
         });
         setLoading(false);
       })
-      .catch(() => {
-        setErro("O seu perfil de membro ainda não foi configurado. Contacte a secretaria.");
+      .catch((error) => {
+        setErro(error.message === "Failed to fetch" ? "Não foi possível ligar ao servidor. Verifique a ligação e volte a tentar." : error.message);
         setLoading(false);
       });
   }, []);
 
   useEffect(() => {
-    if (!fotoFile) {
-      setPreview(null);
-      return;
-    }
-    const url = URL.createObjectURL(fotoFile);
-    setPreview(url);
-    return () => URL.revokeObjectURL(url);
-  }, [fotoFile]);
+    return () => { if (preview) URL.revokeObjectURL(preview); };
+  }, [preview]);
 
   const handleFotoChange = (event) => {
     setFeedback(null);
     const file = event.target.files?.[0];
     if (file) {
       setFotoFile(file);
+      setPreview(URL.createObjectURL(file));
     }
   };
 
@@ -147,8 +147,6 @@ function MinhaArea() {
       estado_civil: formData.estado_civil || null,
       morada: formData.morada || null,
       codigo_postal: codigoPostal || null,
-      entrada: formData.entrada || null,
-      batizado: formData.batizado || null,
     };
 
     try {
@@ -191,14 +189,10 @@ function MinhaArea() {
       if (!response.ok) {
         throw new Error(data.message || "Erro ao carregar a foto.");
       }
-      let fotoVal = null;
-      if (data.foto) {
-        const raw = data.foto;
-        const full = raw.startsWith("http") ? raw : `${API_BASE}${raw}`;
-        fotoVal = `${full}?t=${Date.now()}`;
-      }
+      const fotoVal = data.foto ? `${data.foto}?t=${Date.now()}` : null;
       setMembro((prev) => ({ ...(prev ?? {}), foto: fotoVal }));
       setFotoFile(null);
+      setPreview(null);
       setErro(null);
       setFeedback({ type: "success", message: data.message });
     } catch (error) {
@@ -226,13 +220,7 @@ function MinhaArea() {
   const resolvedAvatar = (() => {
     if (preview) return preview;
     if (!membro?.foto) return AVATAR_PLACEHOLDER;
-    try {
-      const f = String(membro.foto);
-      if (f.startsWith("http")) return f;
-      return `${API_BASE}${f}`;
-    } catch {
-      return membro.foto;
-    }
+    return membro.foto;
   })();
 
   const avatarSrc = resolvedAvatar;
@@ -242,8 +230,9 @@ function MinhaArea() {
       <div className="minha-area-page">
         <div className="minha-area-card-big">
           <div className="minha-area-card-photo">
-            <img
+            <AuthenticatedPhoto
               src={avatarSrc}
+              fallback={AVATAR_PLACEHOLDER}
               alt="Foto de perfil"
               onError={(e) => {
                 e.currentTarget.src = AVATAR_PLACEHOLDER;
@@ -298,7 +287,7 @@ function MinhaArea() {
           <form className="minha-area-form" onSubmit={handleSave}>
             <div className="minha-area-grid">
               {campos.map(({ icone, label, valor }) => {
-                const isReadOnly = ["Email", "Nome", "Nascimento", "Estado"].includes(label);
+                const isReadOnly = ["Email", "Nome", "Nascimento", "Estado", "Entrada", "Batizado(a)"].includes(label);
                 const fieldName =
                   label === "Telemóvel" ? "telemovel" :
                   label === "Morada" ? "morada" :

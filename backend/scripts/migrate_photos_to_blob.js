@@ -18,7 +18,7 @@ try {
   console.log(`${pending.length} fotografias prontas para transferir.`);
   if (!apply) console.log('Verificação concluída. Para transferir: npm run photos:migrate -- --apply');
   else {
-    if (!process.env.BLOB_READ_WRITE_TOKEN) throw new Error('Configure BLOB_READ_WRITE_TOKEN no .env.');
+    if (!process.env.BLOB_PRIVATE_READ_WRITE_TOKEN) throw new Error('Configure BLOB_PRIVATE_READ_WRITE_TOKEN no .env.');
     const updates = [];
     const client = await pool.connect();
     try {

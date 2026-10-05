@@ -1,21 +1,5 @@
 import db from "../config/db.js";
-
-/*
-|--------------------------------------------------------------------------
-| Tipos de movimento por natureza
-|--------------------------------------------------------------------------
-|
-| Cada natureza (Receita/Despesa) só aceita um subconjunto fixo de tipos.
-| Mantido aqui em vez de na base de dados para evitar mais uma tabela de
-| apoio só para uma lista que praticamente não muda.
-|
-*/
-const TIPOS = {
-  Receita: ["Dízimo", "Oferta", "Voto", "Contribuição", "Doação", "Ação Social", "T-Shirts", "Outros"],
-  Despesa: ["Água", "Luz", "Internet", "Manutenção", "Compras", "Caixa", "Outros"],
-};
-
-const tiposParaNatureza = (natureza) => TIPOS[natureza] ?? [];
+import { escreverMovimento } from "./tesourariaEscrita.js";
 
 export const getMovimentos = (req, res) => {
   const sql = `
@@ -69,90 +53,6 @@ export const getResumo = (req, res) => {
   });
 };
 
-export const createMovimento = (req, res) => {
-  const { natureza, tipo, valor, data, observacao } = req.body;
-
-  if (!natureza || !["Receita", "Despesa"].includes(natureza)) {
-    return res.status(400).json({ message: "Natureza inválida. Use 'Receita' ou 'Despesa'." });
-  }
-  if (!tipo || !tiposParaNatureza(natureza).includes(tipo)) {
-    return res.status(400).json({ message: `Tipo inválido para natureza "${natureza}": ${tipo}.` });
-  }
-  if (!valor || Number(valor) <= 0) {
-    return res.status(400).json({ message: "Valor deve ser superior a zero." });
-  }
-  if (!data) {
-    return res.status(400).json({ message: "Data obrigatória." });
-  }
-
-  const dataObj = new Date(data);
-  if (isNaN(dataObj.getTime())) {
-    return res.status(400).json({ message: "Data inválida." });
-  }
-
-  db.query(
-    `INSERT INTO tesouraria (natureza, tipo, valor, data, observacao)
-     VALUES ($1, $2, $3, $4, $5) RETURNING id`,
-    [natureza, tipo, Number(valor), data, observacao?.trim() || null],
-    (err, result) => {
-      if (err) {
-        console.error("[createMovimento]", err);
-        return res.status(500).json({ message: "Erro interno do servidor." });
-      }
-      res.status(201).json({
-        message: "Movimento registado com sucesso.",
-        id: result.rows[0].id,
-      });
-    }
-  );
-};
-
-export const updateMovimento = (req, res) => {
-  const { id } = req.params;
-  const { natureza, tipo, valor, data, observacao } = req.body;
-
-  if (!natureza || !["Receita", "Despesa"].includes(natureza)) {
-    return res.status(400).json({ message: "Natureza inválida." });
-  }
-  if (!tipo || !tiposParaNatureza(natureza).includes(tipo)) {
-    return res.status(400).json({ message: `Tipo inválido para natureza "${natureza}": ${tipo}.` });
-  }
-  if (!valor || Number(valor) <= 0) {
-    return res.status(400).json({ message: "Valor deve ser superior a zero." });
-  }
-  if (!data) {
-    return res.status(400).json({ message: "Data obrigatória." });
-  }
-
-  db.query(
-    `UPDATE tesouraria
-     SET natureza = $1, tipo = $2, valor = $3, data = $4, observacao = $5
-     WHERE id = $6`,
-    [natureza, tipo, Number(valor), data, observacao?.trim() || null, id],
-    (err, result) => {
-      if (err) {
-        console.error("[updateMovimento]", err);
-        return res.status(500).json({ message: "Erro interno do servidor." });
-      }
-      if (result.rowCount === 0) {
-        return res.status(404).json({ message: "Movimento não encontrado." });
-      }
-      res.json({ message: "Movimento atualizado com sucesso." });
-    }
-  );
-};
-
-export const deleteMovimento = (req, res) => {
-  const { id } = req.params;
-
-  db.query("DELETE FROM tesouraria WHERE id = $1", [id], (err, result) => {
-    if (err) {
-      console.error("[deleteMovimento]", err);
-      return res.status(500).json({ message: "Erro interno do servidor." });
-    }
-    if (result.rowCount === 0) {
-      return res.status(404).json({ message: "Movimento não encontrado." });
-    }
-    res.json({ message: "Movimento eliminado com sucesso." });
-  });
-};
+export const createMovimento = escreverMovimento('Criado');
+export const updateMovimento = escreverMovimento('Alterado');
+export const deleteMovimento = escreverMovimento('Eliminado');

@@ -1,5 +1,6 @@
-import { useState, useEffect, useCallback } from "react";
-import { jsPDF } from "jspdf";
+import { useState, useEffect } from "react";
+import { criarRelatorioPDF } from "../../utils/exportacoesPdf.js";
+import { toast } from "../../utils/toast.js";
 import { apiFetch } from "../../utils/api";
 
 const MESES_PT = [
@@ -10,6 +11,7 @@ const CORES = [
   "#0044ff", "#ff3333", "#00c853", "#ffc107",
   "#9c27b0", "#00bcd4", "#ff6b35", "#e91e63",
 ];
+const moeda = (valor) => new Intl.NumberFormat("pt-PT", { style: "currency", currency: "EUR" }).format(Number(valor ?? 0));
 
 /*
 |--------------------------------------------------------------------------
@@ -33,9 +35,9 @@ function Donut({ dados, campoLabel = "estado" }) {
   const CY = 80;
   const OR = 65;
   const IR = 42;
-  let angle = -Math.PI / 2;
 
   const arcs = dados.map((d, i) => {
+    const angle = -Math.PI / 2 + dados.slice(0, i).reduce((sum, item) => sum + Number(item.total), 0) / total * 2 * Math.PI;
     const pct = Number(d.total) / total;
     const sweep = pct * 2 * Math.PI;
     const GAP = dados.length > 1 ? 0.03 : 0;
@@ -51,7 +53,6 @@ function Donut({ dados, campoLabel = "estado" }) {
          L${CX + IR * Math.cos(a1)} ${CY + IR * Math.sin(a1)}
          A${IR} ${IR} 0 ${large} 0 ${CX + IR * Math.cos(a0)} ${CY + IR * Math.sin(a0)} Z`;
 
-    angle += sweep;
     return {
       path,
       cor: CORES[i % CORES.length],
@@ -175,83 +176,36 @@ function Relatorios() {
   const [dados, setDados] = useState(null);
   const [loading, setLoading] = useState(true);
   const [erro, setErro] = useState(null);
+  const [pedido, setPedido] = useState(0);
 
-  const carregar = useCallback(async () => {
+  const carregar = () => {
     setLoading(true);
     setErro(null);
-    try {
-      const res = await apiFetch(`/api/relatorios?ano=${ano}`);
-      if (!res.ok) throw new Error(`HTTP ${res.status}`);
-      setDados(await res.json());
-    } catch (e) {
-      console.error("[Relatorios]", e);
-      setErro("Não foi possível carregar os dados.");
-    } finally {
-      setLoading(false);
-    }
-  }, [ano]);
+    setPedido((value) => value + 1);
+  };
 
   useEffect(() => {
-    carregar();
-  }, [carregar]);
+    let ativo = true;
+    async function obterDados() {
+      try {
+        const res = await apiFetch(`/api/relatorios?ano=${ano}`);
+        if (!res.ok) throw new Error(`HTTP ${res.status}`);
+        const resultado = await res.json();
+        if (ativo) setDados(resultado);
+      } catch (e) {
+        if (ativo) { console.error("[Relatorios]", e); setErro("Não foi possível carregar os dados."); }
+      } finally {
+        if (ativo) setLoading(false);
+      }
+    }
+    obterDados();
+    return () => { ativo = false; };
+  }, [ano, pedido]);
 
   const exportarPDF = () => {
     if (!dados) return;
-    const doc = new jsPDF();
-    const g = dados.geral;
-    const hoje = new Date().toLocaleDateString("pt-PT");
-
-    doc.setFillColor(0, 68, 255);
-    doc.rect(0, 0, 210, 28, "F");
-    doc.setTextColor(255, 255, 255);
-    doc.setFontSize(16);
-    doc.text("Centro Trindade — Relatório Anual", 105, 12, { align: "center" });
-    doc.setFontSize(10);
-    doc.text(`Ano: ${ano}  |  Gerado em: ${hoje}`, 105, 22, { align: "center" });
-
-    doc.setTextColor(0, 0, 0);
-    let y = 38;
-
-    const secao = (titulo) => {
-      if (y > 265) { doc.addPage(); y = 20; }
-      doc.setFillColor(0, 68, 255);
-      doc.rect(14, y, 182, 8, "F");
-      doc.setTextColor(255, 255, 255);
-      doc.setFontSize(11);
-      doc.text(titulo, 18, y + 5.5);
-      doc.setTextColor(0, 0, 0);
-      y += 12;
-    };
-
-    const linha = (k, v) => {
-      if (y > 270) { doc.addPage(); y = 20; }
-      doc.setFontSize(10);
-      doc.text(`  ${k}:`, 18, y);
-      doc.setFont("helvetica", "bold");
-      doc.text(String(v), 90, y);
-      doc.setFont("helvetica", "normal");
-      y += 7;
-    };
-
-    secao("Resumo Geral");
-    linha("Membros Ativos", g.membros_ativos ?? "—");
-    linha("Total de Membros", g.membros_total ?? "—");
-    linha("Total de Visitantes", g.visitantes_total ?? "—");
-    linha("Convertidos", g.convertidos ?? "—");
-    linha("Próximos Eventos", g.proximos_eventos ?? "—");
-    secao("Membros por Estado");
-    dados.membrosEstado.forEach((m) => linha(m.estado, m.total));
-    y += 4;
-
-    secao("Visitantes por Estado");
-    dados.visitantesEstado.forEach((v) => linha(v.estado, v.total));
-    y += 4;
-
-    secao(`Eventos por Mês — ${ano}`);
-    dados.eventosMes.forEach((e) => linha(MESES_PT[e.mes], `${e.total} evento(s)`));
-    if (!dados.eventosMes.length) linha("—", "Sem eventos registados");
-
-    doc.save(`relatorio-centro-trindade-${ano}.pdf`);
+    try { criarRelatorioPDF(dados).save(`relatorio-centro-trindade-${dados.ano}.pdf`); }
+    catch { toast.erro("Não foi possível gerar o relatório PDF. Tente novamente."); }
   };
 
   if (loading) {
@@ -288,7 +242,7 @@ function Relatorios() {
           <select
             className="rel-ano-select"
             value={ano}
-            onChange={(e) => setAno(Number(e.target.value))}
+            onChange={(e) => { setLoading(true); setErro(null); setAno(Number(e.target.value)); }}
           >
             {[anoAtual, anoAtual - 1, anoAtual - 2, anoAtual - 3].map((a) => (
               <option key={a} value={a}>{a}</option>
@@ -300,6 +254,7 @@ function Relatorios() {
         </div>
       </div>
 
+      <p style={{ color: "#ccc" }}>Membros e visitantes: estado atual, sem filtro por ano. Eventos, apresentações e finanças: ano {ano}.</p>
       <div className="rel-stats">
         <div className="rel-stat-card">
           <i className="ri-team-line"></i>
@@ -312,10 +267,25 @@ function Relatorios() {
           <i className="ri-user-received-line"></i>
           <div>
             <p className="rel-stat-val">{g.convertidos ?? 0}</p>
-            <p className="rel-stat-lbl">Convertidos</p>
+            <p className="rel-stat-lbl">Visitantes que se tornaram membros</p>
           </div>
         </div>
       </div>
+
+      {dados.podeVerFinancas && (
+        <div className="rel-panel">
+          <h2 className="rel-panel-title">Resumo financeiro — {ano}</h2>
+          <div className="rel-stats">
+            <div className="rel-stat-card receita"><div><p className="rel-stat-val">{moeda(g.receitas_ano)}</p><p className="rel-stat-lbl">Receitas</p></div></div>
+            <div className="rel-stat-card"><div><p className="rel-stat-val">{moeda(g.despesas_ano)}</p><p className="rel-stat-lbl">Despesas</p></div></div>
+            <div className="rel-stat-card"><div><p className="rel-stat-val">{moeda(Number(g.receitas_ano) - Number(g.despesas_ano))}</p><p className="rel-stat-lbl">Saldo</p></div></div>
+          </div>
+          <BarrasMensal dadosBrutos={dados.financeiroMensal} campos={[
+            { chave: "receitas", label: "Receitas", cor: "#00c853" },
+            { chave: "despesas", label: "Despesas", cor: "#ff3333" },
+          ]} />
+        </div>
+      )}
 
       <div className="rel-row-2">
         <div className="rel-panel">

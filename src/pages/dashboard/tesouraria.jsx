@@ -1,5 +1,5 @@
 import { useState, useEffect, useCallback, useMemo } from "react";
-import { jsPDF } from "jspdf";
+import { criarTesourariaPDF } from "../../utils/exportacoesPdf.js";
 import DashboardLayout from "../../components/dashboard/dashboardlayout";
 import { usePerfil } from "../../routes/ProctedRoute";
 import { toast } from "../../utils/toast";
@@ -7,10 +7,11 @@ import { apiFetch, apiFetchArray } from "../../utils/api";
 import "../../assets/styles/dashboard/tesouraria.css";
 
 const TIPOS = {
-  Receita: ["Dízimo", "Físico", "Oferta", "Voto", "Contribuição", "Doação", "Ação Social", "T-Shirts", "Outros"],
+  Receita: ["Dízimo", "Oferta", "Voto", "Contribuição", "Doação", "Ação Social", "T-Shirts", "Outros"],
   Despesa: ["Água", "Luz", "Internet", "Manutenção", "Compras", "Caixa", "Outros"],
 };
 
+const MOVIMENTOS_POR_PAGINA = 10;
 const dataHoje = () => new Date().toISOString().split("T")[0];
 
 const FORM_VAZIO = {
@@ -19,6 +20,7 @@ const FORM_VAZIO = {
   valor: "",
   data: dataHoje(),
   observacao: "",
+  motivo: "",
 };
 
 function Tesouraria() {
@@ -28,7 +30,15 @@ function Tesouraria() {
   const [editId, setEditId] = useState(null);
   const [pesquisa, setPesquisa] = useState("");
   const [filtroNatureza, setFiltroNatureza] = useState("Todos");
+  const [paginaAtual, setPaginaAtual] = useState(1);
   const [form, setForm] = useState(FORM_VAZIO);
+  const [saving, setSaving] = useState(false);
+  const [historico, setHistorico] = useState(null);
+
+  const carregarHistorico = async () => {
+    try { setHistorico(await apiFetchArray("/api/tesouraria/historico")); }
+    catch { toast.erro("Não foi possível consultar o histórico."); }
+  };
 
   const carregarMovimentos = useCallback(async () => {
     setLoading(true);
@@ -43,8 +53,14 @@ function Tesouraria() {
   }, []);
 
   useEffect(() => {
-    carregarMovimentos();
-  }, [carregarMovimentos]);
+    let ativo = true;
+    apiFetchArray("/api/tesouraria").then((dados) => {
+      if (ativo) setMovimentos(dados);
+    }).catch(() => {
+      if (ativo) toast.erro("Não foi possível carregar os movimentos.");
+    }).finally(() => { if (ativo) setLoading(false); });
+    return () => { ativo = false; };
+  }, []);
 
   const handleChange = (e) => {
     const { name, value } = e.target;
@@ -79,16 +95,23 @@ function Tesouraria() {
   };
 
   const handleSubmit = async () => {
+    if (saving) return;
     if (!validar()) return;
+    if (editId && form.motivo.trim().length < 5) {
+      toast.aviso("Indique o motivo da alteração (mínimo 5 caracteres).");
+      return;
+    }
 
     const payload = {
       natureza: form.natureza,
       tipo: form.tipo,
-      valor: Number(form.valor),
+      valor: form.valor,
       data: form.data,
       observacao: form.observacao.trim() || null,
+      motivo: form.motivo,
     };
 
+    setSaving(true);
     try {
       const res = await apiFetch(
         editId ? `/api/tesouraria/${editId}` : "/api/tesouraria",
@@ -108,10 +131,11 @@ function Tesouraria() {
       toast.sucesso(data.message);
       limparCampos();
       carregarMovimentos();
+      if (historico !== null) carregarHistorico();
     } catch (err) {
       console.error("[handleSubmit]", err);
       toast.erro("Erro ao comunicar com o servidor.");
-    }
+    } finally { setSaving(false); }
   };
 
   const handleEdit = (mov) => {
@@ -122,24 +146,31 @@ function Tesouraria() {
       valor: String(mov.valor),
       data: mov.data,
       observacao: mov.observacao || "",
+      motivo: "",
     });
     window.scrollTo({ top: 0, behavior: "smooth" });
   };
 
   const handleDelete = async (id) => {
+    if (saving) return;
     if (!window.confirm("Eliminar este movimento permanentemente?")) return;
+    const motivo = window.prompt("Motivo da eliminação (5 a 500 caracteres):");
+    if (motivo === null) return;
+    if (motivo.trim().length < 5 || motivo.length > 500) { toast.aviso("Indique um motivo válido."); return; }
+    setSaving(true);
     try {
-      const res = await apiFetch(`/api/tesouraria/${id}`, { method: "DELETE" });
+      const res = await apiFetch(`/api/tesouraria/${id}`, { method: "DELETE", body: JSON.stringify({ motivo }) });
       const data = await res.json();
       if (!res.ok) {
         toast.erro(data.message);
         return;
       }
       setMovimentos((prev) => prev.filter((m) => m.id !== id));
+      if (historico !== null) carregarHistorico();
     } catch (err) {
       console.error("[handleDelete]", err);
       toast.erro("Erro ao comunicar com o servidor.");
-    }
+    } finally { setSaving(false); }
   };
 
   const entradas = useMemo(
@@ -166,6 +197,12 @@ function Tesouraria() {
       })
       .sort((a, b) => new Date(b.data) - new Date(a.data));
   }, [movimentos, pesquisa, filtroNatureza]);
+  const totalPaginas = Math.ceil(movimentosFiltrados.length / MOVIMENTOS_POR_PAGINA);
+  const paginaVisivel = Math.min(paginaAtual, Math.max(totalPaginas, 1));
+  const movimentosDaPagina = movimentosFiltrados.slice(
+    (paginaVisivel - 1) * MOVIMENTOS_POR_PAGINA,
+    paginaVisivel * MOVIMENTOS_POR_PAGINA
+  );
 
   const totaisPorTipo = useMemo(() => {
     const mapa = {};
@@ -185,82 +222,9 @@ function Tesouraria() {
       return;
     }
 
-    const doc = new jsPDF({ unit: "pt", format: "a4" });
-    const pageWidth = doc.internal.pageSize.getWidth();
-    const pageHeight = doc.internal.pageSize.getHeight();
-    const margin = 36;
-    const tableWidth = pageWidth - margin * 2;
-    const colWidths = [70, 110, 70, 75, tableWidth - 325];
-    const headers = ["Natureza", "Tipo", "Valor", "Data", "Observações"];
-    const rowHeightBase = 20;
-
-    const desenharCabecalho = (startY) => {
-      doc.setFillColor(0, 68, 255);
-      doc.rect(0, 0, pageWidth, 48, "F");
-      doc.setTextColor(255, 255, 255);
-      doc.setFont("helvetica", "bold");
-      doc.setFontSize(18);
-      doc.text(titulo, pageWidth / 2, 28, { align: "center" });
-
-      doc.setTextColor(0, 0, 0);
-      doc.setFontSize(10);
-      doc.setFont("helvetica", "normal");
-      doc.text(`Gerado em: ${new Date().toLocaleDateString("pt-PT")}`, margin, 62);
-      doc.text(`Movimentos: ${listaMovimentos.length}`, pageWidth - margin, 62, { align: "right" });
-
-      let x = margin;
-      doc.setFillColor(234, 238, 255);
-      doc.setTextColor(0, 68, 255);
-      doc.setFontSize(9);
-      doc.setFont("helvetica", "bold");
-
-      headers.forEach((header, index) => {
-        doc.rect(x, startY, colWidths[index], 22, "F");
-        doc.text(String(header), x + 6, startY + 14);
-        x += colWidths[index];
-      });
-    };
-
-    let y = 90;
-    desenharCabecalho(y - 24);
-    y += 22;
-
-    doc.setTextColor(0, 0, 0);
-    doc.setFont("helvetica", "normal");
-    doc.setFontSize(8.5);
-
-    listaMovimentos.forEach((mov) => {
-      const row = [
-        mov.natureza,
-        mov.tipo,
-        `${Number(mov.valor).toFixed(2)} €`,
-        formatarData(mov.data),
-        mov.observacao || "—",
-      ];
-
-      const linesByCell = row.map((valor, index) =>
-        doc.splitTextToSize(String(valor), colWidths[index] - 8)
-      );
-      const rowHeight = Math.max(rowHeightBase, ...linesByCell.map((lines) => lines.length * 9 + 8));
-
-      if (y + rowHeight > pageHeight - margin) {
-        doc.addPage();
-        y = 40;
-        desenharCabecalho(y - 24);
-        y += 22;
-      }
-
-      let x = margin;
-      row.forEach((valor, index) => {
-        const textLines = linesByCell[index];
-        doc.rect(x, y, colWidths[index], rowHeight, "S");
-        textLines.forEach((line, lineIndex) => {
-          doc.text(line, x + 6, y + 10 + lineIndex * 9);
-        });
-        x += colWidths[index];
-      });
-
-      y += rowHeight;
+    const doc = criarTesourariaPDF(listaMovimentos, {
+      titulo: titulo.replace("—", "-"),
+      periodo: titulo.includes("Dia") ? `Movimentos de ${formatarData(form.data || dataHoje())}` : "Todos os movimentos registados",
     });
 
     const nomeArquivo = titulo.includes("Dia")
@@ -294,6 +258,24 @@ function Tesouraria() {
         )}
 
         <h1>Tesouraria</h1>
+        <button className="btn-export" onClick={carregarHistorico}>Consultar histórico</button>
+        {historico !== null && (
+          <section className="table-box" aria-label="Histórico da tesouraria">
+            <h2>Últimas 200 operações</h2>
+            <button className="btn-close-history" onClick={() => setHistorico(null)}>Fechar histórico</button>
+            {historico.length === 0 ? <p>Ainda não existem operações registadas no histórico.</p> : (
+              <table><thead><tr><th>Data e autor</th><th>Operação</th><th>Motivo</th><th>Valores registados</th></tr></thead>
+                <tbody>{historico.map((item) => <tr key={item.id}>
+                  <td>{new Date(item.registado_em).toLocaleString("pt-PT")}<br />{item.autor_nome}</td>
+                  <td>#{item.movimento_id} — {item.acao}</td>
+                  <td>{item.motivo || "Registo inicial"}</td>
+                  <td>{[ ["Antes", item.antes], ["Depois", item.depois] ].filter(([, value]) => value).map(([label, value]) => (
+                    <p key={label}>{label}: {value.natureza}, {value.tipo}, {Number(value.valor).toFixed(2)} €, {formatarData(String(value.data).slice(0, 10))}{value.observacao ? ` — ${value.observacao}` : ""}</p>
+                  ))}</td>
+                </tr>)}</tbody></table>
+            )}
+          </section>
+        )}
 
         <div className="resumo-cards">
           <div className="card entrada">
@@ -370,14 +352,18 @@ function Tesouraria() {
                     onChange={handleChange}
                   />
                 </div>
+                {editId !== null && <div className="campo-full">
+                  <label htmlFor="motivo-tesouraria">Motivo da alteração</label>
+                  <input id="motivo-tesouraria" name="motivo" value={form.motivo} onChange={handleChange} maxLength={500} />
+                </div>}
 
               </div>
 
               <div className="form-actions">
-                <button className="btn-save" onClick={handleSubmit}>
-                  {editId !== null ? "Atualizar" : "Guardar"}
+                <button className="btn-save" onClick={handleSubmit} disabled={saving}>
+                  {saving ? "A guardar..." : editId !== null ? "Atualizar" : "Guardar"}
                 </button>
-                <button className="btn-clear" onClick={limparCampos}>
+                <button className="btn-clear" onClick={limparCampos} disabled={saving}>
                   Limpar
                 </button>
               </div>
@@ -388,12 +374,18 @@ function Tesouraria() {
                 type="text"
                 placeholder="Pesquisar por tipo ou observação..."
                 value={pesquisa}
-                onChange={(e) => setPesquisa(e.target.value)}
+                onChange={(e) => {
+                  setPesquisa(e.target.value);
+                  setPaginaAtual(1);
+                }}
               />
               <select
                 className="filtro-natureza-select"
                 value={filtroNatureza}
-                onChange={(e) => setFiltroNatureza(e.target.value)}
+                onChange={(e) => {
+                  setFiltroNatureza(e.target.value);
+                  setPaginaAtual(1);
+                }}
               >
                 <option value="Todos">Todos</option>
                 <option value="Receita">Receitas</option>
@@ -432,7 +424,7 @@ function Tesouraria() {
                         </td>
                       </tr>
                     ) : (
-                      movimentosFiltrados.map((mov) => (
+                      movimentosDaPagina.map((mov) => (
                         <tr key={mov.id}>
                           <td>{mov.tipo}</td>
                           <td>
@@ -455,6 +447,7 @@ function Tesouraria() {
                                 <button
                                   className="edit-btn"
                                   title="Editar"
+                                  disabled={saving}
                                   onClick={() => handleEdit(mov)}
                                 >
                                   <i className="ri-pencil-line"></i>
@@ -462,6 +455,7 @@ function Tesouraria() {
                                 <button
                                   className="delete-btn"
                                   title="Eliminar"
+                                  disabled={saving}
                                   onClick={() => handleDelete(mov.id)}
                                 >
                                   <i className="ri-delete-bin-line"></i>
@@ -474,6 +468,42 @@ function Tesouraria() {
                     )}
                   </tbody>
                 </table>
+              )}
+              {!loading && totalPaginas > 1 && (
+                <nav className="pagination" aria-label="Paginação dos movimentos">
+                  <button
+                    type="button"
+                    className="pagination-arrow"
+                    onClick={() => setPaginaAtual(Math.max(paginaVisivel - 1, 1))}
+                    disabled={paginaVisivel === 1}
+                    aria-label="Página anterior"
+                  >
+                    &larr; Anterior
+                  </button>
+                  <div className="pagination-pages">
+                    {Array.from({ length: totalPaginas }, (_, index) => index + 1).map((pagina) => (
+                      <button
+                        type="button"
+                        key={pagina}
+                        className={`pagination-page${pagina === paginaVisivel ? " active" : ""}`}
+                        onClick={() => setPaginaAtual(pagina)}
+                        aria-label={`Página ${pagina}`}
+                        aria-current={pagina === paginaVisivel ? "page" : undefined}
+                      >
+                        {pagina}
+                      </button>
+                    ))}
+                  </div>
+                  <button
+                    type="button"
+                    className="pagination-arrow"
+                    onClick={() => setPaginaAtual(Math.min(paginaVisivel + 1, totalPaginas))}
+                    disabled={paginaVisivel === totalPaginas}
+                    aria-label="Página seguinte"
+                  >
+                    Seguinte &rarr;
+                  </button>
+                </nav>
               )}
             </div>
 

@@ -7,6 +7,8 @@ venv/
 
 # production
 dist
+output/pdf/
+tmp/pdfs/
 
 # environment variables
 .env

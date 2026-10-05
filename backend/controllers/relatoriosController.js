@@ -8,7 +8,10 @@ const q = (sql, params = []) =>
 const PERFIS_FINANCAS = ["Administrador", "Tesouraria", "Pastor"];
 
 export const getRelatorios = async (req, res) => {
-  const ano = Number(req.query.ano) || new Date().getFullYear();
+  const ano = req.query.ano === undefined ? new Date().getFullYear() : Number(req.query.ano);
+  if (!Number.isInteger(ano) || ano < 1900 || ano > 9999) {
+    return res.status(400).json({ message: "Ano inválido." });
+  }
   const podeVerFinancas = PERFIS_FINANCAS.includes(req.user?.perfil);
 
   try {
@@ -62,7 +65,7 @@ export const getRelatorios = async (req, res) => {
            (SELECT COUNT(*)               FROM membros      WHERE estado = 'Ativo')              AS membros_ativos,
            (SELECT COUNT(*)               FROM membros)                                           AS membros_total,
            (SELECT COUNT(*)               FROM visitantes)                                        AS visitantes_total,
-           (SELECT COUNT(*)               FROM visitantes   WHERE estado = 'Convertido')          AS convertidos,
+           (SELECT COUNT(*)               FROM visitantes   WHERE estado = 'Tornou-se membro')    AS convertidos,
            (SELECT COUNT(*)               FROM apresentacoes WHERE EXTRACT(YEAR FROM data_apresentacao) = $1)   AS apresentacoes_ano,
            (SELECT COALESCE(SUM(quantidade),0) FROM apresentacoes WHERE EXTRACT(YEAR FROM data_apresentacao) = $2) AS criancas_ano,
            (SELECT COUNT(*)               FROM eventos WHERE data_evento >= CURRENT_DATE AND estado = 'Agendado') AS proximos_eventos,
@@ -89,6 +92,7 @@ export const getRelatorios = async (req, res) => {
 
     res.json({
       ano,
+      referencia: { globais: "Estado atual, sem filtro por ano", anuais: ano },
       membrosEstado,
       visitantesEstado,
       financeiroMensal,

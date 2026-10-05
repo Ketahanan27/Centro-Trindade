@@ -1,19 +1,28 @@
 import fs from 'node:fs';
 import assert from 'node:assert/strict';
 import { parse } from 'espree';
-import { pool } from '../config/db.js';
-import * as auth from '../controllers/authController.js';
-import * as membros from '../controllers/membroController.js';
-import * as agenda from '../controllers/agendaController.js';
-import * as visitantes from '../controllers/visitantesController.js';
-import * as apresentacoes from '../controllers/apresentacoesController.js';
-import * as documentos from '../controllers/documentosController.js';
-import * as atas from '../controllers/atasController.js';
-import * as tesouraria from '../controllers/tesourariaController.js';
-import { getDashboardStats } from '../controllers/dashboardController.js';
-import { getRelatorios } from '../controllers/relatoriosController.js';
-import { uploadDir } from '../config/photoStorage.js';
+import dotenv from 'dotenv';
+import bcrypt from 'bcrypt';
 import path from 'node:path';
+
+dotenv.config({ quiet: true });
+if (!process.env.TEST_DATABASE_URL || process.env.TEST_DATABASE_URL === process.env.DATABASE_URL) {
+  throw new Error('Configure TEST_DATABASE_URL com uma base de testes separada antes de executar test:postgres.');
+}
+process.env.DATABASE_URL = process.env.TEST_DATABASE_URL;
+process.env.BLOB_READ_WRITE_TOKEN = '';
+const { pool } = await import('../config/db.js');
+const auth = await import('../controllers/authController.js');
+const membros = await import('../controllers/membroController.js');
+const agenda = await import('../controllers/agendaController.js');
+const visitantes = await import('../controllers/visitantesController.js');
+const apresentacoes = await import('../controllers/apresentacoesController.js');
+const documentos = await import('../controllers/documentosController.js');
+const atas = await import('../controllers/atasController.js');
+const tesouraria = await import('../controllers/tesourariaController.js');
+const { getDashboardStats } = await import('../controllers/dashboardController.js');
+const { getRelatorios } = await import('../controllers/relatoriosController.js');
+const { uploadDir } = await import('../config/photoStorage.js');
 
 function collectSql(node, output) {
   if (!node || typeof node !== 'object') return;
@@ -45,6 +54,17 @@ function invoke(handler, overrides = {}) {
 }
 
 const client = await pool.connect();
+const originalConnect = pool.connect.bind(pool);
+// Nested controller transactions stay within the outer, rolled-back fixture.
+pool.connect = async () => ({
+  query(sql, params) {
+    if (sql === 'BEGIN') return client.query('SAVEPOINT controller_reset');
+    if (sql === 'COMMIT') return client.query('RELEASE SAVEPOINT controller_reset');
+    if (sql === 'ROLLBACK') return client.query('ROLLBACK TO SAVEPOINT controller_reset');
+    return client.query(sql, params);
+  },
+  release() {},
+});
 const originalQuery = pool.query.bind(pool);
 let lastId;
 let queue = Promise.resolve();
@@ -77,7 +97,9 @@ try {
     tesouraria.getResumo, getDashboardStats, getRelatorios]) await invoke(handler);
 
   const email = `migration-${Date.now()}@example.invalid`;
-  await invoke(auth.register, { body: { nome: 'Teste migração', email, password: 'MigrationTest123!' } });
+  const password = await bcrypt.hash('MigrationTest123!', 10);
+  await pool.query('INSERT INTO utilizadores (nome, email, password, perfil) VALUES ($1, $2, $3, $4) RETURNING id',
+    ['Teste migração', email, password, 'Membro']);
   const userId = lastId;
   request.user.id = userId;
   const login = await invoke(auth.login, { body: { email, password: 'MigrationTest123!' } });
@@ -96,7 +118,7 @@ try {
     [apresentacoes.createApresentacao, apresentacoes.updateApresentacao, apresentacoes.deleteApresentacao, { data_apresentacao: date, quantidade: 1, observacoes: '' }],
     [atas.createAta, atas.updateAta, atas.deleteAta, { titulo: 'Teste', data: date, hora: '12:00', local: 'Teste' }],
     [tesouraria.createMovimento, tesouraria.updateMovimento, tesouraria.deleteMovimento, { natureza: 'Receita', tipo: 'Oferta', valor: '12.34', data: date }],
-    [documentos.createDocumento, null, documentos.deleteDocumento, { tipo: 'Membro', nome_completo: 'Teste', bi: 'TEST', data_emissao: date, dados_json: { teste: true } }],
+    [documentos.createDocumento, null, documentos.deleteDocumento, { tipo: 'Membro', nome_completo: 'Teste', bi: 'TEST', data_emissao: date, dados_json: { teste: true, data_entrada: '2020-01-01', estado: 'Ativo' } }],
   ];
   for (const [create, update, remove, body] of scenarios) {
     await invoke(create, { body });
@@ -113,7 +135,7 @@ try {
     }
     if (create === documentos.createDocumento) {
       const docs = await invoke(documentos.getDocumentos);
-      assert.deepEqual(docs.find((doc) => doc.id === id).dados_json, { teste: true });
+      assert.deepEqual(docs.find((doc) => doc.id === id).dados_json, body.dados_json);
     }
     if (update) await invoke(update, { body, params: { id } });
     await invoke(remove, { params: { id } });
@@ -135,6 +157,7 @@ try {
   await queue;
   await client.query('ROLLBACK');
   pool.query = originalQuery;
+  pool.connect = originalConnect;
   client.release();
   await pool.end();
   console.log('Transação revertida: nenhum registo de teste guardado.');
