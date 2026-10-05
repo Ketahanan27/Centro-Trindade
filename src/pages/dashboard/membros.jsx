@@ -284,9 +284,6 @@ function Membros() {
                     className="details-avatar"
                     src={getAvatarSrc(selectedMember.foto)}
                     alt={`Foto de perfil de ${selectedMember.nome || "membro"}`}
-                    onError={(e) => {
-                      e.currentTarget.style.display = "none";
-                    }}
                   />
                 ) : (
                   <div className="details-avatar details-avatar-placeholder">
