@@ -29,12 +29,11 @@ export const createEvent = (req, res) => {
   const sql = `
     INSERT INTO eventos
       (titulo, descricao, data_evento, hora_evento, local_evento, estado)
-    VALUES (?, ?, ?, ?, ?, ?)
-  `;
+    VALUES ($1, $2, $3, $4, $5, $6) RETURNING id`;
 
   db.query(
     sql,
-    [titulo, descricao, data_evento, hora_evento, local_evento, estado],
+    [titulo, descricao || null, data_evento, hora_evento || null, local_evento || null, estado || "Agendado"],
     (err) => {
       if (err) {
         console.error("[createEvent]", err);
@@ -51,7 +50,7 @@ export const getEvents = (req, res) => {
       id,
       titulo,
       descricao,
-      DATE_FORMAT(data_evento, '%Y-%m-%d') AS data_evento,
+      TO_CHAR(data_evento, 'YYYY-MM-DD') AS data_evento,
       hora_evento,
       local_evento,
       estado
@@ -98,14 +97,14 @@ export const updateEvent = (req, res) => {
   const sql = `
     UPDATE eventos
     SET
-      titulo=?, descricao=?, data_evento=?,
-      hora_evento=?, local_evento=?, estado=?
-    WHERE id=?
+      titulo=$1, descricao=$2, data_evento=$3,
+      hora_evento=$4, local_evento=$5, estado=$6
+    WHERE id=$7
   `;
 
   db.query(
     sql,
-    [titulo, descricao, data_evento, hora_evento, local_evento, estado, id],
+    [titulo, descricao || null, data_evento, hora_evento || null, local_evento || null, estado || "Agendado", id],
     (err) => {
       if (err) {
         console.error("[updateEvent]", err);
@@ -119,7 +118,7 @@ export const updateEvent = (req, res) => {
 export const deleteEvent = (req, res) => {
   const { id } = req.params;
 
-  db.query("SELECT data_evento FROM eventos WHERE id = ?", [id], (err, result) => {
+  db.query("SELECT data_evento FROM eventos WHERE id = $1", [id], (err, result) => {
     if (err) {
       console.error("[deleteEvent select]", err);
       return res.status(500).json({ message: "Erro interno do servidor." });
@@ -136,7 +135,7 @@ export const deleteEvent = (req, res) => {
       return res.status(400).json({ message: "Eventos já realizados não podem ser eliminados." });
     }
 
-    db.query("DELETE FROM eventos WHERE id = ?", [id], (err) => {
+    db.query("DELETE FROM eventos WHERE id = $1", [id], (err) => {
       if (err) {
         console.error("[deleteEvent delete]", err);
         return res.status(500).json({ message: "Erro interno do servidor." });

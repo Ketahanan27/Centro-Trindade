@@ -32,30 +32,30 @@ export const getRelatorios = async (req, res) => {
 
       podeVerFinancas
         ? q(`SELECT
-               MONTH(data)  AS mes,
+               EXTRACT(MONTH FROM data)  AS mes,
                ROUND(SUM(CASE WHEN natureza = 'Receita' THEN valor ELSE 0 END), 2) AS receitas,
                ROUND(SUM(CASE WHEN natureza = 'Despesa' THEN valor ELSE 0 END), 2) AS despesas
              FROM tesouraria
-             WHERE YEAR(data) = ?
-             GROUP BY MONTH(data)
+             WHERE EXTRACT(YEAR FROM data) = $1
+             GROUP BY EXTRACT(MONTH FROM data)
              ORDER BY mes`, [ano])
         : Promise.resolve([]),
 
       q(`SELECT
-           MONTH(data_evento) AS mes,
+           EXTRACT(MONTH FROM data_evento) AS mes,
            COUNT(*)           AS total
          FROM eventos
-         WHERE YEAR(data_evento) = ?
-         GROUP BY MONTH(data_evento)
+         WHERE EXTRACT(YEAR FROM data_evento) = $1
+         GROUP BY EXTRACT(MONTH FROM data_evento)
          ORDER BY mes`, [ano]),
 
       q(`SELECT
-           MONTH(data_apresentacao) AS mes,
+           EXTRACT(MONTH FROM data_apresentacao) AS mes,
            SUM(quantidade)          AS criancas,
            COUNT(*)                 AS sessoes
          FROM apresentacoes
-         WHERE YEAR(data_apresentacao) = ?
-         GROUP BY MONTH(data_apresentacao)
+         WHERE EXTRACT(YEAR FROM data_apresentacao) = $1
+         GROUP BY EXTRACT(MONTH FROM data_apresentacao)
          ORDER BY mes`, [ano]),
 
       q(`SELECT
@@ -63,11 +63,11 @@ export const getRelatorios = async (req, res) => {
            (SELECT COUNT(*)               FROM membros)                                           AS membros_total,
            (SELECT COUNT(*)               FROM visitantes)                                        AS visitantes_total,
            (SELECT COUNT(*)               FROM visitantes   WHERE estado = 'Convertido')          AS convertidos,
-           (SELECT COUNT(*)               FROM apresentacoes WHERE YEAR(data_apresentacao) = ?)   AS apresentacoes_ano,
-           (SELECT COALESCE(SUM(quantidade),0) FROM apresentacoes WHERE YEAR(data_apresentacao) = ?) AS criancas_ano,
-           (SELECT COUNT(*)               FROM eventos WHERE data_evento >= CURDATE() AND estado = 'Agendado') AS proximos_eventos,
-           (SELECT ROUND(COALESCE(SUM(valor),0),2) FROM tesouraria WHERE natureza = 'Receita' AND YEAR(data) = ?) AS receitas_ano,
-           (SELECT ROUND(COALESCE(SUM(valor),0),2) FROM tesouraria WHERE natureza = 'Despesa' AND YEAR(data) = ?) AS despesas_ano`,
+           (SELECT COUNT(*)               FROM apresentacoes WHERE EXTRACT(YEAR FROM data_apresentacao) = $1)   AS apresentacoes_ano,
+           (SELECT COALESCE(SUM(quantidade),0) FROM apresentacoes WHERE EXTRACT(YEAR FROM data_apresentacao) = $2) AS criancas_ano,
+           (SELECT COUNT(*)               FROM eventos WHERE data_evento >= CURRENT_DATE AND estado = 'Agendado') AS proximos_eventos,
+           (SELECT ROUND(COALESCE(SUM(valor),0),2) FROM tesouraria WHERE natureza = 'Receita' AND EXTRACT(YEAR FROM data) = $3) AS receitas_ano,
+           (SELECT ROUND(COALESCE(SUM(valor),0),2) FROM tesouraria WHERE natureza = 'Despesa' AND EXTRACT(YEAR FROM data) = $4) AS despesas_ano`,
         [ano, ano, ano, ano]),
     ]);
 

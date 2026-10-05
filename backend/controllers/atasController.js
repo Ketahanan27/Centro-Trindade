@@ -5,8 +5,8 @@ export const getAtas = (req, res) => {
     `SELECT
        id,
        titulo,
-       DATE_FORMAT(data, '%Y-%m-%d') AS data,
-       TIME_FORMAT(hora, '%H:%i')    AS hora,
+       TO_CHAR(data, 'YYYY-MM-DD') AS data,
+       TO_CHAR(DATE '2000-01-01' + hora, 'HH24:MI')    AS hora,
        local,
        participantes,
        resumo,
@@ -44,8 +44,7 @@ export const createAta = (req, res) => {
   const sql = `
     INSERT INTO atas
       (titulo, data, hora, local, participantes, resumo, decisoes, observacoes)
-    VALUES (?, ?, ?, ?, ?, ?, ?, ?)
-  `;
+    VALUES ($1, $2, $3, $4, $5, $6, $7, $8) RETURNING id`;
 
   db.query(
     sql,
@@ -66,7 +65,7 @@ export const createAta = (req, res) => {
       }
       res.status(201).json({
         message: "Reunião registada com sucesso.",
-        id: result.insertId,
+        id: result.rows[0].id,
       });
     }
   );
@@ -92,9 +91,9 @@ export const updateAta = (req, res) => {
   const sql = `
     UPDATE atas
     SET
-      titulo=?, data=?, hora=?, local=?,
-      participantes=?, resumo=?, decisoes=?, observacoes=?
-    WHERE id=?
+      titulo=$1, data=$2, hora=$3, local=$4,
+      participantes=$5, resumo=$6, decisoes=$7, observacoes=$8
+    WHERE id=$9
   `;
 
   db.query(
@@ -115,7 +114,7 @@ export const updateAta = (req, res) => {
         console.error("[updateAta]", err);
         return res.status(500).json({ message: "Erro interno do servidor." });
       }
-      if (result.affectedRows === 0) {
+      if (result.rowCount === 0) {
         return res.status(404).json({ message: "Reunião não encontrada." });
       }
       res.json({ message: "Reunião atualizada com sucesso." });
@@ -126,12 +125,12 @@ export const updateAta = (req, res) => {
 export const deleteAta = (req, res) => {
   const { id } = req.params;
 
-  db.query("DELETE FROM atas WHERE id = ?", [id], (err, result) => {
+  db.query("DELETE FROM atas WHERE id = $1", [id], (err, result) => {
     if (err) {
       console.error("[deleteAta]", err);
       return res.status(500).json({ message: "Erro interno do servidor." });
     }
-    if (result.affectedRows === 0) {
+    if (result.rowCount === 0) {
       return res.status(404).json({ message: "Reunião não encontrada." });
     }
     res.json({ message: "Reunião eliminada com sucesso." });

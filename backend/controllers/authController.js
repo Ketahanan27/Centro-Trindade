@@ -44,7 +44,7 @@ export const register = async (req, res) => {
       return res.status(400).json({ message: "A palavra-passe deve ter pelo menos 8 caracteres." });
     }
 
-    const existe = await query("SELECT id FROM utilizadores WHERE email = ?", [email.trim()]);
+    const existe = await query("SELECT id FROM utilizadores WHERE email = $1", [email.trim()]);
     if (existe.length > 0) {
       return res.status(400).json({ message: "Email já registado." });
     }
@@ -52,7 +52,7 @@ export const register = async (req, res) => {
     const hash = await bcrypt.hash(password, 10);
 
     await query(
-      "INSERT INTO utilizadores (nome, email, password, perfil) VALUES (?, ?, ?, ?)",
+      "INSERT INTO utilizadores (nome, email, password, perfil) VALUES ($1, $2, $3, $4) RETURNING id",
       [nome.trim(), email.trim(), hash, "Membro"]
     );
 
@@ -71,7 +71,7 @@ export const login = async (req, res) => {
       return res.status(400).json({ message: "Preencha todos os campos." });
     }
 
-    const result = await query("SELECT * FROM utilizadores WHERE email = ?", [email.trim()]);
+    const result = await query("SELECT * FROM utilizadores WHERE email = $1", [email.trim()]);
     if (result.length === 0) {
       return res.status(401).json(CREDENCIAIS_INVALIDAS);
     }
@@ -98,7 +98,7 @@ export const login = async (req, res) => {
       return res.status(401).json(CREDENCIAIS_INVALIDAS);
     }
 
-    query("UPDATE utilizadores SET ultimo_acesso = NOW() WHERE id = ?", [user.id])
+    query("UPDATE utilizadores SET ultimo_acesso = NOW() WHERE id = $1", [user.id])
       .catch((e) => console.warn("[login] ultimo_acesso:", e.message));
 
     /* Algoritmo de assinatura fixado explicitamente (ver também middleware/auth.js). */
@@ -141,7 +141,7 @@ export const recuperarPassword = async (req, res) => {
     };
 
     const result = await query(
-      "SELECT id, nome FROM utilizadores WHERE email = ? AND estado = 'Ativo'",
+      "SELECT id, nome FROM utilizadores WHERE email = $1 AND estado = 'Ativo'",
       [email.trim()]
     );
 
@@ -153,9 +153,9 @@ export const recuperarPassword = async (req, res) => {
     const token = crypto.randomBytes(32).toString("hex");
     const expiry = new Date(Date.now() + 30 * 60 * 1000);
 
-    await query("DELETE FROM password_resets WHERE utilizador_id = ?", [user.id]);
+    await query("DELETE FROM password_resets WHERE utilizador_id = $1", [user.id]);
     await query(
-      "INSERT INTO password_resets (utilizador_id, token, expiry) VALUES (?, ?, ?)",
+      "INSERT INTO password_resets (utilizador_id, token, expiry) VALUES ($1, $2, $3) RETURNING id",
       [user.id, token, expiry]
     );
 
@@ -199,7 +199,7 @@ export const redefinirPassword = async (req, res) => {
     }
 
     const result = await query(
-      "SELECT id, utilizador_id, expiry, usado FROM password_resets WHERE token = ?",
+      "SELECT id, utilizador_id, expiry, usado FROM password_resets WHERE token = $1",
       [token]
     );
 
@@ -218,8 +218,8 @@ export const redefinirPassword = async (req, res) => {
 
     const hash = await bcrypt.hash(nova_password, 10);
 
-    await query("UPDATE utilizadores SET password = ? WHERE id = ?", [hash, reset.utilizador_id]);
-    await query("UPDATE password_resets SET usado = 1 WHERE id = ?", [reset.id]);
+    await query("UPDATE utilizadores SET password = $1 WHERE id = $2", [hash, reset.utilizador_id]);
+    await query("UPDATE password_resets SET usado = 1 WHERE id = $1", [reset.id]);
 
     res.json({ message: "Palavra-passe atualizada com sucesso!" });
   } catch (e) {
@@ -232,20 +232,20 @@ export const getUsers = async (req, res) => {
   try {
     const result = await query(
       `SELECT id, nome, email, perfil, estado,
-              DATE_FORMAT(ultimo_acesso, '%d/%m/%Y %H:%i') AS ultimo_acesso,
-              DATE_FORMAT(created_at,   '%d/%m/%Y')        AS criado
+              TO_CHAR(ultimo_acesso, 'DD/MM/YYYY HH24:MI') AS ultimo_acesso,
+              TO_CHAR(created_at, 'DD/MM/YYYY')        AS criado
        FROM utilizadores
        ORDER BY id DESC`
     );
     res.json(result);
   } catch (e) {
     /* Compatibilidade com bases de dados antigas onde a coluna ultimo_acesso ainda não existe. */
-    if (e.code === "ER_BAD_FIELD_ERROR") {
+    if (e.code === "42703") {
       try {
         const result = await query(
           `SELECT id, nome, email, perfil, estado,
                   NULL AS ultimo_acesso,
-                  DATE_FORMAT(created_at, '%d/%m/%Y') AS criado
+                  TO_CHAR(created_at, 'DD/MM/YYYY') AS criado
            FROM utilizadores ORDER BY id DESC`
         );
         return res.json(result);
@@ -272,7 +272,7 @@ export const criarUtilizador = async (req, res) => {
 
     const perfilFinal = PERFIS_VALIDOS.includes(perfil) ? perfil : "Membro";
 
-    const existe = await query("SELECT id FROM utilizadores WHERE email = ?", [email.trim()]);
+    const existe = await query("SELECT id FROM utilizadores WHERE email = $1", [email.trim()]);
     if (existe.length > 0) {
       return res.status(400).json({ message: "Email já registado." });
     }
@@ -280,16 +280,16 @@ export const criarUtilizador = async (req, res) => {
     const tempPass = await bcrypt.hash(crypto.randomBytes(16).toString("hex"), 10);
 
     const insertResult = await query(
-      "INSERT INTO utilizadores (nome, email, password, perfil, estado) VALUES (?, ?, ?, ?, ?)",
+      "INSERT INTO utilizadores (nome, email, password, perfil, estado) VALUES ($1, $2, $3, $4, $5) RETURNING id",
       [nome.trim(), email.trim(), tempPass, perfilFinal, estado || "Ativo"]
     );
 
-    const userId = insertResult.insertId;
+    const userId = insertResult.rows[0].id;
     const token = crypto.randomBytes(32).toString("hex");
     const expiry = new Date(Date.now() + 48 * 60 * 60 * 1000);
 
     await query(
-      "INSERT INTO password_resets (utilizador_id, token, expiry) VALUES (?, ?, ?)",
+      "INSERT INTO password_resets (utilizador_id, token, expiry) VALUES ($1, $2, $3) RETURNING id",
       [userId, token, expiry]
     );
 
@@ -337,7 +337,7 @@ export const updateUser = async (req, res) => {
     }
 
     await query(
-      "UPDATE utilizadores SET nome = ?, perfil = ?, estado = ? WHERE id = ?",
+      "UPDATE utilizadores SET nome = $1, perfil = $2, estado = $3 WHERE id = $4",
       [nome, perfil, estado, id]
     );
 
@@ -356,7 +356,7 @@ export const deleteUser = async (req, res) => {
       return res.status(400).json({ message: "Não pode eliminar a sua própria conta." });
     }
 
-    await query("DELETE FROM utilizadores WHERE id = ?", [id]);
+    await query("DELETE FROM utilizadores WHERE id = $1", [id]);
 
     res.json({ message: "Utilizador eliminado com sucesso." });
   } catch (e) {
@@ -369,7 +369,7 @@ export const resetUserPassword = async (req, res) => {
   try {
     const { id } = req.params;
 
-    const result = await query("SELECT email, nome FROM utilizadores WHERE id = ?", [id]);
+    const result = await query("SELECT email, nome FROM utilizadores WHERE id = $1", [id]);
     if (result.length === 0) {
       return res.status(404).json({ message: "Utilizador não encontrado." });
     }
@@ -378,9 +378,9 @@ export const resetUserPassword = async (req, res) => {
     const token = crypto.randomBytes(32).toString("hex");
     const expiry = new Date(Date.now() + 24 * 60 * 60 * 1000);
 
-    await query("DELETE FROM password_resets WHERE utilizador_id = ?", [id]);
+    await query("DELETE FROM password_resets WHERE utilizador_id = $1", [id]);
     await query(
-      "INSERT INTO password_resets (utilizador_id, token, expiry) VALUES (?, ?, ?)",
+      "INSERT INTO password_resets (utilizador_id, token, expiry) VALUES ($1, $2, $3) RETURNING id",
       [id, token, expiry]
     );
 

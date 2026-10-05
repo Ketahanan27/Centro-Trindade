@@ -22,7 +22,7 @@ export const createApresentacao = (req, res) => {
 
   db.query(
     `INSERT INTO apresentacoes (data_apresentacao, quantidade, observacoes)
-     VALUES (?, ?, ?)`,
+     VALUES ($1, $2, $3) RETURNING id`,
     [data_apresentacao, quantidade, observacoes],
     (err) => {
       if (err) {
@@ -47,8 +47,8 @@ export const updateApresentacao = (req, res) => {
 
   db.query(
     `UPDATE apresentacoes
-     SET data_apresentacao=?, quantidade=?, observacoes=?
-     WHERE id=?`,
+     SET data_apresentacao=$1, quantidade=$2, observacoes=$3
+     WHERE id=$4`,
     [data_apresentacao, quantidade, observacoes, id],
     (err) => {
       if (err) {
@@ -63,7 +63,7 @@ export const updateApresentacao = (req, res) => {
 export const deleteApresentacao = (req, res) => {
   const { id } = req.params;
 
-  db.query("DELETE FROM apresentacoes WHERE id=?", [id], (err) => {
+  db.query("DELETE FROM apresentacoes WHERE id=$1", [id], (err) => {
     if (err) {
       console.error("[deleteApresentacao]", err);
       return res.status(500).json({ message: "Erro interno do servidor." });

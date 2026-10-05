@@ -9,9 +9,10 @@
   <!--
     CSP: restringe de onde o browser pode carregar/scripts/estilos/ligar-se.
     connect-src inclui o backend local de desenvolvimento (porta 5000); ao
-    publicar em produção, adicionar aqui o domínio real da API.
+    publicar na Vercel, a API usa a mesma origem do site.
     img-src inclui o backend (porta 5000) porque as fotos de perfil dos
-    membros são servidas a partir daí (origem diferente do frontend).
+    membros são servidas a partir daí no desenvolvimento. Na Vercel,
+    as fotografias usam os URLs públicos do Blob.
     style-src/font-src incluem os domínios do Google Fonts usados em index.css.
     frame-src permite incorporar o vídeo do YouTube usado na página inicial
     (videosection.jsx).
@@ -25,7 +26,7 @@
   <meta http-equiv="Content-Security-Policy"
 content="
 default-src 'self';
-img-src 'self' data: blob: http://localhost:5000 http://127.0.0.1:5000;
+img-src 'self' data: blob: http://localhost:5000 http://127.0.0.1:5000 https://*.public.blob.vercel-storage.com;
 style-src 'self' 'unsafe-inline' https://fonts.googleapis.com;
 script-src 'self';
 connect-src 'self'

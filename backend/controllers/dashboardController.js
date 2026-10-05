@@ -39,7 +39,7 @@ export const getDashboardStats = async (req, res) => {
 
       q(`SELECT COUNT(*) AS total
          FROM eventos
-         WHERE data_evento >= CURDATE() AND estado = 'Agendado'`),
+         WHERE data_evento >= CURRENT_DATE AND estado = 'Agendado'`),
 
       /*
       |--------------------------------------------------------------------
@@ -54,16 +54,16 @@ export const getDashboardStats = async (req, res) => {
         ? q(`SELECT COALESCE(SUM(valor), 0) AS total
              FROM tesouraria
              WHERE natureza = 'Receita'
-               AND MONTH(data) = MONTH(CURDATE())
-               AND YEAR(data)  = YEAR(CURDATE())`)
+               AND EXTRACT(MONTH FROM data) = EXTRACT(MONTH FROM CURRENT_DATE)
+               AND EXTRACT(YEAR FROM data)  = EXTRACT(YEAR FROM CURRENT_DATE)`)
         : Promise.resolve([{ total: 0 }]),
 
       podeVerFinancas
         ? q(`SELECT COALESCE(SUM(valor), 0) AS total
              FROM tesouraria
              WHERE natureza = 'Despesa'
-               AND MONTH(data) = MONTH(CURDATE())
-               AND YEAR(data)  = YEAR(CURDATE())`)
+               AND EXTRACT(MONTH FROM data) = EXTRACT(MONTH FROM CURRENT_DATE)
+               AND EXTRACT(YEAR FROM data)  = EXTRACT(YEAR FROM CURRENT_DATE)`)
         : Promise.resolve([{ total: 0 }]),
 
       q("SELECT COUNT(*) AS total FROM utilizadores WHERE estado = 'Ativo'"),
@@ -71,11 +71,11 @@ export const getDashboardStats = async (req, res) => {
       q(`SELECT
            id,
            titulo,
-           DATE_FORMAT(data_evento, '%d/%m/%Y') AS data,
+           TO_CHAR(data_evento, 'DD/MM/YYYY') AS data,
            hora_evento,
            local_evento
          FROM eventos
-         WHERE data_evento >= CURDATE() AND estado = 'Agendado'
+         WHERE data_evento >= CURRENT_DATE AND estado = 'Agendado'
          ORDER BY data_evento ASC
          LIMIT 5`),
 
@@ -84,7 +84,7 @@ export const getDashboardStats = async (req, res) => {
                id,
                nome,
                estado,
-               DATE_FORMAT(entrada, '%d/%m/%Y') AS entrada
+               TO_CHAR(entrada, 'DD/MM/YYYY') AS entrada
              FROM membros
              ORDER BY id DESC
              LIMIT 5`)
@@ -96,7 +96,7 @@ export const getDashboardStats = async (req, res) => {
                tipo,
                natureza,
                CAST(valor AS DECIMAL(10,2)) AS valor,
-               DATE_FORMAT(data, '%d/%m/%Y') AS data
+               TO_CHAR(data, 'DD/MM/YYYY') AS data
              FROM tesouraria
              ORDER BY id DESC
              LIMIT 6`)
@@ -104,13 +104,13 @@ export const getDashboardStats = async (req, res) => {
 
       podeVerFinancas
         ? q(`SELECT
-               MONTH(data)  AS mes,
+               EXTRACT(MONTH FROM data)  AS mes,
                ROUND(SUM(CASE WHEN natureza = 'Receita' THEN valor ELSE 0 END), 2) AS receitas,
                ROUND(SUM(CASE WHEN natureza = 'Despesa' THEN valor ELSE 0 END), 2) AS despesas
              FROM tesouraria
-             WHERE YEAR(data) = YEAR(CURDATE())
-             GROUP BY MONTH(data)
-             ORDER BY MONTH(data)`)
+             WHERE EXTRACT(YEAR FROM data) = EXTRACT(YEAR FROM CURRENT_DATE)
+             GROUP BY EXTRACT(MONTH FROM data)
+             ORDER BY EXTRACT(MONTH FROM data)`)
         : Promise.resolve([]),
     ]);
 

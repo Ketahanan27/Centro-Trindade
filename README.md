@@ -69,9 +69,13 @@ Após o login, o utilizador é encaminhado para o dashboard, onde poderá aceder
 
 ## Base de Dados
 
-- MySQL
-- MySQL2
-- MySQL Workbench
+- PostgreSQL alojado no Neon
+- Driver Node.js `pg`
+- MySQL / MySQL Workbench como origem do backup migrado
+
+A API usa `DATABASE_URL` no `.env`. Executar `npm run db:prepare` para
+preparar a coluna de último acesso e `npm run test:postgres` para verificar
+a migração. Ver [instruções da migração](migration/README.md).
 
 ## Ferramentas
 

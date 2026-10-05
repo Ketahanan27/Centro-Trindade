@@ -24,7 +24,7 @@ export const getMovimentos = (req, res) => {
       natureza,
       tipo,
       valor,
-      DATE_FORMAT(data, '%Y-%m-%d') AS data,
+      TO_CHAR(data, 'YYYY-MM-DD') AS data,
       observacao,
       created_at
     FROM tesouraria
@@ -47,8 +47,8 @@ export const getResumo = (req, res) => {
       SUM(valor)  AS total,
       COUNT(*)    AS quantidade
     FROM tesouraria
-    WHERE MONTH(data) = MONTH(CURDATE())
-      AND YEAR(data)  = YEAR(CURDATE())
+    WHERE EXTRACT(MONTH FROM data) = EXTRACT(MONTH FROM CURRENT_DATE)
+      AND EXTRACT(YEAR FROM data)  = EXTRACT(YEAR FROM CURRENT_DATE)
     GROUP BY natureza
   `;
 
@@ -92,7 +92,7 @@ export const createMovimento = (req, res) => {
 
   db.query(
     `INSERT INTO tesouraria (natureza, tipo, valor, data, observacao)
-     VALUES (?, ?, ?, ?, ?)`,
+     VALUES ($1, $2, $3, $4, $5) RETURNING id`,
     [natureza, tipo, Number(valor), data, observacao?.trim() || null],
     (err, result) => {
       if (err) {
@@ -101,7 +101,7 @@ export const createMovimento = (req, res) => {
       }
       res.status(201).json({
         message: "Movimento registado com sucesso.",
-        id: result.insertId,
+        id: result.rows[0].id,
       });
     }
   );
@@ -126,15 +126,15 @@ export const updateMovimento = (req, res) => {
 
   db.query(
     `UPDATE tesouraria
-     SET natureza = ?, tipo = ?, valor = ?, data = ?, observacao = ?
-     WHERE id = ?`,
+     SET natureza = $1, tipo = $2, valor = $3, data = $4, observacao = $5
+     WHERE id = $6`,
     [natureza, tipo, Number(valor), data, observacao?.trim() || null, id],
     (err, result) => {
       if (err) {
         console.error("[updateMovimento]", err);
         return res.status(500).json({ message: "Erro interno do servidor." });
       }
-      if (result.affectedRows === 0) {
+      if (result.rowCount === 0) {
         return res.status(404).json({ message: "Movimento não encontrado." });
       }
       res.json({ message: "Movimento atualizado com sucesso." });
@@ -145,12 +145,12 @@ export const updateMovimento = (req, res) => {
 export const deleteMovimento = (req, res) => {
   const { id } = req.params;
 
-  db.query("DELETE FROM tesouraria WHERE id = ?", [id], (err, result) => {
+  db.query("DELETE FROM tesouraria WHERE id = $1", [id], (err, result) => {
     if (err) {
       console.error("[deleteMovimento]", err);
       return res.status(500).json({ message: "Erro interno do servidor." });
     }
-    if (result.affectedRows === 0) {
+    if (result.rowCount === 0) {
       return res.status(404).json({ message: "Movimento não encontrado." });
     }
     res.json({ message: "Movimento eliminado com sucesso." });
