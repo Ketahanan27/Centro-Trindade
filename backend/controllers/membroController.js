@@ -1,11 +1,6 @@
 import db from "../config/db.js";
+import { validarMembro, validarId } from '../utils/inputValidation.js';
 import { savePhoto, removePhoto } from "../config/photoStorage.js";
-
-const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-
-/* Mesma regra usada em visitantesController.js e no endpoint /membros/me: um telemóvel, quando indicado, tem sempre exatamente 9 dígitos. */
-const TELEFONE_RE = /^\d{9}$/;
-const TELEFONE_MENSAGEM = "O telemóvel deve conter exatamente 9 dígitos.";
 
 const query = (sql, params = []) =>
   new Promise((resolve, reject) =>
@@ -43,6 +38,7 @@ async function validarAssociacao(req, res, memberId = null) {
 
 export const createMember = async (req, res) => {
   try {
+    req.body = validarMembro(req.body);
     if (!await validarAssociacao(req, res)) return;
     const {
       nome, email, telemovel, nascimento, sexo,
@@ -50,16 +46,6 @@ export const createMember = async (req, res) => {
       entrada, batizado, estado,
       utilizador_id,
     } = req.body;
-
-    if (!nome?.trim()) {
-      return res.status(400).json({ message: "Nome é obrigatório." });
-    }
-    if (email?.trim() && !EMAIL_RE.test(email)) {
-      return res.status(400).json({ message: "Formato de email inválido." });
-    }
-    if (telemovel && !TELEFONE_RE.test(String(telemovel).trim())) {
-      return res.status(400).json({ message: TELEFONE_MENSAGEM });
-    }
 
     await query(
       `INSERT INTO membros
@@ -83,7 +69,9 @@ export const createMember = async (req, res) => {
     );
     res.status(201).json({ message: "Membro criado com sucesso." });
   } catch (e) {
+    if (e.status === 400) return res.status(400).json({ message: e.message });
     if (e.code === "23505") return res.status(409).json({ message: "Esta conta já está associada a outro membro." });
+    if (e.code === '23503') return res.status(409).json({ message: 'A conta selecionada já não está disponível. Atualize a lista de contas.' });
     console.error("[createMember]", e);
     res.status(500).json({ message: "Erro interno do servidor." });
   }
@@ -121,6 +109,8 @@ export const getMembers = async (req, res) => {
 export const updateMember = async (req, res) => {
   try {
     const { id } = req.params;
+    validarId(id);
+    req.body = validarMembro(req.body);
     if (!await validarAssociacao(req, res, id)) return;
     const {
       nome, email, telemovel, nascimento, sexo,
@@ -128,16 +118,6 @@ export const updateMember = async (req, res) => {
       entrada, batizado, estado,
       utilizador_id,
     } = req.body;
-
-    if (!nome?.trim()) {
-      return res.status(400).json({ message: "Nome é obrigatório." });
-    }
-    if (email?.trim() && !EMAIL_RE.test(email)) {
-      return res.status(400).json({ message: "Formato de email inválido." });
-    }
-    if (telemovel && !TELEFONE_RE.test(String(telemovel).trim())) {
-      return res.status(400).json({ message: TELEFONE_MENSAGEM });
-    }
 
     const result = await query(
       `UPDATE membros
@@ -166,7 +146,9 @@ export const updateMember = async (req, res) => {
     if (result.rowCount === 0) return res.status(404).json({ message: "Membro não encontrado." });
     res.json({ message: "Membro atualizado com sucesso." });
   } catch (e) {
+    if (e.status === 400) return res.status(400).json({ message: e.message });
     if (e.code === "23505") return res.status(409).json({ message: "Esta conta já está associada a outro membro." });
+    if (e.code === '23503') return res.status(409).json({ message: 'A conta selecionada já não está disponível. Atualize a lista de contas.' });
     console.error("[updateMember]", e);
     res.status(500).json({ message: "Erro interno do servidor." });
   }
@@ -174,6 +156,7 @@ export const updateMember = async (req, res) => {
 
 export const updateMembroMe = async (req, res) => {
   try {
+    req.body = validarMembro(req.body, true);
     const {
       telemovel,
       sexo,
@@ -181,13 +164,6 @@ export const updateMembroMe = async (req, res) => {
       morada,
       codigo_postal,
     } = req.body;
-
-    if (telemovel && !TELEFONE_RE.test(String(telemovel).trim())) {
-      return res.status(400).json({ message: TELEFONE_MENSAGEM });
-    }
-    if (codigo_postal && !/^\d{4}-\d{3}$/.test(String(codigo_postal).trim())) {
-      return res.status(400).json({ message: "O código postal deve ter o formato XXXX-XXX." });
-    }
 
     const result = await query(
       `UPDATE membros AS m
@@ -215,6 +191,7 @@ export const updateMembroMe = async (req, res) => {
 
     res.json({ message: "Perfil atualizado com sucesso." });
   } catch (e) {
+    if (e.status === 400) return res.status(400).json({ message: e.message });
     console.error("[updateMembroMe]", e);
     res.status(500).json({ message: "Erro interno do servidor." });
   }
@@ -223,11 +200,14 @@ export const updateMembroMe = async (req, res) => {
 export const deleteMember = async (req, res) => {
   try {
     const { id } = req.params;
+    validarId(id);
     const removed = await query("DELETE FROM membros WHERE id=$1 RETURNING foto", [id]);
     if (removed.rowCount === 0) return res.status(404).json({ message: "Membro não encontrado." });
     if (removed.rows[0]?.foto) await removePhoto(removed.rows[0].foto).catch((error) => console.error("[photoCleanup]", error.code ?? "erro"));
     res.json({ message: "Membro eliminado com sucesso." });
   } catch (e) {
+    if (e.status === 400) return res.status(400).json({ message: e.message });
+    if (e.code === '23503') return res.status(409).json({ message: 'Este membro tem registos associados e não pode ser eliminado.' });
     console.error("[deleteMember]", e);
     res.status(500).json({ message: "Erro interno do servidor." });
   }

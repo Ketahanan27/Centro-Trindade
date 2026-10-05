@@ -1,6 +1,7 @@
 import bcrypt from "bcrypt";
 import jwt from "jsonwebtoken";
 import { hashToken, criarContaConvite, emitirLinkConta } from "./convitesController.js";
+import { emailNormalizado, validarId, validarUtilizador, objeto } from '../utils/inputValidation.js';
 import db, { pool } from "../config/db.js";
 
 
@@ -9,7 +10,6 @@ const query = (sql, params = []) =>
     db.query(sql, params, (err, result) => (err ? reject(err) : resolve(result)))
   );
 
-const PERFIS_VALIDOS = ["Administrador", "Pastor", "Secretaria", "Tesouraria", "Membro"];
 /*
 |--------------------------------------------------------------------------
 | Mensagem genérica de credenciais inválidas
@@ -28,14 +28,16 @@ export const register = (_req, res) => {
 
 export const login = async (req, res) => {
   try {
-    const { email, password } = req.body;
+    const body = objeto(req.body);
+    const email = emailNormalizado(body.email, true);
+    const password = body.password;
 
-    if (!email?.trim() || !password) {
+    if (typeof password !== 'string' || !password || password.length > 1024) {
       return res.status(400).json({ message: "Preencha todos os campos." });
     }
 
-    const result = await query("SELECT * FROM utilizadores WHERE email = $1", [email.trim()]);
-    if (result.length === 0) {
+    const result = await query("SELECT * FROM utilizadores WHERE lower(trim(email)) = $1", [email]);
+    if (result.length !== 1) {
       return res.status(401).json(CREDENCIAIS_INVALIDAS);
     }
 
@@ -76,6 +78,7 @@ export const login = async (req, res) => {
       user: { id: user.id, nome: user.nome, email: user.email, perfil: user.perfil },
     });
   } catch (e) {
+    if (e.status === 400) return res.status(400).json({ message: e.message });
     console.error("[login]", e);
     res.status(500).json({ message: "Erro interno do servidor." });
   }
@@ -163,23 +166,21 @@ export const reenviarConvite = emitirLinkConta('convite');
 
 export const updateUser = async (req, res) => {
   try {
-    const { id } = req.params;
-    const { nome, perfil, estado } = req.body;
+    const id = validarId(req.params.id);
+    const { nome, perfil, estado } = validarUtilizador(req.body);
 
     if (Number(id) === req.user.id) {
       return res.status(400).json({ message: "Não pode alterar o seu próprio perfil ou estado aqui." });
     }
-    if (perfil && !PERFIS_VALIDOS.includes(perfil)) {
-      return res.status(400).json({ message: "Perfil inválido." });
-    }
-
-    await query(
+    const result = await query(
       "UPDATE utilizadores SET nome = $1, perfil = $2, estado = $3, session_version = session_version + 1 WHERE id = $4",
       [nome, perfil, estado, id]
     );
 
+    if (result.rowCount === 0) return res.status(404).json({ message: "Utilizador não encontrado." });
     res.json({ message: "Utilizador atualizado com sucesso." });
   } catch (e) {
+    if (e.status === 400) return res.status(400).json({ message: e.message });
     console.error("[updateUser]", e);
     res.status(500).json({ message: "Erro interno do servidor." });
   }
@@ -187,16 +188,19 @@ export const updateUser = async (req, res) => {
 
 export const deleteUser = async (req, res) => {
   try {
-    const { id } = req.params;
+    const id = validarId(req.params.id);
 
     if (Number(id) === req.user.id) {
       return res.status(400).json({ message: "Não pode eliminar a sua própria conta." });
     }
 
-    await query("DELETE FROM utilizadores WHERE id = $1", [id]);
+    const result = await query("DELETE FROM utilizadores WHERE id = $1", [id]);
+    if (result.rowCount === 0) return res.status(404).json({ message: "Utilizador não encontrado." });
 
     res.json({ message: "Utilizador eliminado com sucesso." });
   } catch (e) {
+    if (e.status === 400) return res.status(400).json({ message: e.message });
+    if (e.code === '23503') return res.status(409).json({ message: 'Esta conta tem registos associados. Desative-a em vez de eliminar.' });
     console.error("[deleteUser]", e);
     res.status(500).json({ message: "Erro interno do servidor." });
   }

@@ -2,9 +2,9 @@ import bcrypt from 'bcrypt';
 import crypto from 'node:crypto';
 import nodemailer from 'nodemailer';
 import { pool } from '../config/db.js';
+import { validarUtilizador, emailNormalizado } from '../utils/inputValidation.js';
 
 export const hashToken = (token) => `sha256:${crypto.createHash('sha256').update(token).digest('hex')}`;
-const PERFIS = ['Administrador', 'Pastor', 'Secretaria', 'Tesouraria', 'Membro'];
 const escape = (value) => String(value).replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' })[c]);
 
 async function enviarLink(user, token, convite) {
@@ -35,8 +35,10 @@ async function entregar(user, token, convite) {
 }
 
 export async function criarContaConvite(req, res) {
-  const { nome, email, perfil = 'Membro', estado = 'Ativo' } = req.body ?? {};
-  if (typeof nome !== 'string' || !nome.trim() || nome.length > 150 || typeof email !== 'string' || email.length > 254 || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email.trim()) || !PERFIS.includes(perfil) || !['Ativo', 'Inativo'].includes(estado)) return res.status(400).json({ message: 'Nome, email, perfil ou estado inválido.' });
+  let dados;
+  try { dados = validarUtilizador(req.body, true); }
+  catch (error) { return res.status(400).json({ message: error.message }); }
+  const { nome, email, perfil, estado } = dados;
   let client;
   let user;
   const token = crypto.randomBytes(32).toString('hex');
@@ -64,8 +66,11 @@ export async function criarContaConvite(req, res) {
 export const emitirLinkConta = (modo) => async (req, res) => {
   const publico = modo === 'recuperar';
   const generic = { message: 'Se existir uma conta ativa com este email, foi enviado um link de recuperação.' };
-  const email = req.body?.email;
-  if (publico && (typeof email !== 'string' || email.length > 254 || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email.trim()))) return res.status(400).json({ message: 'Email inválido.' });
+  let email;
+  if (publico) {
+    try { email = emailNormalizado(req.body?.email, true); }
+    catch (error) { return res.status(400).json({ message: error.message }); }
+  }
   if (!publico && (!/^\d+$/.test(String(req.params.id)) || !Number.isSafeInteger(Number(req.params.id)) || Number(req.params.id) < 1 || Number(req.params.id) > 2147483647)) return res.status(400).json({ message: 'Utilizador inválido.' });
   let client;
   let user;

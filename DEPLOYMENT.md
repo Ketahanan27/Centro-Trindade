@@ -83,3 +83,11 @@ Antes de publicar este bloco, executar npm run db:prepare em cada base de ambien
 Contas novas guardam convite_pendente=true. Conta e token são criados na mesma transação; o email é enviado depois do commit. Falha do email preserva a conta e revoga apenas o link dessa tentativa. Em Utilizadores → Detalhes, Reenviar convite gera um novo link de 48 horas sem criar outra conta; contas inativas devem ser ativadas primeiro. Contas já configuradas usam Enviar Reset. Configurar password consome o link atomicamente, termina a pendência e revoga sessões. Tokens guardados como hashes não são aceites diretamente no endpoint de redefinição.
 
 Não foi implementada uma fila SMTP com entrega automática: em falhas, o administrador repete o envio manualmente. A resposta pública de recuperação é genérica, incluindo falhas de SMTP, sem confirmar se a conta existe. Não foram enviados convites nem alteradas passwords reais durante os testes isolados.
+
+## Validação de Membros e Utilizadores
+
+Executar db:prepare antes de publicar para criar utilizadores_email_normalizado_unico em lower(trim(email)). O índice impede duplicados mesmo em pedidos concorrentes, sem reescrever emails existentes. Se houver contas duplicadas, a criação falha e exige revisão manual; não juntar ou eliminar automaticamente. Na base configurada não existiam duplicados e o índice foi criado com sucesso.
+
+Membros e Utilizadores passam a validar tipos, tamanhos reais das colunas, estados/perfis e IDs de 1 a 2147483647. Datas são verificadas como calendário real; contactos opcionais vazios ficam nulos. Emails novos são guardados sem espaços exteriores e em minúsculas; login e recuperação aceitam variantes dos emails antigos. Não existe restrição de email único entre membros, porque email não é prova de identidade nem substitui a associação explícita à conta.
+
+Verificações: nove testes de validação, 19 de segurança e oito de convites; build e lint direcionado passaram. Não foram atualizados contactos, nomes, estados ou passwords reais. As restantes áreas ainda precisam da aplicação das mesmas regras.

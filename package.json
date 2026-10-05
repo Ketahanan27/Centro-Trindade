@@ -16,6 +16,7 @@
     "test:treasury": "node --test backend/tests/tesouraria.test.js",
     "test:photos": "node --test backend/tests/photos.test.js",
     "test:invites": "node --test backend/tests/convites.test.js",
+    "test:validation": "node --test backend/tests/input-validation.test.js",
     "tokens:protect": "node backend/scripts/hash_reset_tokens.js",
     "build": "vite build",
     "build:vercel": "node scripts/build-vercel.js",
