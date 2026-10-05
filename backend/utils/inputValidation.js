@@ -31,7 +31,7 @@ export function escolha(value, label, options, fallback = null) {
   if (!options.includes(cleaned)) throw new InputError(`${label} inválido.`);
   return cleaned;
 }
-function data(value, label) {
+export function data(value, label) {
   const cleaned = texto(value, label, 10);
   if (!cleaned) return null;
   const parsed = new Date(`${cleaned}T00:00:00Z`);

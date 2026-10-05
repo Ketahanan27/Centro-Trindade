@@ -75,3 +75,12 @@ Verificações realizadas:
 Limites: não foi feita rotação de credenciais, publicação, alteração de contas existentes, envio de convites reais nem teste completo de browser. A coluna adicional e o índice são compatíveis com a versão anterior ainda publicada, mas os fixes de acesso só entram em vigor com o novo código.
 
 Verificação da Tesouraria: db:prepare executado com sucesso na base configurada; tabela e índice de histórico criados sem alteração dos movimentos existentes. Quatro consultas aceites por EXPLAIN em transação READ ONLY, sem executar operações financeiras. Build, lint direcionado, 7 testes de Tesouraria e 19 testes de segurança passaram. Não houve validação visual completa desta interface no browser.
+
+### Validação de Visitantes, Apresentações e Atas
+
+- Visitantes: nome/convidado por obrigatórios e até 150 caracteres, telefone textual com 9 dígitos, email normalizado dentro do limite da coluna, data real e estado da lista oficial.
+- Apresentações: data real obrigatória e quantidade inteira positiva dentro do limite integer da base; NaN, frações, booleanos e valores fora do limite recusados.
+- Atas: título/local dentro de 255 caracteres, data real, hora HH:MM ou HH:MM:SS dentro dos intervalos válidos; textos multilineares preservados, limites explícitos e rejeição de caracteres de controlo inválidos.
+- As três áreas validam IDs antes da consulta; alterações/eliminações sem registo respondem 404 e conflitos de referências/duplicados respondem 409.
+- Campos livres: observações/participantes até 10 000 caracteres; resumo/decisões de atas até 30 000 caracteres. Nenhum texto existente foi reduzido ou reescrito.
+- Treze testes isolados, lint direcionado e compilação passaram. Não foram criados, alterados ou eliminados registos reais nos testes.

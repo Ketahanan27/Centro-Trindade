@@ -1,3 +1,5 @@
+import { secretariaCrud } from '../utils/secretariaCrud.js';
+import { validarApresentacao } from '../utils/secretariaValidation.js';
 import db from "../config/db.js";
 
 export const getApresentacoes = (req, res) => {
@@ -10,64 +12,7 @@ export const getApresentacoes = (req, res) => {
   });
 };
 
-export const createApresentacao = (req, res) => {
-  const { data_apresentacao, quantidade, observacoes } = req.body;
-
-  if (!data_apresentacao) {
-    return res.status(400).json({ message: "Data obrigatória." });
-  }
-  if (!quantidade || Number(quantidade) <= 0) {
-    return res.status(400).json({ message: "Quantidade inválida." });
-  }
-
-  db.query(
-    `INSERT INTO apresentacoes (data_apresentacao, quantidade, observacoes)
-     VALUES ($1, $2, $3) RETURNING id`,
-    [data_apresentacao, quantidade, observacoes],
-    (err) => {
-      if (err) {
-        console.error("[createApresentacao]", err);
-        return res.status(500).json({ message: "Erro interno do servidor." });
-      }
-      res.status(201).json({ message: "Apresentação registada com sucesso" });
-    }
-  );
-};
-
-export const updateApresentacao = (req, res) => {
-  const { id } = req.params;
-  const { data_apresentacao, quantidade, observacoes } = req.body;
-
-  if (!data_apresentacao) {
-    return res.status(400).json({ message: "Data obrigatória." });
-  }
-  if (!quantidade || Number(quantidade) <= 0) {
-    return res.status(400).json({ message: "Quantidade inválida." });
-  }
-
-  db.query(
-    `UPDATE apresentacoes
-     SET data_apresentacao=$1, quantidade=$2, observacoes=$3
-     WHERE id=$4`,
-    [data_apresentacao, quantidade, observacoes, id],
-    (err) => {
-      if (err) {
-        console.error("[updateApresentacao]", err);
-        return res.status(500).json({ message: "Erro interno do servidor." });
-      }
-      res.json({ message: "Apresentação atualizada com sucesso" });
-    }
-  );
-};
-
-export const deleteApresentacao = (req, res) => {
-  const { id } = req.params;
-
-  db.query("DELETE FROM apresentacoes WHERE id=$1", [id], (err) => {
-    if (err) {
-      console.error("[deleteApresentacao]", err);
-      return res.status(500).json({ message: "Erro interno do servidor." });
-    }
-    res.json({ message: "Apresentação eliminada com sucesso" });
-  });
-};
+const crud = secretariaCrud({ tabela: 'apresentacoes', campos: ['data_apresentacao','quantidade','observacoes'], validar: validarApresentacao, singular: 'Apresentação', genero: 'a' });
+export const createApresentacao = crud.criar;
+export const updateApresentacao = crud.atualizar;
+export const deleteApresentacao = crud.eliminar;
