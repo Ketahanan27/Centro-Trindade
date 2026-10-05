@@ -1,6 +1,6 @@
 # Correções por prioridade — Centro Trindade
 
-Atualizado em 5 de outubro de 2026. Esta ordem prioriza acesso indevido, integridade de dados e continuidade da operação. “Implementado localmente” não significa publicado: estas correções ainda não foram enviadas ao GitHub/Vercel.
+Atualizado em 5 de outubro de 2026. Esta ordem prioriza acesso indevido, integridade de dados e continuidade da operação. As correções implementadas foram publicadas no commit `13dc784`; as notas antigas de validação local abaixo descrevem as etapas anteriores. Itens ainda pendentes continuam por concluir.
 
 | Ordem | Auditoria | Correção | Estado |
 |---|---|---|---|
@@ -11,7 +11,7 @@ Atualizado em 5 de outubro de 2026. Esta ordem prioriza acesso indevido, integri
 | 5 | C04/C07 | Preservar associação à conta; proteger entrada e batismo | Implementado localmente. Associação escolhida pelo administrador; edição de Secretaria preserva ligação. Dados oficiais são de leitura na Minha Área. |
 | 6 | C05 | Corrigir reimpressão de documentos e rastreabilidade da emissão | Implementado localmente, com testes: dados/data originais; emissão só após gravação; validação partilhada e histórico disponível ao Pastor. |
 | 7 | C06 | Corrigir indicador de conversão e acesso a relatórios de Tesouraria | Indicador e métricas corrigidos localmente. Por pedido do utilizador, a área independente foi removida; relatórios mantidos apenas em Secretaria. Acesso anual de Tesouraria continua pendente de solução dentro da própria Tesouraria. |
-| 8 | C08/C16 | Proteger fotografias, definir retenção e alinhar privacidade | Parcial local: leitura autenticada, uploads privados e transferência preparados; criação/configuração do Blob privado, publicação e transferência das 4 fotografias existentes pendentes. Retenção, descodificação/remoção de metadados e textos de privacidade ainda pendentes. |
+| 8 | C08/C16 | Proteger fotografias, definir retenção e alinhar privacidade | Leitura autenticada e uploads privados publicados. As 4 fotografias existentes foram transferidas e as cópias anteriores eliminadas sem falhas reportadas. Leitura privada e API de produção verificadas. Retenção, limpeza automática de órfãos, descodificação/remoção de metadados e textos de privacidade ainda pendentes. |
 | 9 | C09 | Guardar autoria e histórico das operações financeiras | Implementado localmente: autoria, snapshots antes/depois, motivos obrigatórios para alterações/eliminações e gravação transacional; consulta das últimas 200 operações. |
 | 10 | C10 | Tornar recuperação/convites robustos e atómicos | Parcial: redefinição de password transacional, consumo condicional do token, revogação de sessões e escape HTML dos nomes. Hash dos tokens e atomicidade/reenvio de convites ainda pendentes. |
 | 11 | C11/C12 | Limites partilhados e validação consistente da API | Pendente; validação específica da associação de contas já reforçada. |
