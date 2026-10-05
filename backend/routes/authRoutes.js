@@ -3,7 +3,7 @@ import { verifyToken, adminOnly } from "../middleware/auth.js";
 import { authLimiter, writeLimiter } from "../middleware/rateLimit.js";
 import {
   register, login, recuperarPassword, redefinirPassword,
-  getUsers, criarUtilizador, updateUser, deleteUser, resetUserPassword,
+  getUsers, criarUtilizador, updateUser, deleteUser, resetUserPassword, reenviarConvite,
 } from "../controllers/authController.js";
 
 const router = express.Router();
@@ -18,5 +18,6 @@ router.post("/users", verifyToken, adminOnly, writeLimiter, criarUtilizador);
 router.put("/users/:id", verifyToken, adminOnly, writeLimiter, updateUser);
 router.delete("/users/:id", verifyToken, adminOnly, writeLimiter, deleteUser);
 router.post("/users/:id/reset", verifyToken, adminOnly, writeLimiter, resetUserPassword);
+router.post("/users/:id/convite", verifyToken, adminOnly, writeLimiter, reenviarConvite);
 
 export default router;

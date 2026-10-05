@@ -172,7 +172,7 @@ test('password reset consumes a valid token, revokes sessions and commits as one
     release() { released = true; },
   });
   const res = response();
-  await auth.redefinirPassword({ body: { token: 'fixture', nova_password: 'Password123!' } }, res);
+  await auth.redefinirPassword({ body: { token: 'a'.repeat(64), nova_password: 'Password123!' } }, res);
   assert.equal(res.code, 200);
   assert.equal(operations[0], 'BEGIN');
   assert.match(operations[1], /usado = 0 AND expiry > NOW/);
@@ -185,7 +185,7 @@ test('used or expired reset token cannot change the password', async () => {
   const operations = [];
   pool.connect = async () => ({ async query(sql) { operations.push(sql); return { rowCount: 0, rows: [] }; }, release() {} });
   const res = response();
-  await auth.redefinirPassword({ body: { token: 'used', nova_password: 'Password123!' } }, res);
+  await auth.redefinirPassword({ body: { token: 'b'.repeat(64), nova_password: 'Password123!' } }, res);
   assert.equal(res.code, 400);
   assert.equal(operations.at(-1), 'ROLLBACK');
   assert.equal(operations.some((sql) => /UPDATE utilizadores/.test(sql)), false);
@@ -202,7 +202,7 @@ test('failed password update rolls back token consumption', async () => {
     }, release() {},
   });
   const res = response();
-  await auth.redefinirPassword({ body: { token: 'fixture', nova_password: 'Password123!' } }, res);
+  await auth.redefinirPassword({ body: { token: 'a'.repeat(64), nova_password: 'Password123!' } }, res);
   assert.equal(res.code, 500);
   assert.equal(operations.at(-1), 'ROLLBACK');
   assert.equal(operations.includes('COMMIT'), false);

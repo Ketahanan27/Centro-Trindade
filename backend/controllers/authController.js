@@ -1,20 +1,15 @@
 import bcrypt from "bcrypt";
 import jwt from "jsonwebtoken";
-import crypto from "crypto";
+import { hashToken, criarContaConvite, emitirLinkConta } from "./convitesController.js";
 import db, { pool } from "../config/db.js";
-import nodemailer from "nodemailer";
+
 
 const query = (sql, params = []) =>
   new Promise((resolve, reject) =>
     db.query(sql, params, (err, result) => (err ? reject(err) : resolve(result)))
   );
 
-const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 const PERFIS_VALIDOS = ["Administrador", "Pastor", "Secretaria", "Tesouraria", "Membro"];
-const escapeHtml = (value) => String(value ?? "").replace(/[&<>"']/g, (char) => ({
-  "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;",
-})[char]);
-
 /*
 |--------------------------------------------------------------------------
 | Mensagem genérica de credenciais inválidas
@@ -26,12 +21,6 @@ const escapeHtml = (value) => String(value ?? "").replace(/[&<>"']/g, (char) => 
 |
 */
 const CREDENCIAIS_INVALIDAS = { message: "Credenciais inválidas." };
-
-const criarTransporter = () =>
-  nodemailer.createTransport({
-    service: "gmail",
-    auth: { user: process.env.EMAIL_USER, pass: process.env.EMAIL_PASS },
-  });
 
 export const register = (_req, res) => {
   return res.status(403).json({ message: "As contas são criadas por convite do administrador. Contacte a igreja." });
@@ -63,7 +52,7 @@ export const login = async (req, res) => {
     | mesma genérica usada para password errada.
     |
     */
-    if (user.estado !== "Ativo") {
+    if (user.estado !== "Ativo" || user.convite_pendente) {
       return res.status(401).json(CREDENCIAIS_INVALIDAS);
     }
 
@@ -92,85 +81,18 @@ export const login = async (req, res) => {
   }
 };
 
-export const recuperarPassword = async (req, res) => {
-  try {
-    const { email } = req.body;
-    if (!email?.trim()) {
-      return res.status(400).json({ message: "Email obrigatório." });
-    }
-
-    /*
-    |------------------------------------------------------------------
-    | Resposta sempre igual, exista ou não a conta
-    |------------------------------------------------------------------
-    |
-    | Se o status HTTP variasse consoante o email existisse, isso já
-    | seria suficiente para enumerar contas registadas (OWASP A07 / M3).
-    | O email de recuperação só é enviado quando a conta existe e está
-    | ativa — mas a resposta ao cliente é sempre a mesma.
-    |
-    */
-    const MENSAGEM_GENERICA = {
-      message: "Se existir uma conta ativa com este email, foi enviado um link de recuperação.",
-    };
-
-    const result = await query(
-      "SELECT id, nome FROM utilizadores WHERE email = $1 AND estado = 'Ativo'",
-      [email.trim()]
-    );
-
-    if (result.length === 0) {
-      return res.json(MENSAGEM_GENERICA);
-    }
-
-    const user = result[0];
-    const token = crypto.randomBytes(32).toString("hex");
-    const expiry = new Date(Date.now() + 30 * 60 * 1000);
-
-    await query("DELETE FROM password_resets WHERE utilizador_id = $1", [user.id]);
-    await query(
-      "INSERT INTO password_resets (utilizador_id, token, expiry) VALUES ($1, $2, $3) RETURNING id",
-      [user.id, token, expiry]
-    );
-
-    const link = `${process.env.FRONTEND_URL}/redefinir-password?token=${token}`;
-
-    await criarTransporter().sendMail({
-      from: `"Centro Trindade" <${process.env.EMAIL_USER}>`,
-      to: email.trim(),
-      subject: "🔐 Recuperação de Palavra-passe — Centro Trindade",
-      html: `<div style="font-family:Arial,sans-serif;max-width:600px;margin:0 auto">
-        <div style="background:#0044ff;color:#fff;padding:30px;text-align:center;border-radius:12px 12px 0 0">
-          <h1 style="margin:0">Centro Trindade</h1></div>
-        <div style="padding:30px;background:#fff">
-          <h2 style="color:#0044ff">Olá, ${escapeHtml(user.nome)}!</h2>
-          <p>Recebemos um pedido para recuperar a palavra-passe da sua conta.</p>
-          <a href="${link}" style="display:block;width:fit-content;margin:24px auto;padding:14px 32px;background:#0044ff;color:#fff;text-decoration:none;border-radius:10px;font-weight:700">
-            Redefinir Palavra-passe</a>
-          <p style="color:#888;font-size:13px">⚠️ Válido 30 minutos. Uso único.</p>
-        </div></div>`,
-    });
-
-    res.json(MENSAGEM_GENERICA);
-  } catch (e) {
-    console.error("[recuperarPassword]", e.message);
-    if (e.code === "EAUTH" || e.responseCode >= 500) {
-      return res.status(500).json({ message: "Erro ao enviar email. Verifique as credenciais no .env." });
-    }
-    res.status(500).json({ message: "Erro interno do servidor." });
-  }
-};
+export const recuperarPassword = emitirLinkConta('recuperar');
 
 export const redefinirPassword = async (req, res) => {
   let client;
   try {
     const { token, nova_password } = req.body;
 
-    if (typeof token !== "string" || typeof nova_password !== "string" || !token || !nova_password) {
+    if (typeof token !== "string" || !/^[a-f0-9]{64}$/.test(token) || typeof nova_password !== "string" || !nova_password) {
       return res.status(400).json({ message: "Token e nova palavra-passe são obrigatórios." });
     }
-    if (nova_password.length < 8) {
-      return res.status(400).json({ message: "A palavra-passe deve ter pelo menos 8 caracteres." });
+    if (nova_password.length < 8 || Buffer.byteLength(nova_password, 'utf8') > 72) {
+      return res.status(400).json({ message: "A palavra-passe deve ter pelo menos 8 caracteres e ocupar no máximo 72 bytes." });
     }
 
     const hash = await bcrypt.hash(nova_password, 10);
@@ -180,7 +102,7 @@ export const redefinirPassword = async (req, res) => {
       `UPDATE password_resets SET usado = 1
        WHERE token = $1 AND usado = 0 AND expiry > NOW()
        RETURNING id, utilizador_id`,
-      [token]
+      [hashToken(token)]
     );
     if (result.rowCount !== 1) {
       await client.query("ROLLBACK");
@@ -188,7 +110,7 @@ export const redefinirPassword = async (req, res) => {
     }
     const reset = result.rows[0];
     const updated = await client.query(
-      "UPDATE utilizadores SET password = $1, session_version = session_version + 1 WHERE id = $2",
+      "UPDATE utilizadores SET password = $1, convite_pendente = false, session_version = session_version + 1 WHERE id = $2 AND estado = 'Ativo'",
       [hash, reset.utilizador_id]
     );
     if (updated.rowCount !== 1) throw new Error("Conta não encontrada.");
@@ -208,7 +130,7 @@ export const redefinirPassword = async (req, res) => {
 export const getUsers = async (req, res) => {
   try {
     const result = await query(
-      `SELECT id, nome, email, perfil, estado,
+      `SELECT id, nome, email, perfil, estado, convite_pendente,
               TO_CHAR(ultimo_acesso, 'DD/MM/YYYY HH24:MI') AS ultimo_acesso,
               TO_CHAR(created_at, 'DD/MM/YYYY')        AS criado
        FROM utilizadores
@@ -236,70 +158,8 @@ export const getUsers = async (req, res) => {
   }
 };
 
-export const criarUtilizador = async (req, res) => {
-  try {
-    const { nome, email, perfil, estado } = req.body;
-
-    if (!nome?.trim() || !email?.trim()) {
-      return res.status(400).json({ message: "Nome e email são obrigatórios." });
-    }
-    if (!EMAIL_RE.test(email)) {
-      return res.status(400).json({ message: "Formato de email inválido." });
-    }
-
-    const perfilFinal = PERFIS_VALIDOS.includes(perfil) ? perfil : "Membro";
-
-    const existe = await query("SELECT id FROM utilizadores WHERE email = $1", [email.trim()]);
-    if (existe.length > 0) {
-      return res.status(400).json({ message: "Email já registado." });
-    }
-
-    const tempPass = await bcrypt.hash(crypto.randomBytes(16).toString("hex"), 10);
-
-    const insertResult = await query(
-      "INSERT INTO utilizadores (nome, email, password, perfil, estado) VALUES ($1, $2, $3, $4, $5) RETURNING id",
-      [nome.trim(), email.trim(), tempPass, perfilFinal, estado || "Ativo"]
-    );
-
-    const userId = insertResult.rows[0].id;
-    const token = crypto.randomBytes(32).toString("hex");
-    const expiry = new Date(Date.now() + 48 * 60 * 60 * 1000);
-
-    await query(
-      "INSERT INTO password_resets (utilizador_id, token, expiry) VALUES ($1, $2, $3) RETURNING id",
-      [userId, token, expiry]
-    );
-
-    const link = `${process.env.FRONTEND_URL}/redefinir-password?token=${token}`;
-
-    try {
-      await criarTransporter().sendMail({
-        from: `"Centro Trindade" <${process.env.EMAIL_USER}>`,
-        to: email.trim(),
-        subject: "🎉 Bem-vindo ao Centro Trindade — Configure a sua conta",
-        html: `<div style="font-family:Arial,sans-serif;max-width:600px;margin:0 auto">
-          <div style="background:#0044ff;color:#fff;padding:30px;text-align:center;border-radius:12px 12px 0 0">
-            <h1 style="margin:0">Centro Trindade</h1></div>
-          <div style="padding:30px;background:#fff">
-            <h2 style="color:#0044ff">Olá, ${escapeHtml(nome.trim())}!</h2>
-            <p>Foi criada uma conta com o perfil <strong>${perfilFinal}</strong>.</p>
-            <a href="${link}" style="display:block;width:fit-content;margin:24px auto;padding:14px 32px;background:#0044ff;color:#fff;text-decoration:none;border-radius:10px;font-weight:700">
-              Configurar Conta</a>
-            <p style="color:#888;font-size:13px">⚠️ Válido por 48 horas.</p>
-          </div></div>`,
-      });
-      res.status(201).json({ message: `Utilizador criado. Email enviado para ${email.trim()}.` });
-    } catch (emailErr) {
-      console.error("[criarUtilizador email]", emailErr.message);
-      res.status(201).json({
-        message: "Utilizador criado, mas o email falhou. Verifique as credenciais de email no .env.",
-      });
-    }
-  } catch (e) {
-    console.error("[criarUtilizador]", e);
-    res.status(500).json({ message: "Erro interno do servidor." });
-  }
-};
+export const criarUtilizador = criarContaConvite;
+export const reenviarConvite = emitirLinkConta('convite');
 
 export const updateUser = async (req, res) => {
   try {
@@ -342,46 +202,4 @@ export const deleteUser = async (req, res) => {
   }
 };
 
-export const resetUserPassword = async (req, res) => {
-  try {
-    const { id } = req.params;
-
-    const result = await query("SELECT email, nome FROM utilizadores WHERE id = $1", [id]);
-    if (result.length === 0) {
-      return res.status(404).json({ message: "Utilizador não encontrado." });
-    }
-
-    const user = result[0];
-    const token = crypto.randomBytes(32).toString("hex");
-    const expiry = new Date(Date.now() + 24 * 60 * 60 * 1000);
-
-    await query("DELETE FROM password_resets WHERE utilizador_id = $1", [id]);
-    await query(
-      "INSERT INTO password_resets (utilizador_id, token, expiry) VALUES ($1, $2, $3) RETURNING id",
-      [id, token, expiry]
-    );
-
-    const link = `${process.env.FRONTEND_URL}/redefinir-password?token=${token}`;
-
-    await criarTransporter().sendMail({
-      from: `"Centro Trindade" <${process.env.EMAIL_USER}>`,
-      to: user.email,
-      subject: "🔐 Reset de Palavra-passe — Centro Trindade",
-      html: `<div style="font-family:Arial,sans-serif;max-width:600px;margin:0 auto">
-        <div style="background:#0044ff;color:#fff;padding:30px;text-align:center;border-radius:12px 12px 0 0">
-          <h1 style="margin:0">Centro Trindade</h1></div>
-        <div style="padding:30px;background:#fff">
-          <h2 style="color:#0044ff">Olá, ${escapeHtml(user.nome)}!</h2>
-          <p>O administrador solicitou o reset da sua palavra-passe.</p>
-          <a href="${link}" style="display:block;width:fit-content;margin:24px auto;padding:14px 32px;background:#0044ff;color:#fff;text-decoration:none;border-radius:10px;font-weight:700">
-            Redefinir Palavra-passe</a>
-          <p style="color:#888;font-size:13px">⚠️ Válido por 24 horas.</p>
-        </div></div>`,
-    });
-
-    res.json({ message: `Link de reset enviado para ${user.email}.` });
-  } catch (e) {
-    console.error("[resetUserPassword]", e.message);
-    res.status(500).json({ message: "Erro ao enviar email ou erro interno." });
-  }
-};
+export const resetUserPassword = emitirLinkConta('reset');

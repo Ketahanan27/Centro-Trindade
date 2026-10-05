@@ -106,8 +106,8 @@ try {
   assert.ok(login.token);
   assert.equal(login.user.id, userId);
   await pool.query('INSERT INTO password_resets (utilizador_id, token, expiry) VALUES ($1, $2, $3)',
-    [userId, 'migration-test-token', new Date(Date.now() + 60000)]);
-  await invoke(auth.redefinirPassword, { body: { token: 'migration-test-token', nova_password: 'MigrationChanged123!' } });
+    [userId, (await import('../controllers/convitesController.js')).hashToken('a'.repeat(64)), new Date(Date.now() + 60000)]);
+  await invoke(auth.redefinirPassword, { body: { token: 'a'.repeat(64), nova_password: 'MigrationChanged123!' } });
   await invoke(auth.login, { body: { email, password: 'MigrationChanged123!' } });
 
   const date = '2099-01-20';

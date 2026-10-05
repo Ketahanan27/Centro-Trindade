@@ -114,9 +114,10 @@ function ModalDetalhes({ user, onClose, onEdit, currentUserId }) {
   const [resetLoading, setResetLoading] = useState(false);
 
   const handleReset = async () => {
-    if (!window.confirm(`Enviar link de reset de palavra-passe para ${user.email}?`)) return;
+    if (resetLoading) return;
+    if (!window.confirm(`Enviar ${user.convite_pendente ? "convite" : "link de recuperação"} para ${user.email}?`)) return;
     setResetLoading(true);
-    await executarAcaoCrud(apiFetch(`/api/auth/users/${user.id}/reset`, { method: "POST" }));
+    await executarAcaoCrud(apiFetch(`/api/auth/users/${user.id}/${user.convite_pendente ? "convite" : "reset"}`, { method: "POST" }));
     setResetLoading(false);
   };
 
@@ -138,6 +139,7 @@ function ModalDetalhes({ user, onClose, onEdit, currentUserId }) {
           </div>
           <div className="details-item"><strong>Último Acesso</strong><span>{user.ultimo_acesso || "Nunca"}</span></div>
           <div className="details-item"><strong>Criado em</strong><span>{user.criado}</span></div>
+          <div className="details-item"><strong>Convite</strong><span>{user.convite_pendente ? "Configuração pendente" : "Conta configurada"}</span></div>
         </div>
 
         <div className="perfil-descricao" style={{ marginTop: "16px" }}>
@@ -150,9 +152,9 @@ function ModalDetalhes({ user, onClose, onEdit, currentUserId }) {
             <button className="save" onClick={() => { onClose(); onEdit(user); }}>
               <i className="ri-pencil-line"></i> Editar
             </button>
-            <button className="cancel" onClick={handleReset} disabled={resetLoading}>
+            <button className="cancel" onClick={handleReset} disabled={resetLoading || user.estado !== "Ativo"}>
               <i className="ri-refresh-line"></i>
-              {resetLoading ? "A enviar..." : "Enviar Reset"}
+              {resetLoading ? "A enviar..." : user.convite_pendente ? "Reenviar convite" : "Enviar Reset"}
             </button>
           </div>
         )}
@@ -195,6 +197,7 @@ function Utilizadores() {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+    if (formLoading) return;
     setFormLoading(true);
     await executarAcaoCrud(
       apiFetch(
