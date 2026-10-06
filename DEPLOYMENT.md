@@ -91,3 +91,14 @@ Executar db:prepare antes de publicar para criar utilizadores_email_normalizado_
 Membros e Utilizadores passam a validar tipos, tamanhos reais das colunas, estados/perfis e IDs de 1 a 2147483647. Datas são verificadas como calendário real; contactos opcionais vazios ficam nulos. Emails novos são guardados sem espaços exteriores e em minúsculas; login e recuperação aceitam variantes dos emails antigos. Não existe restrição de email único entre membros, porque email não é prova de identidade nem substitui a associação explícita à conta.
 
 Verificações: nove testes de validação, 19 de segurança e oito de convites; build e lint direcionado passaram. Não foram atualizados contactos, nomes, estados ou passwords reais. As restantes áreas ainda precisam da aplicação das mesmas regras.
+
+
+## Reconciliação de fotografias privadas
+
+`npm run photos:reconcile` analisa o Blob privado configurado e a base configurada, sem eliminar ficheiros. O resultado imprime apenas contagens, sem URLs nem tokens. Confirmar que DATABASE_URL e BLOB_PRIVATE_READ_WRITE_TOKEN pertencem ao mesmo ambiente antes de executar.
+
+`npm run photos:reconcile -- --apply` elimina até 100 ficheiros elegíveis por execução. Só considera nomes gerados pela aplicação sob membros/, no armazenamento privado, com pelo menos 24 horas e sem referência em membros.foto. Termina o inventário antes da limpeza e consulta novamente a base antes de cada remoção. Falhas de base/listagem interrompem a execução; falhas individuais de remoção são contadas e podem ser tentadas novamente numa execução posterior.
+
+A aplicação gera um URL novo por upload; não reutilizar URLs antigos em operações manuais de associação ou migração durante a limpeza. A reconciliação não constitui uma transação entre PostgreSQL e Blob. Ficheiros locais, o Blob público anterior e objetos com nomes desconhecidos exigem revisão própria.
+
+O comando ainda não tem execução agendada: nenhuma eliminação automática recorrente foi ativada. A análise de 6 de outubro de 2026 encontrou quatro objetos, todos referenciados, sem candidatos; nenhum foi eliminado. Retenção de fotografias de membros ativos/inativos e backups continua a exigir uma política própria.

@@ -122,3 +122,11 @@ Verificação da Tesouraria: db:prepare executado com sucesso na base configurad
 - O armazenamento privado/local guarda apenas o resultado processado; dados anexados ao ficheiro original não são copiados. Leitura e permissões das fotografias existentes preservadas.
 - Onze testes de fotografias, 19 testes de segurança, lint direcionado, compilação de produção e teste serverless passaram. Imagens de teste são sintéticas e eliminadas após os testes.
 - Não foi efetuada conversão em massa das fotografias existentes. Retenção, reconciliação automática de órfãos e textos de privacidade continuam pendentes.
+
+### Reconciliação de fotografias privadas — 6 de outubro de 2026
+
+- Novo comando photos:reconcile com análise por omissão e eliminação apenas com --apply; nenhuma tarefa recorrente ativada.
+- Inventário paginado completo, nomes/prefixos gerados pela aplicação, armazenamento privado, margem de 24 horas e verificação adicional de referências antes de cada remoção.
+- Lotes de até 100 eliminações; falhas de base/listagem interrompem a limpeza. Falhas individuais do armazenamento ficam contadas para nova tentativa. Logs contêm contagens, sem URLs pessoais.
+- Seis testes isolados passaram. Análise real: quatro ficheiros, quatro referências, zero candidatos e zero eliminações. Não foram alterados registos de membros.
+- Não cobre ficheiros locais, objetos públicos antigos ou nomes desconhecidos. Não substitui política de retenção de membros/backups nem constitui transação entre serviços. Operações manuais não devem reutilizar URLs durante a limpeza.
