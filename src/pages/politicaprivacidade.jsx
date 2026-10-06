@@ -36,12 +36,12 @@ function PoliticaPrivacidade() {
             O responsável pelo tratamento dos dados recolhidos através deste site e do sistema
             interno é o <strong>Centro Trindade</strong>. Para qualquer questão relacionada com
             esta política ou com os seus dados pessoais, pode contactar-nos através dos meios
-            indicados na secção 12.
+            indicados na secção 11.
           </p>
           <p>
             Dada a natureza e a escala reduzida do tratamento de dados que realizamos, não somos
             legalmente obrigados a designar um Encarregado de Proteção de Dados (EPD/DPO) nos
-            termos do artigo 37.º do RGPD. Ainda assim, indicamos na secção 12 um contacto
+            termos do artigo 37.º do RGPD. Ainda assim, indicamos na secção 11 um contacto
             específico para questões de proteção de dados.
           </p>
         </section>
@@ -227,14 +227,17 @@ function PoliticaPrivacidade() {
         <section>
           <h2>12. Cookies e armazenamento local no navegador</h2>
           <p>
-            Este website não utiliza cookies de publicidade nem de rastreamento de terceiros. O
-            sistema interno guarda, apenas no navegador de quem tem sessão iniciada, um
-            identificador técnico de sessão estritamente necessário para manter o acesso
-            autenticado — este tipo de armazenamento está dispensado de consentimento prévio nos
-            termos da legislação sobre cookies (transposição da Diretiva ePrivacy), por ser
-            indispensável à prestação do serviço solicitado. O website público pode ainda conter
-            vídeos incorporados e ligações a redes sociais (YouTube, Instagram) que, quando
-            visitados diretamente, seguem as suas próprias políticas de privacidade e de cookies.
+            O sistema interno guarda no navegador um identificador técnico de sessão para
+            manter o acesso autenticado. Na página inicial, o vídeo do YouTube só é carregado
+            após selecionar “Carregar vídeo do YouTube”. Antes dessa escolha, este componente
+            não cria uma ligação ao YouTube nem carrega uma miniatura externa.
+          </p>
+          <p>
+            Depois de carregar o vídeo, o navegador comunica com o YouTube/Google, que pode
+            recolher dados de navegação e utilizar cookies segundo as suas próprias políticas.
+            “Fechar vídeo” remove o leitor da página, mas não apaga dados já transmitidos nem
+            cookies eventualmente guardados pelo serviço. A escolha não é guardada entre visitas.
+            Ligações externas a redes sociais seguem as políticas desses serviços quando abertas.
           </p>
         </section>
 
