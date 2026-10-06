@@ -11,6 +11,7 @@ const { default: app } = await import('../../api/index.js');
 const { pool } = await import('../config/db.js');
 // Isolated fixture: no database or storage write is performed by these checks.
 pool.query = async (sql, params) => {
+  if (sql.startsWith('INSERT INTO rate_limit_counters')) return { command: 'INSERT', rows: [{ hits: 1, reset_at: new Date(Date.now() + 900000) }] };
   assert.match(sql, /^SELECT id, perfil, estado, session_version FROM utilizadores/);
   assert.equal(params[0], 1);
   return { command: 'SELECT', rows: [{ id: 1, perfil: 'Membro', estado: 'Ativo', session_version: 0 }] };

@@ -95,3 +95,14 @@ Verificação da Tesouraria: db:prepare executado com sucesso na base configurad
 - Novos eventos não aceitam datas passadas; eventos históricos podem ser corrigidos, sem permitir eliminação de eventos passados. A eliminação usa uma condição na própria query e distingue 400 de 404.
 - Datas de referência calculadas em Europe/Lisbon, sem depender do fuso horário do servidor.
 - Sete testes de Agenda, lint direcionado e compilação passaram. Nenhum evento real criado ou eliminado; coluna de visibilidade adicionada preservando os dados existentes.
+
+### Limites de pedidos partilhados — 6 de outubro de 2026
+
+- Login/recuperação, contacto, doações, leituras públicas e escritas autenticadas usam contadores PostgreSQL, partilhados entre instâncias, em vez de memória local.
+- Incremento e reinício de janela são atómicos com INSERT ON CONFLICT; cada grupo tem uma chave distinta. Os limites e janelas anteriores foram mantidos.
+- A base guarda hash da chave, contador e expiração, sem guardar o IP em texto simples. O hash não constitui anonimização garantida.
+- Excesso de pedidos responde 429 com cabeçalhos de repetição. Falha do armazenamento responde 503; não existe fallback que contorne o limite.
+- Limpeza oportunista limitada remove contadores expirados há mais de um dia a cada 1000 pedidos por instância. Não é uma política de retenção com horário garantido; uma limpeza agendada pode ser acrescentada posteriormente.
+- JSON malformado responde 400 e pedidos acima do limite do parser respondem 413, sem mensagens internas.
+- A tabela e o índice foram preparados sem alterar registos da igreja. Quatro testes isolados e teste serverless passaram; consulta atómica validada com EXPLAIN READ ONLY.
+- Dashboard principal fica reservado para a atualização seguinte, conforme decisão do utilizador. Alterações locais de estilos da Agenda e Tesouraria foram preservadas e não incluídas neste bloco.

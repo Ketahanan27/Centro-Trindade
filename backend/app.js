@@ -84,6 +84,9 @@ app.use((req, res) => {
 
 app.use((err, req, res, next) => {
   if (res.headersSent) return next(err);
+  if (err.code === 'RATE_LIMIT_STORAGE') return res.status(503).json({ message: 'Não foi possível verificar o limite de pedidos. Tente novamente dentro de instantes.' });
+  if (err.type === 'entity.parse.failed') return res.status(400).json({ message: 'O pedido contém JSON inválido.' });
+  if (err.type === 'entity.too.large') return res.status(413).json({ message: 'O pedido excede o tamanho permitido.' });
   if (err.code === "LIMIT_FILE_SIZE") return res.status(413).json({ message: "A fotografia não pode exceder 2 MB." });
   if (err.message === "Apenas imagens são permitidas.") return res.status(400).json({ message: err.message });
   console.error("[ERRO NÃO TRATADO]", err);
