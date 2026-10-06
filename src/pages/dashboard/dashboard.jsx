@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect } from "react";
 import DashboardLayout from "../../components/dashboard/dashboardlayout";
 import Card from "../../components/dashboard/card";
 import { apiFetch } from "../../utils/api";
@@ -154,25 +154,29 @@ function Dashboard() {
   const [loading, setLoading] = useState(true);
   const [erro, setErro] = useState(null);
 
-  const carregarDados = useCallback(async () => {
+  const [tentativa, setTentativa] = useState(0);
+  function carregarDados() {
     setLoading(true);
     setErro(null);
-    try {
-      const res = await apiFetch("/api/dashboard/stats");
-      if (!res.ok) throw new Error(`HTTP ${res.status}`);
-      const json = await res.json();
-      setDados(json);
-    } catch (err) {
-      console.error("[dashboard]", err);
-      setErro("Não foi possível carregar os dados. Tente novamente.");
-    } finally {
-      setLoading(false);
-    }
-  }, []);
-
+    setTentativa((value) => value + 1);
+  }
   useEffect(() => {
-    carregarDados();
-  }, [carregarDados]);
+    let active = true;
+    async function carregar() {
+      try {
+        const res = await apiFetch("/api/dashboard/stats");
+        if (!res.ok) throw new Error(`HTTP ${res.status}`);
+        const json = await res.json();
+        if (active) setDados(json);
+      } catch {
+        if (active) setErro("Não foi possível carregar os dados. Tente novamente.");
+      } finally {
+        if (active) setLoading(false);
+      }
+    }
+    carregar();
+    return () => { active = false; };
+  }, [tentativa]);
 
   if (loading) {
     return (
@@ -197,7 +201,7 @@ function Dashboard() {
     );
   }
 
-  const { stats, proximosEventos, ultimosMembros, ultimosMovimentos, graficoAnual, podeVerFinancas } = dados;
+  const { stats, proximosEventos, ultimosMovimentos, graficoAnual, podeVerFinancas } = dados;
 
   return (
     <DashboardLayout>

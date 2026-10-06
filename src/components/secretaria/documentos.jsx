@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { usePerfil } from "../../routes/ProctedRoute";
+import { usePerfil } from "../../routes/PerfilContext";
 import { TITULOS_DOCUMENTO } from "../../../shared/documentos.js";
 import { criarDocumentoPDF, emitirDocumentoPDF } from "../../utils/documentoPdf.js";
 import { formatarData } from "../../utils/data.js";

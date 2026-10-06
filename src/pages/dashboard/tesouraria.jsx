@@ -1,7 +1,7 @@
 import { useState, useEffect, useCallback, useMemo } from "react";
 import { criarTesourariaPDF } from "../../utils/exportacoesPdf.js";
 import DashboardLayout from "../../components/dashboard/dashboardlayout";
-import { usePerfil } from "../../routes/ProctedRoute";
+import { usePerfil } from "../../routes/PerfilContext";
 import { toast } from "../../utils/toast";
 import { apiFetch, apiFetchArray } from "../../utils/api";
 import "../../assets/styles/dashboard/tesouraria.css";

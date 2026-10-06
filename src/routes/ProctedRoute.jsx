@@ -1,9 +1,6 @@
-import { createContext, useContext } from "react";
+import { PerfilContext } from "./PerfilContext";
 import { Navigate } from "react-router-dom";
 import { temAcesso, ehSoLeitura, getPerfil, getUser } from "../utils/rbac";
-
-export const PerfilContext = createContext({ perfil: "Membro", soLeitura: false });
-export const usePerfil = () => useContext(PerfilContext);
 
 function ProtectedRoute({ children, area }) {
   const token = localStorage.getItem("token");

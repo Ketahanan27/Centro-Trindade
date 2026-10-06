@@ -1,6 +1,5 @@
 import { Link } from "react-router-dom";
 
-import logo from "../assets/img/principal.png";
 
 function Footer() {
   const anoAtual = new Date().getFullYear();

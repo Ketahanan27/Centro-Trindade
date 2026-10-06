@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { criarAtaPDF } from "../../utils/exportacoesPdf.js";
-import { usePerfil } from "../../routes/ProctedRoute";
+import { usePerfil } from "../../routes/PerfilContext";
 import { toast } from "../../utils/toast";
 import { apiFetch } from "../../utils/api";
 import { useListaRemota, executarAcaoCrud } from "../../utils/useCrud";

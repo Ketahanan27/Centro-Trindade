@@ -1,6 +1,6 @@
 import { useState } from "react";
 import DashboardLayout from "../../components/dashboard/dashboardlayout";
-import { usePerfil } from "../../routes/ProctedRoute";
+import { usePerfil } from "../../routes/PerfilContext";
 import { toast } from "../../utils/toast";
 import { apiFetch } from "../../utils/api";
 import { formatarData } from "../../utils/data";

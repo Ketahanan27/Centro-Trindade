@@ -21,20 +21,26 @@ export function useListaRemota(endpoint, mensagemErro) {
   const [itens, setItens] = useState([]);
   const [carregando, setCarregando] = useState(true);
 
-  const carregar = useCallback(async () => {
+  const [tentativa, setTentativa] = useState(0);
+  const carregar = useCallback(() => {
     setCarregando(true);
-    try {
-      const data = await apiFetchArray(endpoint);
-      setItens(data);
-    } catch (error) {
-      console.error(`[useListaRemota] ${endpoint}`, error);
-      if (mensagemErro) toast.erro(mensagemErro);
-    } finally {
-      setCarregando(false);
+    setTentativa((value) => value + 1);
+  }, []);
+  useEffect(() => {
+    let active = true;
+    async function consultar() {
+      try {
+        const data = await apiFetchArray(endpoint);
+        if (active) setItens(data);
+      } catch {
+        if (active && mensagemErro) toast.erro(mensagemErro);
+      } finally {
+        if (active) setCarregando(false);
+      }
     }
-  }, [endpoint, mensagemErro]);
-
-  useEffect(() => { carregar(); }, [carregar]);
+    consultar();
+    return () => { active = false; };
+  }, [endpoint, mensagemErro, tentativa]);
 
   return [itens, setItens, carregar, carregando];
 }

@@ -7,7 +7,7 @@ import { toast } from "../../utils/toast";
 import { sanitizarTelefone } from "../../utils/validation";
 import { formatarData } from "../../utils/data";
 import { useListaRemota, executarAcaoCrud } from "../../utils/useCrud";
-import { usePerfil } from "../../routes/ProctedRoute";
+import { usePerfil } from "../../routes/PerfilContext";
 import "../../assets/styles/dashboard/membros.css";
 
 

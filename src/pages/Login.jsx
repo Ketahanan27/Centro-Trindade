@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { createPortal } from "react-dom";
 import { Link, useNavigate, useSearchParams } from "react-router-dom";
 import "../assets/styles/home/login.css";
@@ -104,21 +104,20 @@ function Login() {
   const [mostrarRecuperar, setMostrarRecuperar] = useState(false);
   const [erroLogin, setErroLogin] = useState(null);
 
-  useEffect(() => {
-    if (sessaoExpirada) {
-      setErroLogin("A sua sessão expirou. Por favor inicie sessão novamente.");
-    }
-  }, [sessaoExpirada]);
+  const [avisarExpiracao, setAvisarExpiracao] = useState(true);
+  const mensagemLogin = erroLogin || (sessaoExpirada && avisarExpiracao ? "A sua sessão expirou. Por favor inicie sessão novamente." : null);
 
   const handleChange = (e) => {
     setFormData({ ...formData, [e.target.name]: e.target.value });
     setErroLogin(null);
+    setAvisarExpiracao(false);
   };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
     setLoading(true);
     setErroLogin(null);
+    setAvisarExpiracao(false);
 
     try {
       const response = await fetch("/api/auth/login", {
@@ -159,9 +158,9 @@ function Login() {
 
           <h2>Login</h2>
 
-          {erroLogin && (
+          {mensagemLogin && (
             <div className="login-erro">
-              <i className="ri-close-circle-line"></i> {erroLogin}
+              <i className="ri-close-circle-line"></i> {mensagemLogin}
             </div>
           )}
 

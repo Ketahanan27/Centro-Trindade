@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { useSearchParams, useNavigate, Link } from "react-router-dom";
 import "../assets/styles/home/login.css";
 import logo from "../assets/img/principal.png";
@@ -10,20 +10,17 @@ function RedefinirPassword() {
 
   const [form, setForm] = useState({ nova_password: "", confirmar: "" });
   const [loading, setLoading] = useState(false);
-  const [status, setStatus] = useState(null);
+  const [resultado, setStatus] = useState(null);
   const [mostrarNova, setMostrarNova] = useState(false);
   const [mostrarConf, setMostrarConf] = useState(false);
 
-  useEffect(() => {
-    if (!token) {
-      setStatus({ tipo: "erro", texto: "Link inválido. Verifica se copiaste o endereço completo do email." });
-    }
-  }, [token]);
+  const status = token ? resultado : { tipo: "erro", texto: "Link inválido. Verifica se copiaste o endereço completo do email." };
 
   const handleChange = (e) => setForm({ ...form, [e.target.name]: e.target.value });
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+    if (loading || !token) return;
 
     if (form.nova_password !== form.confirmar) {
       setStatus({ tipo: "erro", texto: "As palavras-passe não coincidem." });

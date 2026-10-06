@@ -138,3 +138,12 @@ Verificação da Tesouraria: db:prepare executado com sucesso na base configurad
 - Erro persistente com Tentar novamente; carregamento protegido contra respostas após desmontagem ou tentativa anterior.
 - Estilos reforçam foco visível, legibilidade dos avisos, espaçamento em telemóvel e redução de movimento.
 - Lint direcionado, compilação de produção e teste serverless passaram. Não foram alterados eventos reais. Não houve teste visual exaustivo em dispositivos.
+
+### Lint global e efeitos de carregamento — 6 de outubro de 2026
+
+- Corrigidos os oito diagnósticos restantes; npm run lint passa globalmente sem desativar regras.
+- Contexto PerfilContext/usePerfil separado da rota protegida; imports atualizados sem alterar permissões.
+- Avisos de sessão expirada/link de redefinição inválido derivados sem efeitos síncronos. Aviso de sessão continua a ser limpo ao escrever/tentar login; redefinição bloqueia submissões em curso e sem token.
+- Listas CRUD e carregamento técnico do dashboard ignoram respostas após desmontagem ou substituição da consulta. Design do dashboard preservado para a atualização posterior.
+- Import do logótipo sem uso e valor ultimosMembros sem uso removidos. Restantes estilos locais preservados.
+- Lint global, 108 testes isolados, compilação de produção e teste serverless passaram. Nenhum dado real alterado nem email enviado. Testes completos de interação no navegador e pipeline CI continuam pendentes.
