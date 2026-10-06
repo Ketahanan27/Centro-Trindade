@@ -130,3 +130,11 @@ Verificação da Tesouraria: db:prepare executado com sucesso na base configurad
 - Lotes de até 100 eliminações; falhas de base/listagem interrompem a limpeza. Falhas individuais do armazenamento ficam contadas para nova tentativa. Logs contêm contagens, sem URLs pessoais.
 - Seis testes isolados passaram. Análise real: quatro ficheiros, quatro referências, zero candidatos e zero eliminações. Não foram alterados registos de membros.
 - Não cobre ficheiros locais, objetos públicos antigos ou nomes desconhecidos. Não substitui política de retenção de membros/backups nem constitui transação entre serviços. Operações manuais não devem reutilizar URLs durante a limpeza.
+
+### Calendário público — 6 de outubro de 2026
+
+- Navegação para mês anterior/seguinte, incluindo transição de ano, e botão Hoje. A mudança de mês limpa a seleção anterior; o dia selecionado mostra a data e permite voltar ao resumo mensal.
+- Dias são botões com nomes acessíveis, estado selecionado e indicação do dia atual; funcionam com Tab, Enter e Espaço. Cabeçalho e resultados anunciam atualizações.
+- Erro persistente com Tentar novamente; carregamento protegido contra respostas após desmontagem ou tentativa anterior.
+- Estilos reforçam foco visível, legibilidade dos avisos, espaçamento em telemóvel e redução de movimento.
+- Lint direcionado, compilação de produção e teste serverless passaram. Não foram alterados eventos reais. Não houve teste visual exaustivo em dispositivos.

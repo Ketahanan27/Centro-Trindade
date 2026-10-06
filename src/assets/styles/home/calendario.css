@@ -273,3 +273,21 @@
     padding: 6px 10px;
   }
 }
+
+
+.calendar-header { gap: 12px; flex-wrap: wrap; }
+.calendar-days .day { width: 100%; padding: 0; font: inherit; }
+.calendar-page button:focus-visible { outline: 3px solid #ffd166; outline-offset: 3px; }
+.calendar-page .event-box p { color: #b9d7ff; }
+.calendar-page .event-box button {
+  color: white; background: #0044ff; border: 0; border-radius: 8px;
+  padding: 10px 16px; cursor: pointer;
+}
+@media (max-width: 600px) {
+  .calendar-days { gap: 6px; }
+  .weekdays { gap: 4px; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .calendar-page .day { transition: none; }
+  .calendar-page .day:hover { transform: none; }
+}

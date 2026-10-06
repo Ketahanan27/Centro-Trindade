@@ -15,35 +15,46 @@ function Calendario() {
   ];
 
   const [events, setEvents] = useState([]);
-  const [currentDate] = useState(new Date());
+  const [currentDate, setCurrentDate] = useState(() => new Date());
   const [selectedDate, setSelectedDate] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
 
-  const carregarEventos = async () => {
-    try {
-      setLoading(true);
-      const data = await apiFetchArray("/api/eventos");
-      const publicEvents = data
-        .filter((item) => item.estado === "Agendado")
-        .map((item) => ({
-          ...item,
-          data_evento: item.data_evento?.slice(0, 10),
-        }));
-      setEvents(publicEvents);
-      setError(null);
-    } catch (err) {
-      console.error("[carregarEventos]", err);
-      setError("Erro ao carregar a agenda pública.");
-      setEvents([]);
-    } finally {
-      setLoading(false);
-    }
-  };
-
+  const [tentativa, setTentativa] = useState(0);
+  function carregarEventos() {
+    setLoading(true);
+    setError(null);
+    setTentativa((value) => value + 1);
+  }
   useEffect(() => {
-    carregarEventos();
-  }, []);
+    let active = true;
+    async function carregar() {
+      try {
+        const data = await apiFetchArray("/api/eventos");
+        if (!active) return;
+        setEvents(data.filter((item) => item.estado === "Agendado")
+          .map((item) => ({ ...item, data_evento: item.data_evento?.slice(0, 10) })));
+        setError(null);
+      } catch {
+        if (!active) return;
+        setError("Erro ao carregar a agenda pública.");
+        setEvents([]);
+      } finally {
+        if (active) setLoading(false);
+      }
+    }
+    carregar();
+    return () => { active = false; };
+  }, [tentativa]);
+
+  function mudarMes(offset) {
+    setCurrentDate((date) => new Date(date.getFullYear(), date.getMonth() + offset, 1));
+    setSelectedDate(null);
+  }
+  function mostrarHoje() {
+    setCurrentDate(new Date());
+    setSelectedDate(null);
+  }
 
   const year = currentDate.getFullYear();
   const month = currentDate.getMonth();
@@ -79,13 +90,17 @@ function Calendario() {
     const isSelected = selectedDate === dateString;
 
     days.push(
-      <div
+      <button
+        type="button"
+        aria-label={`${day} de ${months[month]} de ${year}${hasEvent ? ", com eventos" : ""}`}
+        aria-pressed={isSelected}
+        aria-current={isToday ? "date" : undefined}
         key={dateString}
         className={`day ${isToday ? "today" : ""} ${hasEvent ? "has-event" : ""} ${isSelected ? "selected" : ""}`}
         onClick={() => setSelectedDate(dateString)}
       >
         {day}
-      </div>
+      </button>
     );
   }
 
@@ -98,7 +113,10 @@ function Calendario() {
 
         <div className="calendar-container">
           <div className="calendar-header">
-            <h2>{months[month]} {year}</h2>
+            <button type="button" aria-label="Mês anterior" onClick={() => mudarMes(-1)}>‹</button>
+            <h2 aria-live="polite">{months[month]} {year}</h2>
+            <button type="button" aria-label="Mês seguinte" onClick={() => mudarMes(1)}>›</button>
+            <button type="button" onClick={mostrarHoje}>Hoje</button>
           </div>
 
           <div className="weekdays">
@@ -109,13 +127,14 @@ function Calendario() {
           <div className="calendar-days">{days}</div>
         </div>
 
-        <div className="event-box">
-          <h3>Eventos públicos</h3>
+        <div className="event-box" aria-live="polite" aria-busy={loading}>
+          <h3>{selectedDate ? `Eventos públicos — ${formatarData(selectedDate)}` : "Eventos públicos"}</h3>
+          {selectedDate && <button type="button" onClick={() => setSelectedDate(null)}>Ver todos os eventos do mês</button>}
 
           {loading ? (
             <p>Carregando eventos...</p>
           ) : error ? (
-            <p>{error}</p>
+            <div role="alert"><p>{error}</p><button type="button" onClick={carregarEventos}>Tentar novamente</button></div>
           ) : selectedDate ? (
             selectedEvents.length > 0 ? (
               selectedEvents.map((event) => (
