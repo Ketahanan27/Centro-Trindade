@@ -239,7 +239,7 @@ function MinhaArea() {
               }}
             />
             <label className="file-button">
-              <input type="file" accept="image/*" onChange={handleFotoChange} />
+              <input type="file" accept="image/jpeg,image/png,image/gif,image/webp" onChange={handleFotoChange} />
               <i className="ri-camera-line"></i>
               <span>{fotoFile ? "Foto selecionada" : "Escolher foto"}</span>
             </label>
@@ -252,6 +252,7 @@ function MinhaArea() {
               <i className="ri-upload-cloud-line"></i>
               <span>{uploading ? "A carregar…" : "Carregar foto"}</span>
             </button>
+            <p>JPEG, PNG, GIF ou WebP estático, até 2 MB e 16 milhões de píxeis.</p>
             {feedback && (
               <p className={`minha-area-feedback ${feedback.type === "success" ? "sucesso" : "erro"}`}>
                 {feedback.message}

@@ -283,7 +283,8 @@ export const uploadMembroFoto = async (req, res) => {
     // A disconnected database response can conceal a committed UPDATE.
     // Preserve the uploaded file for reconciliation in that case.
     if (stored && !updatePending) await stored.remove().catch(() => {});
-    console.error("[uploadMembroFoto]", e);
+    if (e.status === 400) return res.status(400).json({ message: e.message });
+    console.error("[uploadMembroFoto]", e.code ?? "erro");
     res.status(500).json({ message: "Erro interno do servidor." });
   }
 };

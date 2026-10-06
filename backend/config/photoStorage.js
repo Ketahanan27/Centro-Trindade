@@ -1,4 +1,6 @@
 import fs from 'node:fs/promises';
+import sharp from 'sharp';
+import { InputError } from '../utils/inputValidation.js';
 import path from 'node:path';
 import { randomUUID } from 'node:crypto';
 import { fileURLToPath } from 'node:url';
@@ -16,11 +18,29 @@ export function detectImage(buffer) {
   return null;
 }
 
+// Decode untrusted pixels and re-encode without retaining EXIF, GPS or appended data.
+export async function preparePhoto(buffer) {
+  if (!Buffer.isBuffer(buffer) || buffer.length > 2 * 1024 * 1024 || !detectImage(buffer)) {
+    throw new InputError('Envie uma imagem JPEG, PNG, GIF ou WebP até 2 MB.');
+  }
+  try {
+    const image = sharp(buffer, { failOn: 'warning', limitInputPixels: 16000000 });
+    const metadata = await image.metadata();
+    if ((metadata.pages ?? 1) > 1) throw new InputError('Use uma fotografia estática, sem animação.');
+    const cleaned = await image.rotate().resize({ width: 1600, height: 1600, fit: 'inside', withoutEnlargement: true })
+      .webp({ quality: 85 }).toBuffer();
+    if (cleaned.length > 2 * 1024 * 1024) throw new InputError('A fotografia processada excede 2 MB.');
+    return { buffer: cleaned, extension: '.webp', contentType: 'image/webp' };
+  } catch (error) {
+    if (error instanceof InputError) throw error;
+    throw new InputError('A imagem está danificada ou excede o limite de 16 milhões de píxeis.');
+  }
+}
+
 export async function savePhoto(file, userId) {
-  const image = detectImage(file.buffer);
-  if (!image) throw new Error('Imagem inválida.');
+  const image = await preparePhoto(file?.buffer);
   if (process.env.BLOB_PRIVATE_READ_WRITE_TOKEN) {
-    const blob = await put(`membros/${userId}/${randomUUID()}${image.extension}`, file.buffer, {
+    const blob = await put(`membros/${userId}/${randomUUID()}${image.extension}`, image.buffer, {
       access: 'private', token: process.env.BLOB_PRIVATE_READ_WRITE_TOKEN, contentType: image.contentType, addRandomSuffix: true,
     });
     return { url: blob.url, remove: () => removePhoto(blob.url) };
@@ -29,7 +49,7 @@ export async function savePhoto(file, userId) {
   await fs.mkdir(uploadDir, { recursive: true });
   const filename = `membro_${userId}_${randomUUID()}${image.extension}`;
   const target = path.join(uploadDir, filename);
-  await fs.writeFile(target, file.buffer, { flag: 'wx' });
+  await fs.writeFile(target, image.buffer, { flag: 'wx' });
   return { url: `/uploads/${filename}`, remove: () => fs.unlink(target) };
 }
 

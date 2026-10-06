@@ -114,3 +114,11 @@ Verificação da Tesouraria: db:prepare executado com sucesso na base configurad
 - Transporte SMTP tem limites de espera e é fechado após o envio. Configuração ausente devolve 503; falha/rejeição do envio principal devolve 502, sem detalhes internos.
 - Sucesso exige aceitação do destinatário pelo SMTP, que não garante a entrega final na caixa de entrada. Se apenas a confirmação falhar, preserva o sucesso principal e indica que não é necessário reenviar.
 - Seis testes com SMTP simulado cobrem validação, normalização/HTML, aceitação, falha principal, falha secundária e configuração ausente. Nenhum email real enviado durante os testes.
+
+### Fotografias: descodificação e remoção de metadados — 6 de outubro de 2026
+
+- Novos uploads JPEG/PNG/GIF/WebP são descodificados com Sharp; cabeçalhos falsos, dados truncados, animações, ficheiros acima de 2 MB e imagens acima de 16 milhões de píxeis são recusados com 400.
+- Orientação EXIF aplicada aos píxeis antes de remover metadados. Recompressão WebP sem EXIF/GPS, IPTC, XMP ou perfil ICC incorporado; dimensão máxima de 1600 píxeis por lado, sem ampliar imagens pequenas.
+- O armazenamento privado/local guarda apenas o resultado processado; dados anexados ao ficheiro original não são copiados. Leitura e permissões das fotografias existentes preservadas.
+- Onze testes de fotografias, 19 testes de segurança, lint direcionado, compilação de produção e teste serverless passaram. Imagens de teste são sintéticas e eliminadas após os testes.
+- Não foi efetuada conversão em massa das fotografias existentes. Retenção, reconciliação automática de órfãos e textos de privacidade continuam pendentes.
