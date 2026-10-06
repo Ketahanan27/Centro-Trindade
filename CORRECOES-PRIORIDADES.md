@@ -106,3 +106,11 @@ Verificação da Tesouraria: db:prepare executado com sucesso na base configurad
 - JSON malformado responde 400 e pedidos acima do limite do parser respondem 413, sem mensagens internas.
 - A tabela e o índice foram preparados sem alterar registos da igreja. Quatro testes isolados e teste serverless passaram; consulta atómica validada com EXPLAIN READ ONLY.
 - Dashboard principal fica reservado para a atualização seguinte, conforme decisão do utilizador. Alterações locais de estilos da Agenda e Tesouraria foram preservadas e não incluídas neste bloco.
+
+### Contacto público — 6 de outubro de 2026
+
+- Validação de objeto, tipos, campos obrigatórios, limites de tamanho e caracteres de controlo antes de abrir SMTP; email normalizado, telemóvel opcional de nove dígitos e mensagem multilinear até 10000 caracteres.
+- Formulário aplica limites, associa etiquetas aos campos e anuncia o resultado de forma acessível.
+- Transporte SMTP tem limites de espera e é fechado após o envio. Configuração ausente devolve 503; falha/rejeição do envio principal devolve 502, sem detalhes internos.
+- Sucesso exige aceitação do destinatário pelo SMTP, que não garante a entrega final na caixa de entrada. Se apenas a confirmação falhar, preserva o sucesso principal e indica que não é necessário reenviar.
+- Seis testes com SMTP simulado cobrem validação, normalização/HTML, aceitação, falha principal, falha secundária e configuração ausente. Nenhum email real enviado durante os testes.

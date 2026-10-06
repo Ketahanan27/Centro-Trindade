@@ -1,8 +1,28 @@
 import nodemailer from "nodemailer";
+import { InputError, objeto, texto, emailNormalizado } from "../utils/inputValidation.js";
+import { notas } from "../utils/secretariaValidation.js";
+
+export function validarContacto(payload) {
+  const body = objeto(payload);
+  const telefone = texto(body.telefone, "Telemóvel", 9);
+  if (telefone && !/^\d{9}$/.test(telefone)) throw new InputError("O telemóvel deve conter exatamente 9 dígitos.");
+  const mensagem = notas(body.mensagem, "Mensagem", 10000);
+  if (!mensagem) throw new InputError("Mensagem é obrigatória.");
+  return { nome: texto(body.nome, "Nome", 150, true), telefone,
+    email: emailNormalizado(body.email, true), assunto: texto(body.assunto, "Assunto", 200), mensagem };
+}
+function verificarAceitacao(result, destinatario) {
+  if (!result?.accepted?.some((email) => String(email).toLowerCase() === destinatario.toLowerCase())) {
+    throw new Error("SMTP_RECIPIENT_NOT_ACCEPTED");
+  }
+}
 
 const criarTransporter = () =>
   nodemailer.createTransport({
     service: "gmail",
+    connectionTimeout: 15000,
+    greetingTimeout: 15000,
+    socketTimeout: 15000,
     auth: {
       user: process.env.EMAIL_USER,
       pass: process.env.EMAIL_PASS,
@@ -18,19 +38,18 @@ function escapeHtml(str) {
 }
 
 export const enviarContacto = async (req, res) => {
-  const { nome, telefone, email, assunto, mensagem } = req.body;
-
-  if (!nome?.trim()) {
-    return res.status(400).json({ message: "Nome é obrigatório." });
+  let dados;
+  try { dados = validarContacto(req.body); }
+  catch (err) { return res.status(400).json({ message: err.message }); }
+  const { nome, telefone, email, assunto, mensagem } = dados;
+  let remetente, destino;
+  try {
+    remetente = emailNormalizado(process.env.EMAIL_USER, true);
+    destino = emailNormalizado(process.env.EMAIL_DESTINO, true);
+    if (!process.env.EMAIL_PASS) throw new Error("SMTP_NOT_CONFIGURED");
+  } catch {
+    return res.status(503).json({ message: "O serviço de contacto está temporariamente indisponível." });
   }
-  if (!email?.trim() || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
-    return res.status(400).json({ message: "Email inválido." });
-  }
-  if (!mensagem?.trim()) {
-    return res.status(400).json({ message: "Mensagem é obrigatória." });
-  }
-
-  const transporter = criarTransporter();
 
   /*
   |--------------------------------------------------------------------------
@@ -43,8 +62,8 @@ export const enviarContacto = async (req, res) => {
   |
   */
   const emailIgreja = {
-    from: `"Website Centro Trindade" <${process.env.EMAIL_USER}>`,
-    to: process.env.EMAIL_DESTINO,
+    from: `"Website Centro Trindade" <${remetente}>`,
+    to: destino,
     replyTo: email,
     subject: `📩 Novo Contacto: ${assunto?.trim() || "Sem assunto"} — ${nome}`,
     html: `
@@ -111,7 +130,7 @@ export const enviarContacto = async (req, res) => {
   };
 
   const emailConfirmacao = {
-    from: `"Centro Trindade" <${process.env.EMAIL_USER}>`,
+    from: `"Centro Trindade" <${remetente}>`,
     to: email,
     subject: "✅ Recebemos a sua mensagem — Centro Trindade",
     html: `
@@ -154,7 +173,7 @@ export const enviarContacto = async (req, res) => {
             </div>
             <p>
               Se tiver alguma dúvida urgente, pode contactar-nos directamente
-              através do email <a href="mailto:${process.env.EMAIL_DESTINO}">${process.env.EMAIL_DESTINO}</a>.
+              através do email <a href="mailto:${escapeHtml(destino)}">${escapeHtml(destino)}</a>.
             </p>
             <p>Com os melhores cumprimentos,<br><strong>Centro Trindade</strong></p>
           </div>
@@ -165,17 +184,23 @@ export const enviarContacto = async (req, res) => {
     `,
   };
 
+  let transporter;
   try {
-    await transporter.sendMail(emailIgreja);
-    await transporter.sendMail(emailConfirmacao);
-
-    res.json({
-      message: "Mensagem enviada com sucesso! Verifique o seu email para a confirmação.",
-    });
-  } catch (err) {
-    console.error("[enviarContacto] Erro nodemailer:", err.message);
-    res.status(500).json({
-      message: "Erro ao enviar email. Tente novamente mais tarde.",
-    });
+    transporter = criarTransporter();
+    verificarAceitacao(await transporter.sendMail(emailIgreja), destino);
+    try {
+      verificarAceitacao(await transporter.sendMail(emailConfirmacao), email);
+      return res.json({ confirmacao_enviada: true,
+        message: "Mensagem enviada com sucesso! Verifique o seu email para a confirmação." });
+    } catch {
+      console.error("[enviarContacto] Falha no envio da confirmação.");
+      return res.json({ confirmacao_enviada: false,
+        message: "A sua mensagem foi enviada à igreja, mas não foi possível enviar a confirmação por email. Não precisa de enviar novamente." });
+    }
+  } catch {
+    console.error("[enviarContacto] Falha no envio para a igreja.");
+    return res.status(502).json({ message: "Não foi possível confirmar o envio da mensagem. Tente novamente mais tarde." });
+  } finally {
+    transporter?.close();
   }
 };

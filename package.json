@@ -24,7 +24,8 @@
     "build": "vite build",
     "build:vercel": "node scripts/build-vercel.js",
     "lint": "eslint .",
-    "preview": "vite preview"
+    "preview": "vite preview",
+    "test:contact": "node --test backend/tests/contacto.test.js"
   },
   "dependencies": {
     "@vercel/blob": "^2.8.0",
