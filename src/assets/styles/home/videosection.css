@@ -76,15 +76,3 @@
     height: 220px;
   }
 }
-
-
-.video-placeholder {
-  min-height: 260px; padding: 24px; border-radius: 15px;
-  background: #202020; color: #eee; display: flex;
-  flex-direction: column; justify-content: center; align-items: center;
-  text-align: center; gap: 16px;
-}
-.video-placeholder p { margin: 0; max-width: 55ch; line-height: 1.5; }
-.video-placeholder a { color: #b9d7ff; }
-.video-choice { padding: 12px 18px; border: 0; border-radius: 8px; background: #0044ff; color: white; cursor: pointer; }
-.video-player :is(button, a):focus-visible { outline: 3px solid #ffd166; outline-offset: 4px; }
