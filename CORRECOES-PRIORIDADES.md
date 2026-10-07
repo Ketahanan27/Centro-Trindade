@@ -154,3 +154,10 @@ Verificação da Tesouraria: db:prepare executado com sucesso na base configurad
 - Inclui lint, 108 testes isolados, compilação de produção e verificação serverless. Sem segredos de produção, migrações, test:postgres ou limpeza de fotos.
 - Permissão contents:read, sem persistir credenciais de checkout, limite de 15 minutos e cancelamento de execuções antigas da mesma referência.
 - Regras de bloqueio de merge/publicação e teste de recuperação de backups continuam pendentes; não foram alteradas configurações da Vercel ou políticas do repositório.
+
+### Agenda pública informativa — 7 de outubro de 2026
+
+- Por pedido do utilizador, removidos navegação entre meses, botão Hoje e seleção interativa de dias.
+- Calendário apresenta o mês atual e lista os eventos públicos desse mês; dias são elementos informativos, sem clique ou cursor interativo.
+- Erro de carregamento continua visível e indica atualização da página; carregamento protegido contra respostas após desmontagem preservado.
+- Lint direcionado, build de produção e verificação serverless passaram. Gestão interna da Agenda preservada.

@@ -15,17 +15,10 @@ function Calendario() {
   ];
 
   const [events, setEvents] = useState([]);
-  const [currentDate, setCurrentDate] = useState(() => new Date());
-  const [selectedDate, setSelectedDate] = useState(null);
+  const currentDate = new Date();
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
 
-  const [tentativa, setTentativa] = useState(0);
-  function carregarEventos() {
-    setLoading(true);
-    setError(null);
-    setTentativa((value) => value + 1);
-  }
   useEffect(() => {
     let active = true;
     async function carregar() {
@@ -45,26 +38,12 @@ function Calendario() {
     }
     carregar();
     return () => { active = false; };
-  }, [tentativa]);
-
-  function mudarMes(offset) {
-    setCurrentDate((date) => new Date(date.getFullYear(), date.getMonth() + offset, 1));
-    setSelectedDate(null);
-  }
-  function mostrarHoje() {
-    setCurrentDate(new Date());
-    setSelectedDate(null);
-  }
+  }, []);
 
   const year = currentDate.getFullYear();
   const month = currentDate.getMonth();
   const firstDay = new Date(year, month, 1).getDay();
   const lastDate = new Date(year, month + 1, 0).getDate();
-
-  const selectedEvents = useMemo(() => {
-    if (!selectedDate) return [];
-    return events.filter((event) => event.data_evento === selectedDate);
-  }, [events, selectedDate]);
 
   const monthEvents = useMemo(
     () => events.filter((event) => {
@@ -87,20 +66,17 @@ function Calendario() {
     const dateString = `${year}-${String(month + 1).padStart(2, "0")}-${String(day).padStart(2, "0")}`;
     const isToday = dateString === todayString;
     const hasEvent = events.some((event) => event.data_evento === dateString);
-    const isSelected = selectedDate === dateString;
 
     days.push(
-      <button
-        type="button"
+      <div
+        role="img"
         aria-label={`${day} de ${months[month]} de ${year}${hasEvent ? ", com eventos" : ""}`}
-        aria-pressed={isSelected}
         aria-current={isToday ? "date" : undefined}
         key={dateString}
-        className={`day ${isToday ? "today" : ""} ${hasEvent ? "has-event" : ""} ${isSelected ? "selected" : ""}`}
-        onClick={() => setSelectedDate(dateString)}
+        className={`day ${isToday ? "today" : ""} ${hasEvent ? "has-event" : ""}`}
       >
         {day}
-      </button>
+      </div>
     );
   }
 
@@ -113,10 +89,7 @@ function Calendario() {
 
         <div className="calendar-container">
           <div className="calendar-header">
-            <button type="button" aria-label="Mês anterior" onClick={() => mudarMes(-1)}>‹</button>
             <h2 aria-live="polite">{months[month]} {year}</h2>
-            <button type="button" aria-label="Mês seguinte" onClick={() => mudarMes(1)}>›</button>
-            <button type="button" onClick={mostrarHoje}>Hoje</button>
           </div>
 
           <div className="weekdays">
@@ -128,28 +101,14 @@ function Calendario() {
         </div>
 
         <div className="event-box" aria-live="polite" aria-busy={loading}>
-          <h3>{selectedDate ? `Eventos públicos — ${formatarData(selectedDate)}` : "Eventos públicos"}</h3>
-          {selectedDate && <button type="button" onClick={() => setSelectedDate(null)}>Ver todos os eventos do mês</button>}
+          <h3>Eventos públicos</h3>
 
           {loading ? (
             <p>Carregando eventos...</p>
           ) : error ? (
-            <div role="alert"><p>{error}</p><button type="button" onClick={carregarEventos}>Tentar novamente</button></div>
-          ) : selectedDate ? (
-            selectedEvents.length > 0 ? (
-              selectedEvents.map((event) => (
-                <div key={event.id} className="event-item">
-                  <strong>{event.titulo}</strong>
-                  <div className="event-time">{event.hora_evento || "Horário não informado"}</div>
-                  {event.descricao && <p>{event.descricao}</p>}
-                </div>
-              ))
-            ) : (
-              <p>Não existem eventos públicos para esta data.</p>
-            )
+            <p role="alert">{error} Atualize a página para tentar novamente.</p>
           ) : (
             <>
-              <p>Selecione um dia para ver os eventos agendados.</p>
               <div className="month-summary">
                 <strong>{monthEvents.length}</strong> evento(s) agendado(s) neste mês.
               </div>
