@@ -6,6 +6,7 @@ import { apiFetch } from "../../utils/api";
 import { formatarData } from "../../utils/data";
 import { useListaRemota, executarAcaoCrud } from "../../utils/useCrud";
 import "../../assets/styles/dashboard/agenda.css";
+import "../../assets/styles/dashboard/agenda-visual.css";
 
 const MESES = [
   "Janeiro", "Fevereiro", "Março", "Abril", "Maio", "Junho",
@@ -45,7 +46,10 @@ function Agenda() {
     const isToday = day === today.getDate() && month === today.getMonth() && year === today.getFullYear();
     const temEvento = events.some((e) => e.data_evento?.substring(0, 10) === dateString);
     days.push(
-      <div
+      <button
+        type="button"
+        aria-label={`Selecionar ${formatarData(dateString)}`}
+        aria-pressed={selectedDate === dateString}
         key={dateString}
         className={`day ${isToday ? "today" : ""} ${temEvento ? "has-event" : ""} ${selectedDate === dateString ? "selected" : ""}`}
         onClick={() => {
@@ -55,7 +59,7 @@ function Agenda() {
         }}
       >
         {day}
-      </div>
+      </button>
     );
   }
 
@@ -98,16 +102,15 @@ function Agenda() {
 
   const hoje = new Date().toISOString().split("T")[0];
 
-  const eventosDoMes = events.filter((e) => {
-    const d = new Date(e.data_evento);
-    return d.getMonth() === month && d.getFullYear() === year;
-  });
+  const eventosDoMes = events.filter((e) => e.data_evento?.slice(0, 7) === `${year}-${String(month + 1).padStart(2, "0")}`);
 
   const historicoMes = [...eventosDoMes].sort((a, b) => new Date(a.data_evento) - new Date(b.data_evento));
 
   return (
     <DashboardLayout>
       <section className="agenda-container">
+
+        <header className="agenda-page-header"><h1>Agenda</h1><span>{eventosDoMes.length} {eventosDoMes.length === 1 ? "atividade" : "atividades"} este mês</span></header>
 
         {soLeitura && (
           <div className="banner-leitura">
@@ -118,11 +121,11 @@ function Agenda() {
 
         <div className="calendar-box">
           <div className="calendar-header">
-            <button onClick={() => setCurrentDate(new Date(year, month - 1, 1))}>
+            <button aria-label="Mês anterior" onClick={() => setCurrentDate(new Date(year, month - 1, 1))}>
               <i className="ri-arrow-left-s-line"></i>
             </button>
             <h2>{MESES[month]} {year}</h2>
-            <button onClick={() => setCurrentDate(new Date(year, month + 1, 1))}>
+            <button aria-label="Mês seguinte" onClick={() => setCurrentDate(new Date(year, month + 1, 1))}>
               <i className="ri-arrow-right-s-line"></i>
             </button>
             <button
@@ -150,94 +153,44 @@ function Agenda() {
           </div>
           <div className="event-counter">Total do mês: {eventosDoMes.length}</div>
           <div className="event-list">
-            {selectedDate && eventosDoDia.length ? (
-              eventosDoDia.map((e) => (
-                <div
-                  key={e.id}
-                  className={`event-item ${selectedEvent === e.id ? "selected" : ""}`}
-                  onClick={() => {
-                    setSelectedEvent(e.id);
-                    setEditId(e.id);
-                    setFormData({
-                      titulo: e.titulo, descricao: e.descricao,
-                      data_evento: String(e.data_evento).slice(0, 10),
-                      hora_evento: e.hora_evento || "", local_evento: e.local_evento || "", estado: e.estado, publico: e.publico,
-                    });
-                  }}
-                >
-                  <strong>{e.titulo}</strong><br />{e.hora_evento}h<br />{e.descricao}<br />{e.publico ? "Público" : "Interno"} — {e.estado}
-                </div>
-              ))
-            ) : (
-              <div>
-                <h4>Eventos deste mês</h4>
-                {historicoMes.length === 0 ? (
-                  <p className="empty-message">Nenhum evento neste mês.</p>
-                ) : (
-                  historicoMes.map((e) => (
-                    <div key={e.id} className="event-item">
-                      <strong>{e.titulo}</strong><br />
-                      {formatarData(String(e.data_evento))}<br />{e.hora_evento}
-                    </div>
-                  ))
-                )}
-              </div>
-            )}
+            {!selectedDate && <h4>Eventos deste mês</h4>}
+            {(selectedDate ? eventosDoDia : historicoMes).length === 0 ? <p className="empty-message">{selectedDate ? "Nenhum evento neste dia." : "Nenhum evento neste mês."}</p> : (selectedDate ? eventosDoDia : historicoMes).map((e) => (
+              <button type="button" key={e.id} className={`event-item ${selectedEvent === e.id ? "selected" : ""}`} aria-pressed={selectedEvent === e.id} onClick={() => {
+                setSelectedDate(String(e.data_evento).slice(0,10)); setSelectedEvent(e.id); setEditId(e.id);
+                setFormData({ titulo:e.titulo, descricao:e.descricao || "", data_evento:String(e.data_evento).slice(0,10), hora_evento:e.hora_evento || "", local_evento:e.local_evento || "", estado:e.estado, publico:e.publico });
+              }}>
+                <strong>{e.titulo}</strong>
+                {e.descricao && <span className="agenda-event-description">{e.descricao}</span>}
+                <span className="agenda-event-meta"><i className="ri-calendar-line" aria-hidden="true" />{formatarData(e.data_evento)}{e.hora_evento && <><i className="ri-time-line" aria-hidden="true" />{e.hora_evento}</>}</span>
+                {e.local_evento && <span className="agenda-event-location"><i className="ri-map-pin-line" aria-hidden="true" />{e.local_evento}</span>}
+                <span className="agenda-event-badges"><span className={`agenda-status ${e.estado === "Cancelado" ? "cancelado" : e.estado === "Concluído" ? "concluido" : "agendado"}`}>{e.estado}</span><span className="agenda-visibility">{e.publico ? "Público" : "Interno"}</span></span>
+              </button>
+            ))}
           </div>
         </div>
 
         {!soLeitura && (
-          <>
+          <div className="agenda-editor">
             <div className="event-form">
-              <h3>Dados da atividade</h3>
-              <input
-                type="text"
-                placeholder="Título"
-                value={formData.titulo}
-                onChange={(e) => setFormData({ ...formData, titulo: e.target.value })}
-              />
-              <input
-                type="date"
-                value={formData.data_evento}
-                min={editId ? undefined : hoje}
-                onChange={(e) => setFormData({ ...formData, data_evento: e.target.value })}
-              />
-              <input
-                type="time"
-                value={formData.hora_evento}
-                onChange={(e) => setFormData({ ...formData, hora_evento: e.target.value })}
-              />
-              <input
-                type="text"
-                placeholder="Local"
-                value={formData.local_evento}
-                onChange={(e) => setFormData({ ...formData, local_evento: e.target.value })}
-              />
-              <textarea
-                rows="4"
-                placeholder="Descrição"
-                value={formData.descricao}
-                onChange={(e) => setFormData({ ...formData, descricao: e.target.value })}
-              />
-              <label htmlFor="evento-estado">Estado</label>
-              <select id="evento-estado" value={formData.estado} onChange={(e) => setFormData({ ...formData, estado: e.target.value })}>
-                <option>Agendado</option><option>Concluído</option><option>Cancelado</option>
-              </select>
-              <label htmlFor="evento-visibilidade">Visibilidade</label>
-              <select id="evento-visibilidade" value={formData.publico ? "publico" : "interno"} onChange={(e) => setFormData({ ...formData, publico: e.target.value === "publico" })}>
-                <option value="interno">Interno — apenas na gestão da Agenda</option>
-                <option value="publico">Público — divulgar no calendário do site</option>
-              </select>
-              <p>Eventos públicos agendados divulgam o título, descrição, data, hora e local.</p>
+              <h3><i className="ri-edit-box-line" aria-hidden="true" /> {editId ? "Editar atividade" : "Nova atividade"}</h3>
+              <div className="agenda-form-grid">
+                <label className="agenda-field-wide">Título<input type="text" maxLength={150} placeholder="Nome do culto ou atividade" value={formData.titulo} onChange={e => setFormData({...formData,titulo:e.target.value})} /></label>
+                <label>Data<input type="date" value={formData.data_evento} min={editId ? undefined : hoje} onChange={e => setFormData({...formData,data_evento:e.target.value})} /></label>
+                <label>Hora<input type="time" value={formData.hora_evento} onChange={e => setFormData({...formData,hora_evento:e.target.value})} /></label>
+                <label className="agenda-field-wide">Local<input type="text" placeholder="Local da atividade" value={formData.local_evento} onChange={e => setFormData({...formData,local_evento:e.target.value})} /></label>
+                <label className="agenda-field-wide">Descrição<textarea rows={3} value={formData.descricao} onChange={e => setFormData({...formData,descricao:e.target.value})} /></label>
+                <label>Estado<select value={formData.estado} onChange={e => setFormData({...formData,estado:e.target.value})}><option>Agendado</option><option>Concluído</option><option>Cancelado</option></select></label>
+                <label>Visibilidade<select value={formData.publico ? "publico" : "interno"} onChange={e => setFormData({...formData,publico:e.target.value === "publico"})}><option value="interno">Interno</option><option value="publico">Público</option></select></label>
+              </div>
+              <p className="agenda-visibility-note">Eventos públicos agendados divulgam o título, descrição, data, hora e local.</p>
             </div>
-
             <div className="crud-buttons">
-              <button className="btn-create" onClick={handleCreate}>Criar</button>
-              <button className="btn-edit" onClick={handleEdit}>Editar</button>
-              <button className="btn-delete" onClick={handleDelete}>Eliminar</button>
+              <button className="btn-create" onClick={handleCreate}><i className="ri-add-line" aria-hidden="true" /> Criar</button>
+              <button className="btn-edit" disabled={!editId} onClick={handleEdit}><i className="ri-pencil-line" aria-hidden="true" /> Guardar alteração</button>
+              <button className="btn-delete" disabled={!editId} onClick={handleDelete}><i className="ri-delete-bin-line" aria-hidden="true" /> Eliminar</button>
               <button className="btn-clear" onClick={clearForm}>Limpar</button>
             </div>
-          </>
+          </div>
         )}
       </section>
     </DashboardLayout>
