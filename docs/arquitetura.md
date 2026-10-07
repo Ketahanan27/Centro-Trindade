@@ -268,9 +268,32 @@ nova; se a resposta da base falhar, preserva-a para reconciliação. A limpeza d
 fotografia antiga não invalida uma atualização confirmada. Os serviços aceitam
 repositórios e armazenamento simulados para testar estes casos sem dados reais.
 
+## Backend: Secretaria — Visitantes, Apresentações e Reuniões/Atas
+
+Os três módulos estão em `backend/modules/secretaria`. Cada área tem um
+controlador de entrada com os nomes utilizados nas rotas. O fluxo comum está
+separado em `secretaria.controller.js` (respostas HTTP),
+`secretaria.service.js` (validação e registos ausentes) e
+`secretaria.repository.js` (consultas parametrizadas).
+
+`secretaria.model.js` define internamente os campos, as consultas de leitura,
+os validadores e os nomes apresentados nas respostas. Só estas três áreas são
+aceites: nomes de tabelas e colunas nunca vêm do pedido. A validação partilhada
+continua em `backend/utils/secretariaValidation.js`. A separação substitui o
+antigo `secretariaCrud.js`, que misturava HTTP, validação e SQL.
+
+As listagens preservam a ordenação existente e o formato de datas e horas das
+atas. As rotas mantêm os perfis autorizados e os limites de escrita. Os testes
+cobrem validação antes da persistência, conflitos, registos ausentes, ordenação,
+formatação e erros genéricos sem revelar detalhes internos.
+
+Documentos e contagens de visitantes por atividade ainda usam os controladores
+anteriores e serão organizados numa etapa própria.
+
 ## Continuação
 
 Continuar a organização do backend por módulo com controlador, regras e consultas
-separados onde a complexidade o justificar. Agenda, Tesouraria e Membros foram migrados no backend;
+separados onde a complexidade o justificar. Agenda, Tesouraria, Membros e os três
+módulos acima da Secretaria foram migrados no backend;
 os restantes módulos mantêm os controladores anteriores. As páginas públicas e de
 autenticação e a limpeza final do projeto continuam pendentes.

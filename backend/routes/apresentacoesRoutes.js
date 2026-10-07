@@ -5,7 +5,7 @@ import {
   createApresentacao,
   updateApresentacao,
   deleteApresentacao,
-} from "../controllers/apresentacoesController.js";
+} from "../modules/secretaria/apresentacoes.controller.js";
 
 import { verifyToken, permit } from "../middleware/auth.js";
 import { writeLimiter } from "../middleware/rateLimit.js";

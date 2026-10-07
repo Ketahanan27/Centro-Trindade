@@ -5,7 +5,7 @@ import {
   createVisitante,
   updateVisitante,
   deleteVisitante,
-} from "../controllers/visitantesController.js";
+} from "../modules/secretaria/visitantes.controller.js";
 
 import { verifyToken, permit } from "../middleware/auth.js";
 import { writeLimiter } from "../middleware/rateLimit.js";

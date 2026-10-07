@@ -5,7 +5,7 @@ import {
   createAta,
   updateAta,
   deleteAta,
-} from "../controllers/atasController.js";
+} from "../modules/secretaria/atas.controller.js";
 
 import { verifyToken, permit } from "../middleware/auth.js";
 import { writeLimiter } from "../middleware/rateLimit.js";
