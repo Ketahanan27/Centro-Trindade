@@ -1,0 +1,39 @@
+.documentos-container { display:flex; flex-direction:column; gap:24px; padding:0; min-width:0; }
+.documentos-container .documents-heading { display:flex; align-items:center; justify-content:space-between; flex-wrap:wrap; gap:12px; }
+.documentos-container .documents-heading h1 { margin:0; font-size:25px; color:#f5f5f5; }
+.documentos-container .documents-heading > span,.documentos-container .documents-register-heading > span { font-size:12px; color:#aaa; }
+.documentos-container .documents-selector,.documentos-container .form-card,.documentos-container .documents-register { background:#202020; border:1px solid #383838; border-radius:14px; padding:22px; }
+.documentos-container .documents-selector { display:flex; align-items:center; flex-wrap:wrap; gap:24px; }
+.documentos-container .documents-selector > .field { flex:1; min-width:240px; }
+.documentos-container .documents-selected-title { display:flex; align-items:center; gap:12px; flex:1; min-width:220px; }
+.documentos-container .documents-selected-title > i { display:grid; place-items:center; width:40px; height:40px; border-radius:10px; background:#0044ff20; color:#89a8ff; font-size:22px; flex-shrink:0; }
+.documentos-container .documents-selected-title h2 { font-size:16px; margin:0; color:#ddd; line-height:1.4; }
+.documentos-container .form-card h3 { margin:0 0 20px; font-size:16px; color:#eee; }
+.documentos-container .grid { grid-template-columns:repeat(2,minmax(0,1fr)); gap:20px 24px; }
+.documentos-container .field { min-width:0; gap:8px; }
+.documentos-container .field label { margin:0; color:#c6c6c6; font-size:12px; }
+.documentos-container .field input,.documentos-container .field select,.documentos-container .field textarea { box-sizing:border-box; width:100%; min-height:42px; font:inherit; font-size:14px; padding:10px 12px; background:#171717; border-color:#424242; color-scheme:dark; }
+.documentos-container .form-actions { margin-top:24px; padding-top:18px; border-top:1px solid #383838; justify-content:flex-end; }
+.documentos-container .save { width:auto; padding:10px 16px; min-height:38px; font-size:12px; }
+.documentos-container .save:disabled { opacity:.55; cursor:wait; }
+.documentos-container .documents-register-heading { display:flex; flex-wrap:wrap; justify-content:space-between; align-items:center; gap:12px; margin-bottom:20px; }
+.documentos-container .documents-register-heading h2 { margin:0; font-size:17px; color:#eee; }
+.documentos-container .table-wrapper { padding:0; border:1px solid #363636; border-radius:10px; background:transparent; overflow-x:auto; }
+.documentos-container .table-wrapper table { min-width:760px; table-layout:fixed; }
+.documentos-container .table-wrapper th { font-size:12px; padding:14px 16px; background:#171717; color:#a9a9a9; font-weight:600; }
+.documentos-container .table-wrapper td { padding:16px; font-size:13px; vertical-align:middle; overflow-wrap:anywhere; border-bottom:1px solid #353535; }
+.documentos-container .table-wrapper th:nth-child(1) { width:18%; }
+.documentos-container .table-wrapper th:nth-child(2) { width:27%; }
+.documentos-container .table-wrapper th:nth-child(3) { width:15%; }
+.documentos-container .table-wrapper th:nth-child(4) { width:15%; }
+.documentos-container .table-wrapper th:nth-child(5) { width:25%; }
+.documentos-container .table-wrapper tbody tr:last-child td { border-bottom:0; }
+.documentos-container .table-wrapper tbody tr:hover { background:#ffffff03; }
+.documentos-container .document-type { display:inline-block; padding:5px 8px; border-radius:6px; background:#0044ff18; color:#a8bfff; font-size:11px; }
+.documentos-container .document-row-actions { display:flex; flex-wrap:wrap; align-items:center; gap:8px; }
+.documentos-container .document-row-actions button { margin:0; padding:8px 10px; border-radius:7px; font-size:11px; background:#303030; color:#ddd; border:1px solid #555; cursor:pointer; }
+.documentos-container .document-row-actions .delete { background:#ef444412; border-color:#743535; color:#ff9696; }
+.documentos-container .document-row-actions button:hover { filter:brightness(1.2); }
+.documentos-container .empty-row { padding:32px 16px; text-align:center; color:#aaa; }
+.documentos-container :is(input,select,textarea,button):focus-visible { outline:2px solid #95b3ff; outline-offset:3px; }
+@media(max-width:768px) { .documentos-container .grid { grid-template-columns:1fr; } .documentos-container .field.full { grid-column:1; } .documentos-container .documents-selector,.documentos-container .form-card,.documentos-container .documents-register { padding:16px; } .documentos-container .documents-selector > .field,.documentos-container .documents-selected-title { min-width:0; flex-basis:100%; } }

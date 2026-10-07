@@ -7,6 +7,7 @@ import { toast } from "../../utils/toast.js";
 import { apiFetch } from "../../utils/api";
 import { useListaRemota, executarAcaoCrud } from "../../utils/useCrud";
 import "../../assets/styles/dashboard/documentos.css";
+import "../../assets/styles/dashboard/documentos-visual.css";
 
 function Documentos() {
   const { soLeitura } = usePerfil();
@@ -76,19 +77,22 @@ function Documentos() {
         </div>
       )}
 
+      <header className="documents-heading"><h1>Documentos</h1><span>{documentos.length} {documentos.length === 1 ? "documento emitido" : "documentos emitidos"}</span></header>
+      <div className="documents-selector">
       <div className="field">
-        <label>Tipo de Documento</label>
-        <select value={tipoDocumento} onChange={(e) => setTipoDocumento(e.target.value)}>
+        <label htmlFor="documento-tipo">Tipo de documento</label>
+        <select id="documento-tipo" value={tipoDocumento} onChange={(e) => setTipoDocumento(e.target.value)}>
           <option value="Batismo">Declaração de Batismo</option>
           <option value="Membro">Declaração de Membro</option>
           <option value="Recomendacao">Carta de Recomendação</option>
         </select>
       </div>
-      <br />
-      <div className="page-header"><h1>{TITULOS_DOCUMENTO[tipoDocumento]}</h1></div>
+      <div className="documents-selected-title"><i className="ri-file-text-line" aria-hidden="true" /><h2>{TITULOS_DOCUMENTO[tipoDocumento]}</h2></div>
+      </div>
 
       {!soLeitura && (
         <div className="form-card">
+          <h3>Dados para emissão</h3>
           <div className="grid">
             <div className="field">
               <label>Nome Completo</label>
@@ -149,15 +153,16 @@ function Documentos() {
             <button className="save" onClick={gerarPDF} disabled={emitindo}>{emitindo ? "A emitir..." : "Gerar PDF"}</button>
           </div>
 
-          <br /><br />
 
         </div>
       )}
 
+          <section className="documents-register" aria-labelledby="documents-register-title">
+            <div className="documents-register-heading"><h2 id="documents-register-title">Documentos emitidos</h2><span>{documentos.length} registos</span></div>
           <div className="table-wrapper">
             <table>
               <thead>
-                <tr><th>Tipo</th><th>Nome</th><th>BI</th><th>Data</th><th>Ações</th></tr>
+                <tr><th>Tipo</th><th>Nome</th><th>BI</th><th>Emissão</th><th>Ações</th></tr>
               </thead>
               <tbody>
                 {documentos.length === 0 ? (
@@ -165,20 +170,21 @@ function Documentos() {
                 ) : (
                   documentos.map((doc) => (
                     <tr key={doc.id}>
-                      <td>{doc.tipo}</td>
+                      <td><span className="document-type">{doc.tipo === "Recomendacao" ? "Recomendação" : doc.tipo}</span></td>
                       <td>{doc.nome_completo}</td>
                       <td>{doc.bi}</td>
                       <td>{formatarData(doc.data_emissao)}</td>
-                      <td>
+                      <td><div className="document-row-actions">
                         <button className="edit" onClick={() => reimprimir(doc)}>Reimprimir</button>
                         {!soLeitura && <button className="delete" onClick={() => eliminarDocumento(doc.id)}>Eliminar</button>}
-                      </td>
+                      </div></td>
                     </tr>
                   ))
                 )}
               </tbody>
             </table>
           </div>
+          </section>
 
     </div>
   );
