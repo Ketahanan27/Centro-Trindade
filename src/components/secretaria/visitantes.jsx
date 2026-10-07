@@ -1,4 +1,5 @@
 import { useState } from "react";
+import "../../assets/styles/dashboard/secretaria-visual.css";
 import { usePerfil } from "../../routes/PerfilContext";
 import { toast } from "../../utils/toast";
 import { apiFetch } from "../../utils/api";
@@ -104,7 +105,7 @@ function Visitantes() {
   const mostrarAcoes = !soLeitura;
 
   return (
-    <div className="visitors-container">
+    <div className="visitors-container secretaria-managed">
 
       {soLeitura && (
         <div className="banner-leitura">
@@ -114,10 +115,11 @@ function Visitantes() {
       )}
 
       <div className="page-header">
-        <h1>Visitantes</h1>
+        <h1>Acompanhamento de visitantes</h1>
         {!soLeitura && <button onClick={() => { clearForm(); setShowModal(true); }}>Novo Visitante</button>}
       </div>
 
+      <div className="secretaria-toolbar">
       <div className="search-box">
         <input
           type="text"
@@ -134,6 +136,8 @@ function Visitantes() {
           <option>Em acompanhamento</option>
           <option>Tornou-se membro</option>
         </select>
+      </div>
+
       </div>
 
       <div className="stats-grid">
@@ -158,7 +162,7 @@ function Visitantes() {
           <tbody>
             {visitantesFiltrados.length === 0 ? (
               <tr>
-                <td colSpan="6" className="empty-row">
+                <td colSpan={mostrarAcoes ? 6 : 5} className="empty-row">
                   {visitantes.length === 0 ? "Nenhum visitante registado." : "Nenhum resultado para o filtro aplicado."}
                 </td>
               </tr>
@@ -169,16 +173,16 @@ function Visitantes() {
                   <td>{v.telefone}</td>
                   <td>{v.email}</td>
                   <td>{new Date(v.data_visita).toLocaleDateString("pt-PT")}</td>
-                  <td><span className="status">{v.estado}</span></td>
+                  <td><span className={`status ${v.estado === "Tornou-se membro" ? "membro" : v.estado === "Em acompanhamento" ? "acompanhamento" : "visitante"}`}>{v.estado}</span></td>
                   {mostrarAcoes && (
-                    <td className="actions">
-                      <button className="edit" onClick={() => handleSelectVisitor(v)}>
+                    <td><div className="secretaria-row-actions">
+                      <button className="edit" aria-label={`Editar ${v.nome}`} title="Editar" onClick={() => handleSelectVisitor(v)}>
                         <i className="ri-pencil-line"></i>
                       </button>
-                      <button className="delete" onClick={() => handleDelete(v.id)}>
+                      <button className="delete" aria-label={`Eliminar ${v.nome}`} title="Eliminar" onClick={() => handleDelete(v.id)}>
                         <i className="ri-delete-bin-line"></i>
                       </button>
-                    </td>
+                    </div></td>
                   )}
                 </tr>
               ))
@@ -189,10 +193,10 @@ function Visitantes() {
 
       {showModal && (
         <div className="modal active">
-          <div className="modal-content">
+          <div className="modal-content" role="dialog" aria-modal="true" aria-label="Formulário de registo">
             <div className="modal-header">
               <h2>{editId ? "Editar Visitante" : "Novo Visitante"}</h2>
-              <button onClick={() => setShowModal(false)}><i className="ri-close-line"></i></button>
+              <button aria-label="Fechar" onClick={() => setShowModal(false)}><i className="ri-close-line"></i></button>
             </div>
             <div className="grid">
               <div className="field">

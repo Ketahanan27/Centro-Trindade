@@ -1,4 +1,5 @@
 import { useState } from "react";
+import "../../assets/styles/dashboard/secretaria-visual.css";
 import { usePerfil } from "../../routes/PerfilContext";
 import { toast } from "../../utils/toast";
 import { apiFetch } from "../../utils/api";
@@ -84,7 +85,7 @@ function Apresentacoes() {
   };
 
   return (
-    <div className="apresentacoes-container">
+    <div className="apresentacoes-container secretaria-managed">
 
       {soLeitura && (
         <div className="banner-leitura">
@@ -102,6 +103,7 @@ function Apresentacoes() {
         )}
       </div>
 
+      <div className="secretaria-toolbar">
       <div className="search-box">
         <input
           type="text"
@@ -116,6 +118,8 @@ function Apresentacoes() {
           <option>Todos</option>
           {anosDisponiveis.map((ano) => <option key={ano}>{ano}</option>)}
         </select>
+      </div>
+
       </div>
 
       <div className="stats-grid">
@@ -141,18 +145,18 @@ function Apresentacoes() {
                   <td>{new Date(item.data_apresentacao).toLocaleDateString("pt-PT")}</td>
                   <td><span className="quantity-badge">{item.quantidade}</span></td>
                   <td className="obs-cell">{item.observacoes}</td>
-                  <td className="actions">
+                  <td><div className="secretaria-row-actions">
                     {!soLeitura && (
                       <>
-                        <button className="edit" onClick={() => handleSelect(item)}>
+                        <button className="edit" aria-label="Editar registo" title="Editar" onClick={() => handleSelect(item)}>
                           <i className="ri-pencil-line"></i>
                         </button>
-                        <button className="delete" onClick={() => handleDelete(item.id)}>
+                        <button className="delete" aria-label="Eliminar registo" title="Eliminar" onClick={() => handleDelete(item.id)}>
                           <i className="ri-delete-bin-line"></i>
                         </button>
                       </>
                     )}
-                  </td>
+                  </div></td>
                 </tr>
               ))
             )}
@@ -162,10 +166,10 @@ function Apresentacoes() {
 
       {showModal && (
         <div className="modal active">
-          <div className="modal-content">
+          <div className="modal-content" role="dialog" aria-modal="true" aria-label="Formulário de registo">
             <div className="modal-header">
               <h2>{editId ? "Editar Apresentação" : "Nova Apresentação"}</h2>
-              <button onClick={() => setShowModal(false)}><i className="ri-close-line"></i></button>
+              <button aria-label="Fechar" onClick={() => setShowModal(false)}><i className="ri-close-line"></i></button>
             </div>
             <div className="grid">
               <div className="field">

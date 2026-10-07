@@ -1,4 +1,5 @@
 import { useState } from "react";
+import "../../assets/styles/dashboard/secretaria-visual.css";
 import { criarAtaPDF } from "../../utils/exportacoesPdf.js";
 import { usePerfil } from "../../routes/PerfilContext";
 import { toast } from "../../utils/toast";
@@ -138,7 +139,7 @@ function Atas() {
   );
 
   return (
-    <div className="secretaria-container">
+    <div className="secretaria-container secretaria-managed">
 
       {soLeitura && (
         <div className="banner-leitura">
@@ -159,6 +160,7 @@ function Atas() {
           </div>
         )}
       </div>
+      <div className="secretaria-toolbar">
       <div className="search-box">
         <input
           type="text"
@@ -166,6 +168,8 @@ function Atas() {
           value={search}
           onChange={(e) => setSearch(e.target.value)}
         />
+      </div>
+
       </div>
 
       <div className="meeting-counter">
@@ -200,22 +204,22 @@ function Atas() {
                   <td>{new Date(r.data).toLocaleDateString("pt-PT")}</td>
                   <td>{r.hora}</td>
                   <td>{r.local}</td>
-                  <td className="actions">
-                    <button className="view" onClick={() => handleView(r)}>
+                  <td><div className="secretaria-row-actions">
+                    <button className="view" aria-label="Consultar ata" title="Consultar ata" onClick={() => handleView(r)}>
                       <i className="ri-eye-line"></i>
                     </button>
 
                     {!soLeitura && (
                       <>
-                        <button className="edit" onClick={() => handleEdit(r)}>
+                        <button className="edit" aria-label="Editar registo" title="Editar" onClick={() => handleEdit(r)}>
                           <i className="ri-pencil-line"></i>
                         </button>
-                        <button className="delete" onClick={() => handleDelete(r.id)}>
+                        <button className="delete" aria-label="Eliminar registo" title="Eliminar" onClick={() => handleDelete(r.id)}>
                           <i className="ri-delete-bin-line"></i>
                         </button>
                       </>
                     )}
-                  </td>
+                  </div></td>
                 </tr>
               ))
             )}
@@ -225,10 +229,10 @@ function Atas() {
 
       {showModal && (
         <div className="modal active">
-          <div className="modal-content">
+          <div className="modal-content" role="dialog" aria-modal="true" aria-label="Formulário de registo">
             <div className="modal-header">
               <h2>{editId !== null ? "Editar Reunião" : "Registar Reunião"}</h2>
-              <button onClick={() => { resetForm(); setShowModal(false); }}>
+              <button aria-label="Fechar" onClick={() => { resetForm(); setShowModal(false); }}>
                 <i className="ri-close-line"></i>
               </button>
             </div>
@@ -287,10 +291,10 @@ function Atas() {
 
       {showDetails && selectedMeeting && (
         <div className="modal active">
-          <div className="modal-content print-region">
+          <div className="modal-content print-region" role="dialog" aria-modal="true" aria-label="Detalhes da ata">
             <div className="modal-header">
               <h2>Detalhes</h2>
-              <button onClick={() => setShowDetails(false)}>
+              <button aria-label="Fechar detalhes" onClick={() => setShowDetails(false)}>
                 <i className="ri-close-line"></i>
               </button>
             </div>
