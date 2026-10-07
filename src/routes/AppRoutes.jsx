@@ -17,7 +17,7 @@ import Membros from "../features/membros/MembrosPage";
 import Agenda from "../features/agenda/AgendaPage";
 import Tesouraria from "../features/tesouraria/TesourariaPage";
 import Relatorios from "../pages/dashboard/relatorios";
-import Secretaria from "../pages/dashboard/secretaria";
+import Secretaria from "../features/secretaria/SecretariaPage";
 import Utilizadores from "../pages/dashboard/utilizadores";
 import MinhaArea from "../pages/dashboard/MinhaArea";
 

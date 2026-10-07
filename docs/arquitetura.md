@@ -1,8 +1,8 @@
 # Organização do projeto
 
 O frontend está a ser organizado por funcionalidades. Membros é o primeiro
-módulo migrado, seguido da Agenda e da Tesouraria; os restantes continuam nas pastas anteriores
-até à sua migração.
+módulo migrado, seguido da Agenda, Tesouraria e Secretaria. Os restantes continuam
+nas pastas anteriores até à sua migração.
 
 ## Membros: responsabilidades
 
@@ -75,6 +75,37 @@ diário usa a data do formulário. Os documentos continuam a usar o gerador ofic
 partilhado em `src/utils/exportacoesPdf.js`. Alterações e eliminações mantêm os
 motivos de auditoria e a autorização do backend; a página preserva o modo de
 leitura anterior, que apresenta apenas o resumo financeiro.
+
+## Secretaria: responsabilidades
+
+O módulo está em `src/features/secretaria`. `SecretariaPage.jsx` define as cinco
+abas e monta apenas a área selecionada. Cada área tem a sua vista em `components`,
+o seu hook em `hooks` e as regras independentes da interface em `models`:
+
+| Área | Vista | Gestão dos dados |
+| --- | --- | --- |
+| Contagens por atividade | `VisitasAtividade.jsx` | `useVisitasAtividade.js` |
+| Acompanhamento individual | `Visitantes.jsx` | `useVisitantes.js` |
+| Emissão e consulta de documentos | `Documentos.jsx` | `useDocumentos.js` |
+| Apresentações | `Apresentacoes.jsx` | `useApresentacoes.js` |
+| Reuniões e atas | `Atas.jsx` | `useAtas.js` |
+
+`secretaria.api.js` centraliza os endpoints e pedidos autenticados. As consultas
+simples continuam a usar o hook partilhado `useListaRemota`; as contagens mantêm
+a paginação do servidor, filtros e opção de exportação de todo o período.
+Os modelos preparam formulários, filtros, ligações à Agenda e o snapshot para
+emissão documental. Não dependem de React nem da base de dados.
+
+`secretaria.module.css` reúne os estilos locais das cinco áreas e da navegação,
+preservando a ordem das regras anteriores. As classes partilhadas de tabelas,
+formulários e modais já não interferem com outras páginas. Foram retiradas regras
+da antiga aba de relatórios e da impressão pelo browser, substituída pelos PDFs.
+
+Os documentos continuam a usar `emitirDocumentoPDF`: validar, preparar o PDF,
+guardar o snapshot no servidor e só então disponibilizar o ficheiro. A reimpressão
+usa o registo guardado, mantendo a identidade e data originais. As atas e contagens
+usam os geradores oficiais existentes. Os hooks preservam as permissões de leitura
+e escrita na interface; a autorização efetiva continua no backend.
 
 ## Convenções para os próximos módulos
 
