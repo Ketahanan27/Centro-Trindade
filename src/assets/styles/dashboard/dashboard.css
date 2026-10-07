@@ -24,8 +24,10 @@
 }
 
 .sidebar {
-  position: sticky;
+  position: fixed;
   top: 0;
+  left: 0;
+  z-index: 50;
   align-self: flex-start;
   height: 100vh;
   height: 100dvh;
@@ -116,6 +118,8 @@
 
 .content {
   flex: 1;
+  min-width: 0;
+  margin-left: 280px;
   padding: 30px;
   overflow-x: hidden;
 }
@@ -466,9 +470,11 @@
   }
 
   .sidebar {
-    position: static;
+    position: sticky;
     height: auto;
-    overflow-y: visible;
+    max-height: 45vh;
+    max-height: 45dvh;
+    overflow-y: auto;
     width: 100%;
     flex-direction: column;
     flex-wrap: nowrap;
@@ -521,6 +527,7 @@
   }
 
   .content {
+    margin-left: 0;
     padding: 20px;
   }
 }
