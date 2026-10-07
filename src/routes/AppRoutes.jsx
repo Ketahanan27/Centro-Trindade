@@ -12,11 +12,11 @@ import Registo from "../pages/registro";
 import PoliticaPrivacidade from "../pages/politicaprivacidade";
 import TermosCondicoes from "../pages/termoscondicoes";
 
-import Dashboard from "../pages/dashboard/dashboard";
+import Dashboard from "../features/dashboard/DashboardPage";
 import Membros from "../features/membros/MembrosPage";
 import Agenda from "../features/agenda/AgendaPage";
 import Tesouraria from "../features/tesouraria/TesourariaPage";
-import Relatorios from "../pages/dashboard/relatorios";
+import Relatorios from "../features/relatorios/RelatoriosPage";
 import Secretaria from "../features/secretaria/SecretariaPage";
 import Utilizadores from "../features/utilizadores/UtilizadoresPage";
 import MinhaArea from "../features/minha-area/MinhaAreaPage";

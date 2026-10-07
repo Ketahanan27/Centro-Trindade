@@ -2,7 +2,8 @@
 
 O frontend está a ser organizado por funcionalidades. Membros é o primeiro
 módulo migrado, seguido da Agenda, Tesouraria, Secretaria, Utilizadores e Minha
-Área. Os restantes continuam nas pastas anteriores até à sua migração.
+Área, Dashboard e Relatórios. As páginas internas estão organizadas por módulo;
+as páginas públicas e de autenticação continuam na estrutura anterior.
 
 ## Membros: responsabilidades
 
@@ -141,6 +142,39 @@ e o envio multipart. As pré-visualizações libertam os seus URLs ao mudar ou s
 `minha-area.module.css` isola os estilos e a animação de carregamento. Foram
 retirados os controlos de edição que nunca eram apresentados e estilos de
 elementos substituídos nas duas páginas.
+
+## Dashboard: responsabilidades
+
+O módulo está em `src/features/dashboard`. `DashboardPage.jsx` compõe a visão
+geral e conserva as condições de acesso devolvidas pelo servidor.
+`useDashboard` gere consulta, carregamento, erro e nova tentativa;
+`dashboard.api.js` consulta os indicadores agregados.
+
+Os componentes apresentam indicadores, contagens por atividade, distribuição
+dos visitantes, resumo financeiro, gráfico mensal, próximos eventos e pendências.
+`dashboard.model.js` prepara as séries financeiras, a distribuição por estado,
+formatação monetária e rótulos. O gráfico financeiro mantém uma tabela acessível
+com os mesmos valores. Meses sem movimentos aparecem com zero e meses futuros
+não são incluídos. Os estilos ficam em `dashboard.module.css`.
+
+As permissões e os cálculos financeiros oficiais continuam no backend. O módulo
+apenas prepara os valores recebidos para apresentação e não consulta dados de
+membros ou movimentos individuais para calcular indicadores no navegador.
+
+## Relatórios: responsabilidades
+
+O módulo está em `src/features/relatorios`. `RelatoriosPage.jsx` compõe filtros,
+erros e resumo. `RelatorioFiltros` apresenta períodos, observações e botões;
+`RelatorioResumo` apresenta as secções autorizadas recebidas do servidor.
+`useRelatorios` gere os filtros e a consulta ou exportação, enquanto
+`relatorios.api.js` constrói o pedido global autenticado.
+
+`relatorios.model.js` calcula os períodos de mês, trimestre e ano pela data de
+Lisboa e constrói o nome do documento a partir do período devolvido. A alteração
+dos filtros limpa o resumo anterior. Cada exportação faz uma nova consulta e usa
+o gerador oficial partilhado `relatorioGlobalPdf`, incluindo as observações.
+`relatorios.module.css` isola os estilos. A abrangência, autorização e snapshot
+consistente das operações continuam definidos no backend.
 
 ## Convenções para os próximos módulos
 
