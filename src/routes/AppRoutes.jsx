@@ -14,7 +14,7 @@ import TermosCondicoes from "../pages/termoscondicoes";
 
 import Dashboard from "../pages/dashboard/dashboard";
 import Membros from "../features/membros/MembrosPage";
-import Agenda from "../pages/dashboard/agenda";
+import Agenda from "../features/agenda/AgendaPage";
 import Tesouraria from "../pages/dashboard/tesouraria";
 import Relatorios from "../pages/dashboard/relatorios";
 import Secretaria from "../pages/dashboard/secretaria";

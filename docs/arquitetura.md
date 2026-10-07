@@ -1,7 +1,8 @@
 # Organização do projeto
 
 O frontend está a ser organizado por funcionalidades. Membros é o primeiro
-módulo migrado; os restantes continuam nas pastas anteriores até à sua migração.
+módulo migrado, seguido da Agenda; os restantes continuam nas pastas anteriores
+até à sua migração.
 
 ## Membros: responsabilidades
 
@@ -30,6 +31,26 @@ As permissões no frontend apenas orientam a interface. A autorização continua
 no backend. A associação de contas só é enviada por administradores e é omitida
 quando a consulta de contas falha; assim, uma falha de carregamento não desfaz
 uma associação existente.
+
+## Agenda: responsabilidades
+
+O módulo está em `src/features/agenda`:
+
+| Ficheiro | Responsabilidade |
+| --- | --- |
+| `AgendaPage.jsx` | Compor a página e aplicar o modo de leitura |
+| `hooks/useAgenda.js` | Gerir mês, seleção, formulário e ações |
+| `agenda.api.js` | Consultar a agenda interna e enviar alterações |
+| `agenda.model.js` | Construir dias, filtrar eventos e preparar formulários |
+| `components/AgendaCalendario.jsx` | Apresentar o calendário e a seleção |
+| `components/EventosLista.jsx` | Apresentar atividades, estados e visibilidade |
+| `components/EventoFormulario.jsx` | Apresentar os campos e botões de edição |
+| `agenda.module.css` | Isolar os estilos da agenda interna |
+
+Mudar de mês ou selecionar outra data limpa a edição anterior, evitando guardar
+um evento com dados de outra seleção. Os dias usam a data local e respeitam anos
+bissextos. O calendário público continua separado em `src/pages/calendario.jsx`,
+sem controlos de navegação. As permissões continuam verificadas no backend.
 
 ## Convenções para os próximos módulos
 
