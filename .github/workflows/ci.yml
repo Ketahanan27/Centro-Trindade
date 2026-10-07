@@ -1,0 +1,40 @@
+name: Verificacao do projeto
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ci-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  verificar:
+    name: Lint, testes e compilacao
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    env:
+      DATABASE_URL: postgresql://test:test@127.0.0.1:1/test
+      JWT_SECRET: ci-isolated-secret-never-used-in-production
+      EMAIL_USER: ""
+      EMAIL_PASS: ""
+      EMAIL_DESTINO: ""
+      BLOB_READ_WRITE_TOKEN: ""
+      BLOB_PRIVATE_READ_WRITE_TOKEN: ""
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@v7
+        with:
+          node-version: '24'
+          package-manager-cache: false
+      - name: Instalar dependencias do lockfile
+        run: npm ci
+      - name: Verificar projeto
+        run: npm run check:ci

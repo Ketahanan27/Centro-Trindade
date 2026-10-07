@@ -102,3 +102,11 @@ Verificações: nove testes de validação, 19 de segurança e oito de convites;
 A aplicação gera um URL novo por upload; não reutilizar URLs antigos em operações manuais de associação ou migração durante a limpeza. A reconciliação não constitui uma transação entre PostgreSQL e Blob. Ficheiros locais, o Blob público anterior e objetos com nomes desconhecidos exigem revisão própria.
 
 O comando ainda não tem execução agendada: nenhuma eliminação automática recorrente foi ativada. A análise de 6 de outubro de 2026 encontrou quatro objetos, todos referenciados, sem candidatos; nenhum foi eliminado. Retenção de fotografias de membros ativos/inativos e backups continua a exigir uma política própria.
+
+## Verificação automática no GitHub
+
+O workflow .github/workflows/ci.yml executa npm ci e npm run check:ci em envios para main, pull requests e execução manual. O comando encadeia lint global, todos os testes isolados, compilação de produção e verificação serverless; interrompe na primeira falha.
+
+Usa Node 24, runner Ubuntu e credenciais fictícias/vazias. Não executa test:postgres, migrações, limpeza de fotografias ou operações na base real. O workflow só tem permissão de leitura do repositório e não persiste credenciais no checkout.
+
+Consultar o resultado no separador Actions do GitHub. Esta verificação não bloqueia automaticamente merges nem a publicação independente da Vercel: configurar um required status check e uma regra de publicação exige uma decisão própria. A validação local não comprova execução remota; confirmar a primeira execução no GitHub.

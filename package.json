@@ -27,7 +27,9 @@
     "preview": "vite preview",
     "test:contact": "node --test backend/tests/contacto.test.js",
     "photos:reconcile": "node backend/scripts/reconcile_photos.js",
-    "test:photo-cleanup": "node --test backend/tests/photo-reconciliation.test.js"
+    "test:photo-cleanup": "node --test backend/tests/photo-reconciliation.test.js",
+    "test:unit": "node --test --test-reporter=dot backend/tests/*.test.js",
+    "check:ci": "npm run lint && npm run test:unit && npm run build:vercel && npm run test:vercel"
   },
   "dependencies": {
     "@vercel/blob": "^2.8.0",

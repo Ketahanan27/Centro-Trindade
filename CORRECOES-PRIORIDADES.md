@@ -147,3 +147,10 @@ Verificação da Tesouraria: db:prepare executado com sucesso na base configurad
 - Listas CRUD e carregamento técnico do dashboard ignoram respostas após desmontagem ou substituição da consulta. Design do dashboard preservado para a atualização posterior.
 - Import do logótipo sem uso e valor ultimosMembros sem uso removidos. Restantes estilos locais preservados.
 - Lint global, 108 testes isolados, compilação de produção e teste serverless passaram. Nenhum dado real alterado nem email enviado. Testes completos de interação no navegador e pipeline CI continuam pendentes.
+
+### Verificação automática — 7 de outubro de 2026
+
+- Workflow GitHub Actions em push main, pull_request e workflow_dispatch; Node 24, npm ci e sequência check:ci que interrompe na primeira falha.
+- Inclui lint, 108 testes isolados, compilação de produção e verificação serverless. Sem segredos de produção, migrações, test:postgres ou limpeza de fotos.
+- Permissão contents:read, sem persistir credenciais de checkout, limite de 15 minutos e cancelamento de execuções antigas da mesma referência.
+- Regras de bloqueio de merge/publicação e teste de recuperação de backups continuam pendentes; não foram alteradas configurações da Vercel ou políticas do repositório.
