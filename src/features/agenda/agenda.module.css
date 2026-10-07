@@ -57,7 +57,7 @@
   font-size: 12px;
   padding: 0 12px;
 }
-.agenda-container .calendar-header button: hover {
+.agenda-container .calendar-header button:hover {
   background: #0044ff;
   border-color: #0044ff;
 }
@@ -85,7 +85,7 @@
 .agenda-container .empty-day {
   height: 68px;
 }
-.agenda-container .day: hover {
+.agenda-container .day:hover {
   background: #303647;
   border-color: #5b79cf;
 }
@@ -101,13 +101,13 @@
   border-color: #668fff;
   box-shadow: 0 0 0 1px #668fff;
 }
-.agenda-container .day.has-event: :after {
+.agenda-container .day.has-event::after {
   width: 5px;
   height: 5px;
   bottom: 9px;
   background: #79bfff;
 }
-.agenda-container .day.selected.has-event: :after {
+.agenda-container .day.selected.has-event::after {
   background: white;
 }
 .agenda-container .events-box h2 {
@@ -163,7 +163,7 @@
   line-height: 1.4;
   overflow-wrap: anywhere;
 }
-.agenda-container .event-item: hover {
+.agenda-container .event-item:hover {
   background: #2c2f37;
   border-color: #62749e;
 }
@@ -194,7 +194,7 @@
   background: #333;
   color: #ccc;
 }
-.agenda-container .agenda-status: :before {
+.agenda-container .agenda-status::before {
   content: "";
   width: 5px;
   height: 5px;
@@ -288,12 +288,12 @@
   border-color: #763636;
   color: #ff9696;
 }
-.agenda-container .crud-buttons button: disabled {
+.agenda-container .crud-buttons button:disabled {
   opacity: .4;
   cursor: default;
   transform: none;
 }
-.agenda-container button: focus-visible {
+.agenda-container button:focus-visible {
   outline: 2px solid #99b7ff;
   outline-offset: 3px;
 }
@@ -321,7 +321,7 @@
   .agenda-container .day,.agenda-container .empty-day {
     height: 44px;
   }
-  .agenda-container .day.has-event: :after {
+  .agenda-container .day.has-event::after {
     bottom: 5px;
   }
   .agenda-container .agenda-form-grid {
@@ -368,7 +368,7 @@
   justify-content: center;
   cursor: pointer;
 }
-.agenda-container .day.has-event: :after {
+.agenda-container .day.has-event::after {
   content: "";
   position: absolute;
   border-radius: 50%;
@@ -393,7 +393,7 @@
   color: white;
   font: inherit;
 }
-.agenda-container .event-form input: focus,.agenda-container .event-form textarea: focus,.agenda-container .event-form select: focus {
+.agenda-container .event-form input:focus,.agenda-container .event-form textarea:focus,.agenda-container .event-form select:focus {
   outline: 2px solid #99b7ff;
   outline-offset: 2px;
 }
