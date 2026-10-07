@@ -247,9 +247,30 @@ As rotas e autorizações permanecem em `backend/routes/tesourariaRoutes.js`.
 Os testes usam ligações e consultas simuladas, cobrindo confirmação conjunta,
 rollback, libertação da ligação, validação e consultas.
 
+## Backend: Membros e fotografias
+
+O módulo está em `backend/modules/membros`. `membros.controller.js` trata as
+respostas HTTP; `membros.service.js` valida os dados e gere as associações às
+contas. `membros.repository.js` reúne as consultas parametrizadas e
+`membros.model.js` prepara os parâmetros e os dados com URLs protegidos.
+As fotografias têm controlador e serviço próprios, com armazenamento partilhado
+em `backend/config/photoStorage.js`.
+
+A associação exige administrador e conta ativa disponível. Uma associação
+existente pode ser preservada mesmo que a conta esteja inativa. Omitir o campo
+na edição mantém a ligação; enviá-lo vazio permite ao administrador desligá-la.
+A Minha Área consulta e altera exclusivamente o membro associado à sessão.
+
+O endpoint de fotografias verifica a associação ou o perfil autorizado no SQL e
+responde sem cache. O carregamento confirma a associação antes de guardar o
+ficheiro. Se o UPDATE confirmar que o membro já não existe, remove a fotografia
+nova; se a resposta da base falhar, preserva-a para reconciliação. A limpeza da
+fotografia antiga não invalida uma atualização confirmada. Os serviços aceitam
+repositórios e armazenamento simulados para testar estes casos sem dados reais.
+
 ## Continuação
 
 Continuar a organização do backend por módulo com controlador, regras e consultas
-separados onde a complexidade o justificar. Agenda e Tesouraria foram migradas no backend;
+separados onde a complexidade o justificar. Agenda, Tesouraria e Membros foram migrados no backend;
 os restantes módulos mantêm os controladores anteriores. As páginas públicas e de
 autenticação e a limpeza final do projeto continuam pendentes.

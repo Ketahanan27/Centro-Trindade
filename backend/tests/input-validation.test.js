@@ -3,7 +3,7 @@ import { after, afterEach, test } from 'node:test';
 import { validarMembro, validarUtilizador, emailNormalizado, validarId } from '../utils/inputValidation.js';
 process.env.DATABASE_URL = 'postgresql://test:test@127.0.0.1:1/test';
 const { pool } = await import('../config/db.js');
-const members = await import('../controllers/membroController.js');
+const members = await import('../modules/membros/membros.controller.js');
 const auth = await import('../controllers/authController.js');
 const { criarContaConvite } = await import('../controllers/convitesController.js');
 const original = pool.query;

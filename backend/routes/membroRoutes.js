@@ -1,5 +1,5 @@
 import express from "express";
-import { getMembroFoto } from "../controllers/membroFotoController.js";
+import { getMembroFoto } from "../modules/membros/membros-fotos.controller.js";
 import multer from "multer";
 import { detectImage } from "../config/photoStorage.js";
 
@@ -11,7 +11,7 @@ import {
   deleteMember,
   getMembroMe,
   uploadMembroFoto,
-} from "../controllers/membroController.js";
+} from "../modules/membros/membros.controller.js";
 
 import { verifyToken, permit } from "../middleware/auth.js";
 import { writeLimiter } from "../middleware/rateLimit.js";

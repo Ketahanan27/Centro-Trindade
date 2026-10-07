@@ -9,7 +9,7 @@ process.env.BLOB_READ_WRITE_TOKEN = '';
 const { pool } = await import('../config/db.js');
 const { verifyToken, permit } = await import('../middleware/auth.js');
 const auth = await import('../controllers/authController.js');
-const members = await import('../controllers/membroController.js');
+const members = await import('../modules/membros/membros.controller.js');
 const donations = await import('../controllers/donateController.js');
 
 const originalQuery = pool.query;
