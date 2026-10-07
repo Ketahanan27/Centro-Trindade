@@ -309,10 +309,31 @@ recusar períodos acima do limite de 5000 sem entregar um relatório truncado.
 As respostas mantêm os campos existentes e a listagem de contagens não permite
 cache. Rotas, permissões e geração dos PDFs permanecem preservadas.
 
+## Backend: Dashboard e Relatórios
+
+Dashboard está em `backend/modules/dashboard`, com controlador HTTP, serviço
+dos indicadores, modelo do período de Lisboa e repositório das consultas.
+O serviço só solicita os agregados autorizados para o perfil. Mantém os valores
+financeiros formatados, os totais de visitantes e a seleção de eventos públicos
+para perfis sem acesso administrativo. O período pode ser substituído em testes.
+
+Relatórios está em `backend/modules/relatorios`. O relatório anual tem serviço
+e repositório próprios, preservando a distinção entre estado atual e dados do
+ano selecionado. A autorização e a validação do ano precedem as consultas;
+Secretaria não consulta nem recebe valores financeiros.
+
+O relatório global tem controlador, serviço, modelo e repositório próprios.
+O modelo valida período, formato e abrangência. O serviço seleciona as secções,
+aplica o limite combinado de 5000 detalhes e prepara os dados usados pelo PDF.
+O repositório concentra o SQL e gere a transação `REPEATABLE READ READ ONLY`:
+confirma só depois de todas as secções, faz rollback em erro e liberta sempre a
+ligação. O relógio e a leitura podem ser substituídos em testes isolados.
+Os controladores mantêm as respostas e os cabeçalhos de cache existentes.
+
 ## Continuação
 
 Continuar a organização do backend por módulo com controlador, regras e consultas
-separados onde a complexidade o justificar. Agenda, Tesouraria, Membros e os três
-módulos da Secretaria foram migrados no backend;
+separados onde a complexidade o justificar. Agenda, Tesouraria, Membros e os
+módulos da Secretaria, Dashboard e Relatórios foram migrados no backend;
 os restantes módulos mantêm os controladores anteriores. As páginas públicas e de
 autenticação e a limpeza final do projeto continuam pendentes.

@@ -3,7 +3,7 @@ import { test, after, afterEach } from 'node:test';
 import { criarRelatorioGlobalPDF } from '../../src/utils/relatorioGlobalPdf.js';
 process.env.DATABASE_URL = 'postgresql://test:test@127.0.0.1:1/test';
 const { pool } = await import('../config/db.js');
-const { getRelatorioGlobal } = await import('../controllers/relatorioGlobalController.js');
+const { getRelatorioGlobal } = await import('../modules/relatorios/relatorio-global.controller.js');
 const original = pool.connect;
 afterEach(() => { pool.connect = async () => assert.fail('Unexpected database access'); });
 after(async () => { pool.connect = original; await pool.end(); });
@@ -61,6 +61,49 @@ test('database failure rolls back and releases the snapshot without partial data
   pool.connect=async()=>({query:async sql=>{calls.push(sql);if(/FROM/.test(sql))throw new Error('Connection lost');return {rows:[]};},release(){released=true;}});
   const result=await invoke('Administrador');assert.equal(result.code,500);
   assert.equal(result.body.sections,undefined);assert.equal(calls.at(-1),'ROLLBACK');assert.ok(released);
+});
+
+test('combined section sizes enforce the global limit even when each list is below it', async () => {
+  const calls=[];
+  let released=false;
+  pool.connect=async()=>({
+    query:async sql=>{
+      calls.push(sql);
+      return {rows:/LIMIT/.test(sql)?Array.from({length:3000},()=>({nome:'Pessoa'})):[{total:0}]};
+    },
+    release(){released=true;},
+  });
+  const result=await invoke('Administrador',{inicio:'2025-12-01',fim:'2026-01-31',modo:'detalhado'});
+  assert.equal(result.code,400);
+  assert.equal(result.body.sections,undefined);
+  assert.equal(calls.filter(sql=>/LIMIT/.test(sql)).length,2);
+  assert.equal(calls.at(-1),'ROLLBACK');
+  assert.ok(released);
+});
+
+test('failed COMMIT returns no report and still releases the connection', async () => {
+  const calls=[];
+  let released=false;
+  pool.connect=async()=>({
+    query:async sql=>{
+      calls.push(sql);
+      if(sql==='COMMIT')throw new Error('Commit failed');
+      return {rows:[{total:0}]};
+    },
+    release(){released=true;},
+  });
+  const result=await invoke('Tesouraria');
+  assert.equal(result.code,500);
+  assert.equal(result.body.sections,undefined);
+  assert.equal(calls.at(-1),'ROLLBACK');
+  assert.ok(released);
+});
+
+test('failed BEGIN and failed rollback still release the connection', async () => {
+  let released=false;
+  pool.connect=async()=>({query:async()=>{throw new Error('Connection lost');},release(){released=true;}});
+  assert.equal((await invoke('Tesouraria')).code,500);
+  assert.ok(released);
 });
 test('detailed global PDF preserves long minutes, money, identity and signatures',()=>{
   const doc=criarRelatorioGlobalPDF({inicio:'2026-01-01',fim:'2026-10-07',modo:'detalhado',abrangencia:'Global',emitidoEm:'2026-10-07T12:00:00Z',sections:{

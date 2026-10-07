@@ -1,5 +1,5 @@
 import express from "express";
-import { getDashboardStats } from "../controllers/dashboardController.js";
+import { getDashboardStats } from "../modules/dashboard/dashboard.controller.js";
 import { verifyToken } from "../middleware/auth.js";
 
 const router = express.Router();

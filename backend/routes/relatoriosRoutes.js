@@ -1,6 +1,6 @@
 import express from "express";
-import { getRelatorios } from "../controllers/relatoriosController.js";
-import { getRelatorioGlobal } from "../controllers/relatorioGlobalController.js";
+import { getRelatorios } from "../modules/relatorios/relatorios.controller.js";
+import { getRelatorioGlobal } from "../modules/relatorios/relatorio-global.controller.js";
 import { verifyToken, permit } from "../middleware/auth.js";
 
 const router = express.Router();

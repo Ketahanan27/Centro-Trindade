@@ -20,8 +20,8 @@ const apresentacoes = await import('../modules/secretaria/apresentacoes.controll
 const documentos = await import('../modules/secretaria/documentos.controller.js');
 const atas = await import('../modules/secretaria/atas.controller.js');
 const tesouraria = await import('../modules/tesouraria/tesouraria.controller.js');
-const { getDashboardStats } = await import('../controllers/dashboardController.js');
-const { getRelatorios } = await import('../controllers/relatoriosController.js');
+const { getDashboardStats } = await import('../modules/dashboard/dashboard.controller.js');
+const { getRelatorios } = await import('../modules/relatorios/relatorios.controller.js');
 const { uploadDir } = await import('../config/photoStorage.js');
 
 function collectSql(node, output) {

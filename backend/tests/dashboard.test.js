@@ -2,7 +2,9 @@ import assert from 'node:assert/strict';
 import { after, afterEach, test } from 'node:test';
 process.env.DATABASE_URL='postgresql://test:test@127.0.0.1:1/test';
 const { pool }=await import('../config/db.js');
-const {getDashboardStats,periodoDashboard}=await import('../controllers/dashboardController.js');
+const {periodoDashboard}=await import('../modules/dashboard/dashboard.model.js');
+const {getDashboardStats}=await import('../modules/dashboard/dashboard.controller.js');
+const { criarDashboardService } = await import('../modules/dashboard/dashboard.service.js');
 const original=pool.query;
 afterEach(()=>{pool.query=original;});after(async()=>{await pool.end();});
 function response(){return {code:200,headers:{},set(key,value){this.headers[key]=value;return this;},status(code){this.code=code;return this;},json(data){this.data=data;return this;}};}
@@ -10,6 +12,19 @@ function mock(){const calls=[];pool.query=async(sql,params)=>{calls.push({sql,pa
 test('Lisbon date and month/year boundaries are explicit',()=>{
  const p=periodoDashboard(new Date('2026-12-31T23:30:00Z'));assert.equal(p.fimMes,'2027-01-01');assert.equal(p.inicioAno,'2026-01-01');
  assert.equal(periodoDashboard(new Date('2026-06-30T23:30:00Z')).inicioMes,'2026-07-01');
+});
+
+test('dashboard service uses an injected period and avoids restricted repositories for members', async () => {
+ const periodo=periodoDashboard(new Date('2026-06-30T23:30:00Z'));
+ const service=criarDashboardService({
+  membrosAtivos:async()=>[{total:'0'}],
+  proximosEventos:async params=>{assert.deepEqual(params,[periodo.hoje,false]);return [];},
+ },()=>periodo);
+ const result=await service.obter({perfil:'Membro'});
+ assert.deepEqual(result.periodo,periodo);
+ assert.equal(result.stats.membros,0);
+ assert.equal(result.stats.saldo,null);
+ assert.deepEqual(result.graficoAnual,[]);
 });
 test('administrator receives real aggregates and explicit monthly balance',async()=>{
  const calls=mock();const res=response();await getDashboardStats({user:{perfil:'Administrador'}},res);

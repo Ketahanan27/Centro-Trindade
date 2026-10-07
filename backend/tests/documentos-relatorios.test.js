@@ -8,7 +8,7 @@ import { criarAtaPDF, criarTesourariaPDF, criarRelatorioPDF } from '../../src/ut
 process.env.DATABASE_URL = 'postgresql://test:test@127.0.0.1:1/test';
 const { pool } = await import('../config/db.js');
 const { createDocumento, getDocumentos, deleteDocumento } = await import('../modules/secretaria/documentos.controller.js');
-const { getRelatorios } = await import('../controllers/relatoriosController.js');
+const { getRelatorios } = await import('../modules/relatorios/relatorios.controller.js');
 const originalQuery = pool.query;
 pool.query = async () => { throw new Error('Unexpected database access'); };
 afterEach(() => { pool.query = async () => { throw new Error('Unexpected database access'); }; });
