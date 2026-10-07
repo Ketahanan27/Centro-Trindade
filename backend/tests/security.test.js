@@ -10,7 +10,7 @@ const { pool } = await import('../config/db.js');
 const { verifyToken, permit } = await import('../middleware/auth.js');
 const auth = { ...await import('../modules/auth/auth.controller.js'), ...await import('../modules/utilizadores/utilizadores.controller.js') };
 const members = await import('../modules/membros/membros.controller.js');
-const donations = await import('../controllers/donateController.js');
+const donations = await import('../modules/contribuicoes/contribuicoes.controller.js');
 
 const originalQuery = pool.query;
 const originalConnect = pool.connect;

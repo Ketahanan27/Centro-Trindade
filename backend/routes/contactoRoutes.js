@@ -1,5 +1,5 @@
 import express from "express";
-import { enviarContacto } from "../controllers/contactoController.js";
+import { enviarContacto } from "../modules/contacto/contacto.controller.js";
 import { contactoLimiter } from "../middleware/rateLimit.js";
 
 const router = express.Router();

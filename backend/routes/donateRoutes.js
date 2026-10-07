@@ -1,5 +1,5 @@
 import express from "express";
-import donateCtrl from "../controllers/donateController.js";
+import donateCtrl from "../modules/contribuicoes/contribuicoes.controller.js";
 import { donateLimiter } from "../middleware/rateLimit.js";
 
 const router = express.Router();

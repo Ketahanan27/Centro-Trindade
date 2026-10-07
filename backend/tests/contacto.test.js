@@ -1,7 +1,8 @@
 import assert from 'node:assert/strict';
 import { after, afterEach, test } from 'node:test';
 import nodemailer from 'nodemailer';
-import { enviarContacto } from '../controllers/contactoController.js';
+import { enviarContacto } from '../modules/contacto/contacto.controller.js';
+import { criarContactoService } from '../modules/contacto/contacto.service.js';
 const original = nodemailer.createTransport;
 const env = { ...process.env };
 afterEach(() => { nodemailer.createTransport = original; });
@@ -52,4 +53,29 @@ test('confirmation failure preserves primary success and tells visitor not to re
 test('missing SMTP configuration returns 503 before opening transport', async () => {
   const state = setup(); delete process.env.EMAIL_PASS; const res = response();
   await enviarContacto({ body: body() }, res); assert.equal(res.code, 503); assert.equal(state.messages.length, 0);
+});
+
+test('confirmation recipient rejection keeps primary success and closes transport', async () => {
+  let sent = 0;
+  let closed = false;
+  const service = criarContactoService(() => ({
+    async sendMail(message) { sent++; return { accepted: sent === 1 ? [message.to] : [] }; },
+    close() { closed = true; },
+  }), () => ({ EMAIL_USER: 'sender@example.invalid', EMAIL_DESTINO: 'church@example.invalid', EMAIL_PASS: 'mock' }));
+  const result = await service.enviar(body());
+  assert.equal(result.confirmacao_enviada, false);
+  assert.equal(sent, 2);
+  assert.equal(closed, true);
+});
+
+test('service checks actual accepted address case-insensitively, not just a nonempty acceptance', async () => {
+  const config = () => ({ EMAIL_USER: 'sender@example.invalid', EMAIL_DESTINO: 'church@example.invalid', EMAIL_PASS: 'mock' });
+  const service = criarContactoService(() => ({
+    sendMail: async message => ({ accepted: [message.to.toUpperCase()] }), close() {},
+  }), config);
+  assert.equal((await service.enviar(body())).confirmacao_enviada, true);
+  const rejected = criarContactoService(() => ({
+    sendMail: async () => ({ accepted: ['different@example.invalid'] }), close() {},
+  }), config);
+  await assert.rejects(rejected.enviar(body()), { status: 502 });
 });

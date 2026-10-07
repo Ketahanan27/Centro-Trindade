@@ -359,11 +359,26 @@ desativado.
 da ligação, partilhado pelos repositórios de autenticação e convites. Os testes
 simulam consultas e email, sem aceder à base de produção nem enviar mensagens.
 
+## Backend: Contacto e Contribuições
+
+Contacto está em `backend/modules/contacto`: controlador HTTP, serviço do
+envio, modelo de validação, templates HTML e adaptador SMTP. A validação ocorre
+antes de abrir o transporte. O serviço verifica a aceitação do destinatário da
+igreja antes de enviar a confirmação ao visitante. A falha da confirmação não
+anula a mensagem já enviada; o transporte é fechado em todos os resultados.
+Dados do formulário continuam escapados nos templates e os erros não revelam
+detalhes SMTP. Transporte e configuração podem ser substituídos em testes.
+
+Contribuições está em `backend/modules/contribuicoes`. Mantém apenas um
+controlador: criação e consulta respondem 503 enquanto não existir um serviço
+real de pagamentos. Não foram criadas camadas de persistência nem simulações
+de pagamentos para uma funcionalidade indisponível.
+
 ## Continuação
 
 Continuar a organização do backend por módulo com controlador, regras e consultas
 separados onde a complexidade o justificar. Agenda, Tesouraria, Membros e os
 módulos da Secretaria, Dashboard, Relatórios, Autenticação, Utilizadores e Convites
-foram migrados no backend;
-os restantes módulos mantêm os controladores anteriores. As páginas públicas e de
+foram migrados no backend, juntamente com Contacto e Contribuições.
+Os controladores antigos foram substituídos. As páginas públicas e de
 autenticação e a limpeza final do projeto continuam pendentes.
