@@ -4,15 +4,27 @@ import { escreverMovimento } from "./tesourariaEscrita.js";
 export const getMovimentos = (req, res) => {
   const sql = `
     SELECT
-      id,
-      natureza,
-      tipo,
-      valor,
-      TO_CHAR(data, 'YYYY-MM-DD') AS data,
-      observacao,
-      created_at
-    FROM tesouraria
-    ORDER BY data DESC, id DESC
+      t.id,
+      t.natureza,
+      t.tipo,
+      t.valor,
+      TO_CHAR(t.data, 'YYYY-MM-DD') AS data,
+      t.observacao,
+      t.created_at,
+      COALESCE(registo.autor_nome, u.nome) AS autor_registo,
+      ultima.autor_nome AS autor_ultima_operacao,
+      ultima.acao AS ultima_operacao
+    FROM tesouraria t
+    LEFT JOIN utilizadores u ON u.id = t.criado_por
+    LEFT JOIN LATERAL (
+      SELECT autor_nome FROM tesouraria_historico
+      WHERE movimento_id = t.id AND acao = 'Criado' ORDER BY id ASC LIMIT 1
+    ) registo ON true
+    LEFT JOIN LATERAL (
+      SELECT autor_nome, acao FROM tesouraria_historico
+      WHERE movimento_id = t.id ORDER BY id DESC LIMIT 1
+    ) ultima ON true
+    ORDER BY t.data DESC, t.id DESC
   `;
 
   db.query(sql, (err, result) => {

@@ -5,6 +5,7 @@ import { usePerfil } from "../../routes/PerfilContext";
 import { toast } from "../../utils/toast";
 import { apiFetch, apiFetchArray } from "../../utils/api";
 import "../../assets/styles/dashboard/tesouraria.css";
+import "../../assets/styles/dashboard/tesouraria-movimentos.css";
 
 const TIPOS = {
   Receita: ["Dízimo", "Oferta", "Voto", "Contribuição", "Doação", "Ação Social", "T-Shirts", "Outros"],
@@ -33,13 +34,6 @@ function Tesouraria() {
   const [paginaAtual, setPaginaAtual] = useState(1);
   const [form, setForm] = useState(FORM_VAZIO);
   const [saving, setSaving] = useState(false);
-  const [historico, setHistorico] = useState(null);
-
-  const carregarHistorico = async () => {
-    try { setHistorico(await apiFetchArray("/api/tesouraria/historico")); }
-    catch { toast.erro("Não foi possível consultar o histórico."); }
-  };
-
   const carregarMovimentos = useCallback(async () => {
     setLoading(true);
     try {
@@ -131,7 +125,6 @@ function Tesouraria() {
       toast.sucesso(data.message);
       limparCampos();
       carregarMovimentos();
-      if (historico !== null) carregarHistorico();
     } catch (err) {
       console.error("[handleSubmit]", err);
       toast.erro("Erro ao comunicar com o servidor.");
@@ -166,7 +159,6 @@ function Tesouraria() {
         return;
       }
       setMovimentos((prev) => prev.filter((m) => m.id !== id));
-      if (historico !== null) carregarHistorico();
     } catch (err) {
       console.error("[handleDelete]", err);
       toast.erro("Erro ao comunicar com o servidor.");
@@ -258,25 +250,6 @@ function Tesouraria() {
         )}
 
         <h1>Tesouraria</h1>
-        <button className="btn-export" onClick={carregarHistorico}>Consultar histórico</button>
-        {historico !== null && (
-          <section className="table-box" aria-label="Histórico da tesouraria">
-            <h2>Últimas 200 operações</h2>
-            <button className="btn-close-history" onClick={() => setHistorico(null)}>Fechar histórico</button>
-            {historico.length === 0 ? <p>Ainda não existem operações registadas no histórico.</p> : (
-              <table><thead><tr><th>Data e autor</th><th>Operação</th><th>Motivo</th><th>Valores registados</th></tr></thead>
-                <tbody>{historico.map((item) => <tr key={item.id}>
-                  <td>{new Date(item.registado_em).toLocaleString("pt-PT")}<br />{item.autor_nome}</td>
-                  <td>#{item.movimento_id} — {item.acao}</td>
-                  <td>{item.motivo || "Registo inicial"}</td>
-                  <td>{[ ["Antes", item.antes], ["Depois", item.depois] ].filter(([, value]) => value).map(([label, value]) => (
-                    <p key={label}>{label}: {value.natureza}, {value.tipo}, {Number(value.valor).toFixed(2)} €, {formatarData(String(value.data).slice(0, 10))}{value.observacao ? ` — ${value.observacao}` : ""}</p>
-                  ))}</td>
-                </tr>)}</tbody></table>
-            )}
-          </section>
-        )}
-
         <div className="resumo-cards">
           <div className="card entrada">
             <h3>Receitas</h3>
@@ -403,7 +376,7 @@ function Tesouraria() {
               {loading ? (
                 <p className="empty-row">A carregar movimentos...</p>
               ) : (
-                <table>
+                <table className="movimentos-table">
                   <thead>
                     <tr>
                       <th>Tipo</th>
@@ -411,13 +384,14 @@ function Tesouraria() {
                       <th>Valor</th>
                       <th>Data</th>
                       <th>Observações</th>
+                      <th>Autor</th>
                       <th>Ações</th>
                     </tr>
                   </thead>
                   <tbody>
                     {movimentosFiltrados.length === 0 ? (
                       <tr>
-                        <td colSpan="6" className="empty-row">
+                        <td colSpan="7" className="empty-row">
                           {movimentos.length === 0
                             ? "Nenhum movimento registado."
                             : "Sem resultados para o filtro aplicado."}
@@ -441,7 +415,11 @@ function Tesouraria() {
                           </td>
                           <td>{formatarData(mov.data)}</td>
                           <td className="obs-cel">{mov.observacao || "—"}</td>
-                          <td className="actions">
+                          <td className="autor-cel">
+                            <span>{mov.autor_registo || "Não registado"}</span>
+                            {mov.ultima_operacao === "Alterado" && <small>Alterado por {mov.autor_ultima_operacao || "Não registado"}</small>}
+                          </td>
+                          <td><div className="movement-actions">
                             {!soLeitura && (
                               <>
                                 <button
@@ -462,7 +440,7 @@ function Tesouraria() {
                                 </button>
                               </>
                             )}
-                          </td>
+                          </div></td>
                         </tr>
                       ))
                     )}
