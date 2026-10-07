@@ -1,4 +1,5 @@
 import { NavLink, useNavigate } from "react-router-dom";
+import logoTrindade from "../../assets/img/principal.png";
 import { getPerfil, getUser, temAcesso } from "../../utils/rbac";
 
 const NAV_ITEMS = [
@@ -30,7 +31,7 @@ function Sidebar() {
     <aside className="sidebar">
 
       <div className="logo">
-        <i className="ri-community-line"></i>
+        <img className="sidebar-logo" src={logoTrindade} alt="Logótipo do Centro Trindade" />
         <h2>CENTRO TRINDADE</h2>
       </div>
 
