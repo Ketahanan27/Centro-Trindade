@@ -2,13 +2,8 @@ import { agendaRepository } from './agenda.repository.js';
 import { validarEvento } from '../../utils/secretariaValidation.js';
 import { InputError, validarId } from '../../utils/inputValidation.js';
 
-export function hojeLisboa(agora = new Date()) {
-  const partes = new Intl.DateTimeFormat('en-CA', {
-    timeZone: 'Europe/Lisbon', year: 'numeric', month: '2-digit', day: '2-digit',
-  }).formatToParts(agora);
-  const obter = tipo => partes.find(parte => parte.type === tipo).value;
-  return `${obter('year')}-${obter('month')}-${obter('day')}`;
-}
+import { hojeLisboa } from '../../utils/dataLisboa.js';
+export { hojeLisboa } from '../../utils/dataLisboa.js';
 
 const naoEncontrado = () => Object.assign(new Error('Evento não encontrado.'), { status: 404 });
 

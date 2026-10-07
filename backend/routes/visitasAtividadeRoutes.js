@@ -1,7 +1,7 @@
 import express from 'express';
 import {verifyToken,permit} from '../middleware/auth.js';
 import {writeLimiter} from '../middleware/rateLimit.js';
-import {listarContagens,criarContagem,atualizarContagem,eliminarContagem} from '../controllers/visitasAtividadeController.js';
+import {listarContagens,criarContagem,atualizarContagem,eliminarContagem} from '../modules/secretaria/visitas-atividade.controller.js';
 const router=express.Router();
 router.use(verifyToken);
 router.get('/',permit('Administrador','Secretaria','Pastor'),listarContagens);

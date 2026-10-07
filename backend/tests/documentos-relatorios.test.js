@@ -7,7 +7,7 @@ import { criarAtaPDF, criarTesourariaPDF, criarRelatorioPDF } from '../../src/ut
 
 process.env.DATABASE_URL = 'postgresql://test:test@127.0.0.1:1/test';
 const { pool } = await import('../config/db.js');
-const { createDocumento } = await import('../controllers/documentosController.js');
+const { createDocumento, getDocumentos, deleteDocumento } = await import('../modules/secretaria/documentos.controller.js');
 const { getRelatorios } = await import('../controllers/relatoriosController.js');
 const originalQuery = pool.query;
 pool.query = async () => { throw new Error('Unexpected database access'); };
@@ -85,6 +85,47 @@ function invoke(handler, req) {
     Promise.resolve(handler(req, res)).catch(reject);
   });
 }
+
+test('API refuses malformed document bodies before accessing PostgreSQL', async () => {
+  for (const body of [null, undefined, [], 'texto']) {
+    assert.equal((await invoke(createDocumento, { body })).code, 400);
+  }
+});
+
+test('document listing parses legacy JSON and preserves stored identity and emission date', async () => {
+  const saved = registo();
+  pool.query = async sql => {
+    assert.match(sql, /ORDER BY id DESC/);
+    return { command: 'SELECT', rows: [
+      { ...saved, id: 1, dados_json: JSON.stringify(saved.dados_json) },
+      { ...saved, id: 2 },
+      { ...saved, id: 3, dados_json: '{invalid' },
+      { ...saved, id: 4, dados_json: null },
+    ] };
+  };
+  const result = await invoke(getDocumentos, {});
+  assert.equal(result.code, 200);
+  for (const document of result.body) {
+    assert.equal(document.nome_completo, saved.nome_completo);
+    assert.equal(document.data_emissao, saved.data_emissao);
+  }
+  assert.deepEqual(result.body[0].dados_json, saved.dados_json);
+  assert.deepEqual(result.body[1].dados_json, saved.dados_json);
+  assert.deepEqual(result.body[2].dados_json, {});
+  assert.deepEqual(result.body[3].dados_json, {});
+});
+
+test('document deletion validates IDs and reports an absent record', async () => {
+  for (const id of ['0', 'abc', '2147483648']) {
+    assert.equal((await invoke(deleteDocumento, { params: { id } })).code, 400);
+  }
+  pool.query = async (sql, params) => {
+    assert.match(sql, /DELETE FROM documentos/);
+    assert.deepEqual(params, [9]);
+    return { command: 'DELETE', rowCount: 0, rows: [] };
+  };
+  assert.equal((await invoke(deleteDocumento, { params: { id: '9' } })).code, 404);
+});
 
 test('API refuses incomplete document without writing to PostgreSQL', async () => {
   const result = await invoke(createDocumento, { body: { tipo: 'Membro', nome_completo: 'Name', bi: 'BI' } });

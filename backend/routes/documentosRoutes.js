@@ -4,7 +4,7 @@ import {
   getDocumentos,
   createDocumento,
   deleteDocumento,
-} from "../controllers/documentosController.js";
+} from "../modules/secretaria/documentos.controller.js";
 
 import { verifyToken, permit } from "../middleware/auth.js";
 import { writeLimiter } from "../middleware/rateLimit.js";

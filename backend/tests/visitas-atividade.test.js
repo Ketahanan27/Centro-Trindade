@@ -5,11 +5,49 @@ import jwt from 'jsonwebtoken';
 process.env.DATABASE_URL='postgresql://test:test@127.0.0.1:1/test';
 process.env.JWT_SECRET='isolated-visits-test-secret';
 const {pool}=await import('../config/db.js');
-const {validarContagem,criarContagem,atualizarContagem,listarContagens,eliminarContagem}=await import('../controllers/visitasAtividadeController.js');
+const {validarContagem}=await import('../modules/secretaria/visitas-atividade.model.js');
+const {criarContagem,atualizarContagem,listarContagens,eliminarContagem}=await import('../modules/secretaria/visitas-atividade.controller.js');
 const {default:router}=await import('../routes/visitasAtividadeRoutes.js');
-const original=pool.query;afterEach(()=>{pool.query=original;});after(async()=>{await pool.end();});
+const { criarVisitasAtividadeService } = await import('../modules/secretaria/visitas-atividade.service.js');
+const original=pool.query;
+const originalConnect=pool.connect;
+const deny=async()=>{throw new Error('Unexpected database access');};
+pool.query=deny;pool.connect=deny;
+afterEach(()=>{pool.query=deny;});
+after(async()=>{pool.query=original;pool.connect=originalConnect;await pool.end();});
 const body=()=>({atividade:' Culto de domingo ',data_atividade:'2026-01-01',quantidade:'12',observacoes:'Contagem\nagregada'});
 const response=()=>({code:200,status(code){this.code=code;return this;},set(){return this;},json(data){this.data=data;return this;}});
+
+test('count service accepts the day of activity and rejects tomorrow using an injected clock', async () => {
+ let saved = 0;
+ const service = criarVisitasAtividadeService({ criar: async () => { saved++; return {rowCount:1,rows:[{id:4}]}; } }, () => '2026-01-01');
+ assert.equal(await service.criar(body(), 2), 4);
+ await assert.rejects(service.criar({...body(),data_atividade:'2026-01-02'},2), {status:400});
+ assert.equal(saved, 1);
+});
+
+test('missing Agenda event prevents writing a visitor count', async () => {
+ const service = criarVisitasAtividadeService({ obterEvento: async () => [] }, () => '2026-01-01');
+ await assert.rejects(service.criar({...body(),evento_id:3},2), {status:400});
+});
+
+test('count service validates malformed payload and reversed filters before persistence', async () => {
+ const service = criarVisitasAtividadeService({});
+ await assert.rejects(service.criar(null,2), {status:400});
+ await assert.rejects(service.atualizar('abc',body(),2), {status:400});
+ await assert.rejects(service.listar({inicio:'2026-02-01',fim:'2026-01-01'}), {status:400});
+});
+
+test('export at the limit returns all activities without pagination', async () => {
+ const records = Array.from({length:5000}, () => ({quantidade:0}));
+ const service = criarVisitasAtividadeService({
+  resumir: async () => [{total:'5000',visitantes:'0'}],
+  listar: async filtros => { assert.equal(filtros.limite,5001); assert.equal(filtros.offset,0); return records; },
+ });
+ const result = await service.listar({exportar:'true',pagina:'9'});
+ assert.equal(result.registos.length,5000);
+ assert.equal(result.totalVisitantes,0);
+});
 test('counts accept zero and reject types, fractions, invalid dates and unsafe identifiers',()=>{
  assert.equal(validarContagem({...body(),quantidade:0}).quantidade,0);
  for(const patch of [{quantidade:-1},{quantidade:1.5},{quantidade:true},{quantidade:1000001},{quantidade:null},{atividade:{}},{data_atividade:'2026-02-30'},{evento_id:'abc'}])assert.throws(()=>validarContagem({...body(),...patch}));

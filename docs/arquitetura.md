@@ -287,13 +287,32 @@ atas. As rotas mantêm os perfis autorizados e os limites de escrita. Os testes
 cobrem validação antes da persistência, conflitos, registos ausentes, ordenação,
 formatação e erros genéricos sem revelar detalhes internos.
 
-Documentos e contagens de visitantes por atividade ainda usam os controladores
-anteriores e serão organizados numa etapa própria.
+## Backend: Secretaria — Documentos e contagens por atividade
+
+Os dois módulos estão também em `backend/modules/secretaria`, com controlador,
+serviço e repositório próprios. Documentos utiliza o validador partilhado em
+`shared/documentos.js` e preserva os dados guardados para reimpressão, incluindo
+identidade e data de emissão. A leitura aceita JSON antigo em texto e devolve um
+objeto vazio quando o conteúdo não pode ser interpretado. A criação e a
+eliminação validam os dados e os identificadores antes de consultar a base.
+
+Contagens tem ainda `visitas-atividade.model.js`, com validação dos registos,
+filtros e limites de paginação/exportação. O serviço obtém da Agenda o título e
+a data dos eventos associados, usa o autor fornecido pela sessão e recusa datas
+futuras. O relógio pode ser substituído nos testes; a data local vem de
+`backend/utils/dataLisboa.js`, partilhado com Agenda. O módulo já não depende
+do controlador do Dashboard para calcular o dia atual.
+
+O repositório aplica os mesmos filtros ao resumo e à listagem. A consulta normal
+continua paginada com 25 registos; a exportação consulta até 5001 para detetar e
+recusar períodos acima do limite de 5000 sem entregar um relatório truncado.
+As respostas mantêm os campos existentes e a listagem de contagens não permite
+cache. Rotas, permissões e geração dos PDFs permanecem preservadas.
 
 ## Continuação
 
 Continuar a organização do backend por módulo com controlador, regras e consultas
 separados onde a complexidade o justificar. Agenda, Tesouraria, Membros e os três
-módulos acima da Secretaria foram migrados no backend;
+módulos da Secretaria foram migrados no backend;
 os restantes módulos mantêm os controladores anteriores. As páginas públicas e de
 autenticação e a limpeza final do projeto continuam pendentes.
