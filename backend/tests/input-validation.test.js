@@ -4,8 +4,8 @@ import { validarMembro, validarUtilizador, emailNormalizado, validarId } from '.
 process.env.DATABASE_URL = 'postgresql://test:test@127.0.0.1:1/test';
 const { pool } = await import('../config/db.js');
 const members = await import('../modules/membros/membros.controller.js');
-const auth = await import('../controllers/authController.js');
-const { criarContaConvite } = await import('../controllers/convitesController.js');
+const auth = { ...await import('../modules/auth/auth.controller.js'), ...await import('../modules/utilizadores/utilizadores.controller.js') };
+const { criarContaConvite } = await import('../modules/convites/convites.controller.js');
 const original = pool.query;
 const originalConnect = pool.connect;
 const deny = async () => { throw new Error('Unexpected database access'); };

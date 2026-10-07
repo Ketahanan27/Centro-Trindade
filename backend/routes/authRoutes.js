@@ -3,8 +3,9 @@ import { verifyToken, adminOnly } from "../middleware/auth.js";
 import { authLimiter, writeLimiter } from "../middleware/rateLimit.js";
 import {
   register, login, recuperarPassword, redefinirPassword,
-  getUsers, criarUtilizador, updateUser, deleteUser, resetUserPassword, reenviarConvite,
-} from "../controllers/authController.js";
+} from "../modules/auth/auth.controller.js";
+
+import { getUsers, criarUtilizador, updateUser, deleteUser, resetUserPassword, reenviarConvite } from '../modules/utilizadores/utilizadores.controller.js';
 
 const router = express.Router();
 

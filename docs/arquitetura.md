@@ -330,10 +330,40 @@ confirma só depois de todas as secções, faz rollback em erro e liberta sempre
 ligação. O relógio e a leitura podem ser substituídos em testes isolados.
 Os controladores mantêm as respostas e os cabeçalhos de cache existentes.
 
+## Backend: Autenticação, utilizadores e convites
+
+Autenticação, utilizadores e convites estão em `backend/modules/auth`,
+`backend/modules/utilizadores` e `backend/modules/convites`. Cada módulo separa
+controlador HTTP, regras do serviço e persistência no repositório. As rotas
+passam a importar os controladores correspondentes, preservando os endpoints,
+middlewares, limites e autorização exclusiva do administrador para contas.
+
+Autenticação mantém credenciais inválidas genéricas, assinatura JWT HS256 e
+versão de sessão. A redefinição consome o hash do token, altera a palavra-passe,
+incrementa a versão e invalida outros links na mesma transação. Os limites de
+8 caracteres e 72 bytes do bcrypt são validados antes da persistência.
+
+Utilizadores mantém a proteção da própria conta, a invalidação das sessões nas
+alterações e o fallback de leitura para esquemas antigos. Contas com registos
+associados continuam a exigir desativação em vez de eliminação.
+
+Convites separa o envio em `convites.email.js` e os tokens em
+`convites.model.js`. A conta e o hash do token são confirmados antes do envio.
+Falhas SMTP revogam só o link enviado e preservam a conta para nova tentativa.
+Os convites duram 48 horas e a recuperação 30 minutos; o relógio e o envio
+podem ser substituídos em testes. A recuperação pública continua a dar a mesma
+resposta para contas inexistentes e falhas de envio. O registo público continua
+desativado.
+
+`backend/utils/transacao.js` gere BEGIN, COMMIT, rollback em erro e libertação
+da ligação, partilhado pelos repositórios de autenticação e convites. Os testes
+simulam consultas e email, sem aceder à base de produção nem enviar mensagens.
+
 ## Continuação
 
 Continuar a organização do backend por módulo com controlador, regras e consultas
 separados onde a complexidade o justificar. Agenda, Tesouraria, Membros e os
-módulos da Secretaria, Dashboard e Relatórios foram migrados no backend;
+módulos da Secretaria, Dashboard, Relatórios, Autenticação, Utilizadores e Convites
+foram migrados no backend;
 os restantes módulos mantêm os controladores anteriores. As páginas públicas e de
 autenticação e a limpeza final do projeto continuam pendentes.

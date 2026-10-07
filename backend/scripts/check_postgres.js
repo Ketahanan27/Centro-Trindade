@@ -12,7 +12,7 @@ if (!process.env.TEST_DATABASE_URL || process.env.TEST_DATABASE_URL === process.
 process.env.DATABASE_URL = process.env.TEST_DATABASE_URL;
 process.env.BLOB_READ_WRITE_TOKEN = '';
 const { pool } = await import('../config/db.js');
-const auth = await import('../controllers/authController.js');
+const auth = { ...await import('../modules/auth/auth.controller.js'), ...await import('../modules/utilizadores/utilizadores.controller.js') };
 const membros = await import('../modules/membros/membros.controller.js');
 const agenda = await import('../modules/agenda/agenda.controller.js');
 const visitantes = await import('../modules/secretaria/visitantes.controller.js');
@@ -106,7 +106,7 @@ try {
   assert.ok(login.token);
   assert.equal(login.user.id, userId);
   await pool.query('INSERT INTO password_resets (utilizador_id, token, expiry) VALUES ($1, $2, $3)',
-    [userId, (await import('../controllers/convitesController.js')).hashToken('a'.repeat(64)), new Date(Date.now() + 60000)]);
+    [userId, (await import('../modules/convites/convites.model.js')).hashToken('a'.repeat(64)), new Date(Date.now() + 60000)]);
   await invoke(auth.redefinirPassword, { body: { token: 'a'.repeat(64), nova_password: 'MigrationChanged123!' } });
   await invoke(auth.login, { body: { email, password: 'MigrationChanged123!' } });
 
