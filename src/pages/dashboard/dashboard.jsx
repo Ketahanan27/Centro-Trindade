@@ -1,311 +1,66 @@
-import { useState, useEffect } from "react";
-import DashboardLayout from "../../components/dashboard/dashboardlayout";
-import Card from "../../components/dashboard/card";
-import { apiFetch } from "../../utils/api";
-import "../../assets/styles/dashboard/dashboard.css";
+import { useState, useEffect } from 'react';
+import { Link } from 'react-router-dom';
+import DashboardLayout from '../../components/dashboard/dashboardlayout';
+import { apiFetch } from '../../utils/api';
+import { formatarData } from '../../utils/data';
+import '../../assets/styles/dashboard/overview.css';
 
-const MESES = ["", "Jan", "Fev", "Mar", "Abr", "Mai", "Jun", "Jul", "Ago", "Set", "Out", "Nov", "Dez"];
-
-/*
-|--------------------------------------------------------------------------
-| Gráfico de barras de receitas/despesas
-|--------------------------------------------------------------------------
-|
-| Desenha um SVG à mão (sem biblioteca de gráficos) com uma barra de
-| receitas e uma de despesas por mês. Os valores em falta em "dados" são
-| preenchidos com zero para garantir sempre as 12 colunas do ano, e a
-| escala vertical é calculada a partir do maior valor encontrado.
-|
-*/
-function GraficoBarras({ dados }) {
-  if (!dados || dados.length === 0) {
-    return (
-      <div className="chart-placeholder">
-        Sem movimentos registados este ano.
-      </div>
-    );
-  }
-
-  const completo = Array.from({ length: 12 }, (_, i) => {
-    const mes = i + 1;
-    const found = dados.find((d) => Number(d.mes) === mes);
-    return {
-      mes,
-      receitas: Number(found?.receitas ?? 0),
-      despesas: Number(found?.despesas ?? 0),
-    };
-  });
-
-  const W = 700;
-  const H = 280;
-  const PAD = { top: 24, right: 20, bottom: 50, left: 64 };
-  const chartW = W - PAD.left - PAD.right;
-  const chartH = H - PAD.top - PAD.bottom;
-
-  const maxVal = Math.max(
-    1,
-    ...completo.map((d) => Math.max(d.receitas, d.despesas))
-  );
-
-  const colW = chartW / 12;
-  const barW = Math.min(colW * 0.32, 22);
-  const gap = 3;
-  const ticks = [0, 0.25, 0.5, 0.75, 1];
-
-  const yPos = (val) => PAD.top + chartH * (1 - val / maxVal);
-
-  return (
-    <svg
-      viewBox={`0 0 ${W} ${H}`}
-      style={{ width: "100%", height: "auto", display: "block" }}
-      aria-label="Gráfico de receitas e despesas mensais"
-    >
-      {ticks.map((f) => {
-        const y = PAD.top + chartH * (1 - f);
-        return (
-          <g key={f}>
-            <line
-              x1={PAD.left} y1={y}
-              x2={W - PAD.right} y2={y}
-              stroke="#2a2a2a" strokeWidth="1"
-            />
-            <text
-              x={PAD.left - 8} y={y + 4}
-              textAnchor="end" fill="#777" fontSize="11"
-            >
-              {(maxVal * f).toFixed(0)}€
-            </text>
-          </g>
-        );
-      })}
-
-      {completo.map(({ mes, receitas, despesas }) => {
-        const cx = PAD.left + (mes - 0.5) * colW;
-        const recH = (receitas / maxVal) * chartH;
-        const desH = (despesas / maxVal) * chartH;
-
-        return (
-          <g key={mes}>
-            <rect
-              x={cx - barW - gap / 2}
-              y={yPos(receitas)}
-              width={barW}
-              height={recH}
-              fill="#0044ff"
-              rx="3"
-              opacity={receitas === 0 ? 0.15 : 1}
-            />
-            {receitas > 0 && recH > 18 && (
-              <text
-                x={cx - barW / 2 - gap / 2}
-                y={yPos(receitas) - 4}
-                textAnchor="middle"
-                fill="#5577ff"
-                fontSize="9"
-              >
-                {receitas.toFixed(0)}
-              </text>
-            )}
-
-            <rect
-              x={cx + gap / 2}
-              y={yPos(despesas)}
-              width={barW}
-              height={desH}
-              fill="#ff3333"
-              rx="3"
-              opacity={despesas === 0 ? 0.15 : 1}
-            />
-            {despesas > 0 && desH > 18 && (
-              <text
-                x={cx + barW / 2 + gap / 2}
-                y={yPos(despesas) - 4}
-                textAnchor="middle"
-                fill="#ff6666"
-                fontSize="9"
-              >
-                {despesas.toFixed(0)}
-              </text>
-            )}
-
-            <text
-              x={cx}
-              y={H - PAD.bottom + 16}
-              textAnchor="middle"
-              fill="#888"
-              fontSize="11"
-            >
-              {MESES[mes]}
-            </text>
-          </g>
-        );
-      })}
-
-      <rect x={PAD.left} y={H - 16} width="10" height="10" fill="#0044ff" rx="2" />
-      <text x={PAD.left + 14} y={H - 7} fill="#aaa" fontSize="11">Receitas</text>
-      <rect x={PAD.left + 84} y={H - 16} width="10" height="10" fill="#ff3333" rx="2" />
-      <text x={PAD.left + 98} y={H - 7} fill="#aaa" fontSize="11">Despesas</text>
-    </svg>
-  );
+const MESES = ['Jan','Fev','Mar','Abr','Mai','Jun','Jul','Ago','Set','Out','Nov','Dez'];
+const euro = (value) => new Intl.NumberFormat('pt-PT', { style: 'currency', currency: 'EUR' }).format(Number(value));
+const ESTADOS = [['Visitante', '#2787ff'], ['Em acompanhamento', '#f4c45c'], ['Tornou-se membro', '#21c4ad']];
+function Indicador({ titulo, valor, icon, cor = 'blue', detalhe }) {
+  return <article className={`overview-stat ${cor}`}><span className="overview-icon" aria-hidden="true"><i className={icon}/></span><div><span>{titulo}</span><strong>{valor}</strong>{detalhe && <small>{detalhe}</small>}</div></article>;
 }
-
-function Dashboard() {
+function Barras({ dados, financeiro = false, meses }) {
+  const linhas = Array.from({length: meses}, (_, i) => ({mes: i+1, ...(dados.find((row) => row.mes === i+1) ?? {})}));
+  const max = Math.max(1, ...linhas.flatMap((row) => financeiro ? [row.receitas ?? 0, row.despesas ?? 0] : [row.total ?? 0]));
+  const temDados = linhas.some((row) => financeiro ? row.receitas || row.despesas : row.total);
+  if (!temDados) return <p className="overview-empty">Sem registos neste período.</p>;
+  return <><div className="overview-chart" role="img" aria-label={financeiro ? 'Receitas e despesas por mês; valores na tabela abaixo.' : 'Entradas de membros por mês; valores na tabela abaixo.'}>
+    {linhas.map((row) => <div className="overview-column" key={row.mes}><div className="overview-bars">
+      <div className={financeiro ? 'income' : 'growth'} style={{height: `${100 * (financeiro ? row.receitas ?? 0 : row.total ?? 0)/max}%`}} title={financeiro ? euro(row.receitas ?? 0) : String(row.total ?? 0)}/>
+      {financeiro && <div className="expense" style={{height: `${100*(row.despesas ?? 0)/max}%`}} title={euro(row.despesas ?? 0)}/>}
+    </div><span>{MESES[row.mes-1]}</span></div>)}
+  </div>{financeiro && <div className="overview-chart-legend"><span><b className="income"/>Receitas</span><span><b className="expense"/>Despesas</span></div>}
+  <details className="overview-values"><summary>Ver valores por mês</summary><table><caption>{financeiro ? 'Valores financeiros mensais' : 'Entradas de membros mensais'}</caption><thead><tr><th>Mês</th><th>{financeiro ? 'Receitas' : 'Membros'}</th>{financeiro && <th>Despesas</th>}</tr></thead><tbody>{linhas.map((row) => <tr key={row.mes}><th>{MESES[row.mes-1]}</th><td>{financeiro ? euro(row.receitas ?? 0) : row.total ?? 0}</td>{financeiro && <td>{euro(row.despesas ?? 0)}</td>}</tr>)}</tbody></table></details></>;
+}
+function Visitantes({ dados }) {
+  const linhas = ESTADOS.map(([estado, cor]) => ({estado, cor, total: dados.find((row) => row.estado === estado)?.total ?? 0}));
+  const total = linhas.reduce((sum,row) => sum+row.total,0);
+  let inicio = 0;
+  const partes = linhas.map((row) => { const fim = inicio + (total ? row.total/total*100 : 0); const parte = `${row.cor} ${inicio}% ${fim}%`; inicio = fim; return parte; });
+  return <><div className="overview-visitors"><div className="overview-donut" role="img" aria-label={`${total} visitantes; distribuição por estado na legenda.`} style={{background: total ? `conic-gradient(${partes.join(',')})` : '#283440'}}><div><strong>{total}</strong><span>visitantes</span></div></div><ul>{linhas.map((row) => <li key={row.estado}><b style={{background:row.cor}}/><span>{row.estado}</span><strong>{row.total}</strong></li>)}</ul></div><p className="overview-note">Estado atual de todos os registos de visitantes.</p></>;
+}
+export default function Dashboard() {
   const [dados, setDados] = useState(null);
-  const [loading, setLoading] = useState(true);
-  const [erro, setErro] = useState(null);
-
-  const [tentativa, setTentativa] = useState(0);
-  function carregarDados() {
-    setLoading(true);
-    setErro(null);
-    setTentativa((value) => value + 1);
-  }
+  const [loading,setLoading] = useState(true);
+  const [erro,setErro] = useState(null);
+  const [tentativa,setTentativa] = useState(0);
   useEffect(() => {
     let active = true;
     async function carregar() {
-      try {
-        const res = await apiFetch("/api/dashboard/stats");
-        if (!res.ok) throw new Error(`HTTP ${res.status}`);
-        const json = await res.json();
-        if (active) setDados(json);
-      } catch {
-        if (active) setErro("Não foi possível carregar os dados. Tente novamente.");
-      } finally {
-        if (active) setLoading(false);
-      }
+      try { const res = await apiFetch('/api/dashboard/stats'); if (!res.ok) throw new Error(); const data = await res.json(); if(active) setDados(data); }
+      catch { if(active) setErro('Não foi possível carregar os indicadores. Tente novamente.'); }
+      finally { if(active) setLoading(false); }
     }
-    carregar();
-    return () => { active = false; };
+    carregar(); return () => { active = false; };
   }, [tentativa]);
-
-  if (loading) {
-    return (
-      <DashboardLayout>
-        <div className="dash-loading">
-          <i className="ri-loader-4-line dash-spinner"></i>
-          <p>A carregar dados...</p>
-        </div>
-      </DashboardLayout>
-    );
-  }
-
-  if (erro) {
-    return (
-      <DashboardLayout>
-        <div className="dash-erro">
-          <i className="ri-error-warning-line"></i>
-          <p>{erro}</p>
-          <button onClick={carregarDados}>Tentar novamente</button>
-        </div>
-      </DashboardLayout>
-    );
-  }
-
-  const { stats, proximosEventos, ultimosMovimentos, graficoAnual, podeVerFinancas } = dados;
-
-  return (
-    <DashboardLayout>
-
-      <section className="cards">
-        <Card
-          icon="ri-team-line"
-          title="Membros Ativos"
-          value={stats.membros}
-        />
-        <Card
-          icon="ri-calendar-event-line"
-          title="Próximos Eventos"
-          value={stats.eventos}
-        />
-        {podeVerFinancas && (
-          <Card
-            icon="ri-money-euro-circle-line"
-            title="Valor Restante"
-            value={`${Number(stats.saldo).toFixed(2)} €`}
-          />
-        )}
-        <Card
-          icon="ri-user-settings-line"
-          title="Utilizadores"
-          value={stats.utilizadores}
-        />
-      </section>
-
-      <section className="dashboard-grid">
-
-        <div className="panel">
-          <h2>
-            <i className="ri-calendar-event-line"></i> Próximos Eventos
-          </h2>
-
-          {proximosEventos.length === 0 ? (
-            <p className="dash-vazio">Sem eventos agendados.</p>
-          ) : (
-            proximosEventos.map((ev) => (
-              <div key={ev.id} className="event-item">
-                <span>{ev.titulo}</span>
-                <strong>{ev.data}</strong>
-              </div>
-            ))
-          )}
-        </div>
-
-      </section>
-
-      {podeVerFinancas && (
-        <>
-          <section className="panel">
-            <div className="dash-panel-header">
-              <h2><i className="ri-bar-chart-2-line"></i> Relatórios Financeiros</h2>
-              <span className="dash-ano">{new Date().getFullYear()}</span>
-            </div>
-
-            <GraficoBarras dados={graficoAnual} />
-          </section>
-
-          <section className="panel">
-            <h2><i className="ri-exchange-dollar-line"></i> Últimos Movimentos</h2>
-
-            {ultimosMovimentos.length === 0 ? (
-              <p className="dash-vazio">Sem movimentos registados.</p>
-            ) : (
-              <table className="dash-table">
-                <thead>
-                  <tr>
-                    <th>Tipo</th>
-                    <th>Natureza</th>
-                    <th>Valor</th>
-                    <th>Data</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {ultimosMovimentos.map((mov) => (
-                    <tr key={mov.id}>
-                      <td>{mov.tipo}</td>
-                      <td>
-                        <span className={
-                          mov.natureza === "Receita"
-                            ? "dash-badge-ativo"
-                            : "dash-badge-inativo"
-                        }>
-                          {mov.natureza}
-                        </span>
-                      </td>
-                      <td className="dash-valor">
-                        {Number(mov.valor).toFixed(2)} €
-                      </td>
-                      <td>{mov.data}</td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            )}
-          </section>
-        </>
-      )}
-
-    </DashboardLayout>
-  );
+  function repetir() { setLoading(true);setErro(null);setTentativa((value)=>value+1); }
+  if (loading || erro) return <DashboardLayout><section className="church-overview overview-state" role="status"><p>{loading ? 'A carregar o estado da igreja…' : erro}</p>{erro && <button onClick={repetir}>Tentar novamente</button>}</section></DashboardLayout>;
+  const {stats,periodo,podeVerMembros,podeVerFinancas,pendencias} = dados;
+  const tituloMes = new Intl.DateTimeFormat('pt-PT',{month:'long',year:'numeric',timeZone:'UTC'}).format(new Date(`${periodo.inicioMes}T12:00:00Z`));
+  return <DashboardLayout><div className="church-overview">
+    <header className="overview-heading"><div><h1>Visão geral da igreja</h1><p>{tituloMes}</p></div><span className="overview-live">Dados atuais</span></header>
+    <section className="overview-stats" aria-label="Indicadores da igreja">
+      <Indicador titulo="Membros ativos" valor={stats.membros} icon="ri-team-line" detalhe="Total atual"/>
+      {podeVerMembros && <><Indicador titulo="Novos membros este mês" valor={stats.novosMembros} icon="ri-user-add-line" cor="teal" detalhe="Por data de entrada"/><Indicador titulo="Visitantes este mês" valor={stats.visitantes} icon="ri-user-heart-line" cor="gold" detalhe="Registos de visitas"/></>}
+      <Indicador titulo="Próximos eventos" valor={stats.eventos} icon="ri-calendar-event-line" cor="purple" detalhe={podeVerMembros ? 'Eventos agendados' : 'Eventos públicos'}/>
+    </section>
+    {podeVerMembros && <section className="overview-grid"><article className="overview-panel"><h2>Novos membros por mês</h2><p className="overview-note">Datas de entrada registadas · {periodo.ano}</p><Barras dados={dados.crescimento} meses={periodo.mes}/></article><article className="overview-panel"><h2>Visitantes por estado</h2><Visitantes dados={dados.visitantesPorEstado}/></article></section>}
+    <section className={`overview-grid ${!podeVerFinancas ? 'without-finance' : ''}`}>
+      {podeVerFinancas && <article className="overview-panel"><div className="overview-panel-heading"><h2>Resumo financeiro</h2><span>Perfis autorizados</span></div><div className="overview-finance"><div><span>Receitas do mês</span><strong className="teal-text">{euro(stats.receitas)}</strong></div><div><span>Despesas do mês</span><strong className="coral-text">{euro(stats.despesas)}</strong></div><div><span>Saldo do mês</span><strong className="gold-text">{euro(stats.saldo)}</strong></div></div><p className="overview-note">Receitas e despesas mensais · {periodo.ano}</p><Barras dados={dados.graficoAnual} financeiro meses={periodo.mes}/><p className="overview-note">Saldo do mês = receitas menos despesas; não representa o saldo acumulado.</p></article>}
+      <div className="overview-stack"><article className="overview-panel"><div className="overview-panel-heading"><h2>Próximos eventos</h2><Link to={podeVerMembros ? '/dashboard/agenda' : '/calendario'}>Ver agenda</Link></div>{dados.proximosEventos.length ? <ul className="overview-events">{dados.proximosEventos.map((evento) => <li key={evento.id}><time dateTime={evento.data}><strong>{evento.data.slice(8,10)}</strong><span>{MESES[Number(evento.data.slice(5,7))-1]}</span></time><div><strong>{evento.titulo}</strong><small>{formatarData(evento.data)}{evento.hora_evento ? ` · ${evento.hora_evento.slice(0,5)}` : ''}</small>{evento.local_evento && <small>{evento.local_evento}</small>}</div></li>)}</ul> : <p className="overview-empty">Sem eventos agendados.</p>}</article>
+      {podeVerMembros && <article className="overview-panel"><h2>Pendências</h2><ul className="overview-pending">{pendencias.contasPorAtivar !== null && <li><Link to="/dashboard/utilizadores">Contas por ativar</Link><strong>{pendencias.contasPorAtivar}</strong></li>}<li><Link to="/dashboard/membros">Membros sem conta associada</Link><strong>{pendencias.membrosSemConta}</strong></li></ul><p className="overview-note">Sem conta associada não significa que seja obrigatório criar uma conta.</p></article>}</div>
+    </section>
+  </div></DashboardLayout>;
 }
-
-export default Dashboard;

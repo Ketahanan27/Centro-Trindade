@@ -161,3 +161,12 @@ Verificação da Tesouraria: db:prepare executado com sucesso na base configurad
 - Calendário apresenta o mês atual e lista os eventos públicos desse mês; dias são elementos informativos, sem clique ou cursor interativo.
 - Erro de carregamento continua visível e indica atualização da página; carregamento protegido contra respostas após desmontagem preservado.
 - Lint direcionado, build de produção e verificação serverless passaram. Gestão interna da Agenda preservada.
+
+### Dashboard escuro — 7 de outubro de 2026
+
+- Implementada a proposta escura aprovada: quatro indicadores para gestão, barras de entradas de membros, distribuição circular de visitantes, resumo financeiro, eventos e pendências; números fictícios substituídos por consultas reais.
+- Membros ativos são o total atual; novos membros usam entrada no mês e o gráfico usa entrada no ano; visitantes mensais contam registos pela data_visita. Distribuição por estado inclui todos os registos, não uma taxa de conversão mensal.
+- Período calculado em Europe/Lisbon e intervalos de datas parametrizados. Saldo mensal explicitamente receitas menos despesas, sem o apresentar como saldo acumulado.
+- Finanças apenas Administrador/Tesouraria/Pastor. Agregados detalhados de membros/visitantes e membros sem conta apenas Administrador/Secretaria/Pastor; contas por ativar só Administrador. Membro/Tesouraria recebem apenas eventos públicos; gestão vê internos também. Resposta privada sem cache.
+- Gráficos têm tabelas alternativas de valores; foco visível, layout adaptável e estados de vazio/erro/carregamento. Sem conta associada não implica criar obrigatoriamente uma conta.
+- Lint global, 114 testes isolados, build e verificação serverless passaram. Consultas verificadas por leitura na base atual, sem alteração de registos. Não houve validação visual exaustiva em dispositivos.

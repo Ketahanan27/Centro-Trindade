@@ -31,7 +31,7 @@ function Sidebar() {
 
       <div className="logo">
         <i className="ri-community-line"></i>
-        <h2>TRINDADE</h2>
+        <h2>CENTRO TRINDADE</h2>
       </div>
 
       <ul>
