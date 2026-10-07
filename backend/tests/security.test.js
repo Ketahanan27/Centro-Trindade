@@ -35,13 +35,13 @@ async function verify(token = sign()) {
 }
 const select = (rows) => ({ command: 'SELECT', rows });
 
-test('public signup is rejected without creating an account', async () => {
+test("O registo público é recusado sem criar uma conta", async () => {
   const res = response();
   await auth.register({ body: { email: 'member@example.invalid', password: 'Password123!' } }, res);
   assert.equal(res.code, 403);
 });
 
-test('active session uses the current database role, not the JWT role', async () => {
+test("A sessão ativa usa o perfil atual da base de dados e não o perfil do JWT", async () => {
   pool.query = async () => select([{ id: 1, perfil: 'Membro', estado: 'Ativo', session_version: 0 }]);
   const { req, res, passed } = await verify();
   assert.equal(passed, true);
@@ -50,11 +50,11 @@ test('active session uses the current database role, not the JWT role', async ()
 });
 
 for (const [name, users] of [
-  ['disabled account', [{ id: 1, perfil: 'Administrador', estado: 'Inativo', session_version: 0 }]],
-  ['deleted account', []],
-  ['revoked session after password or role change', [{ id: 1, perfil: 'Administrador', estado: 'Ativo', session_version: 1 }]],
+  ['conta desativada', [{ id: 1, perfil: 'Administrador', estado: 'Inativo', session_version: 0 }]],
+  ['conta eliminada', []],
+  ['sessão revogada após alteração da palavra-passe ou do perfil', [{ id: 1, perfil: 'Administrador', estado: 'Ativo', session_version: 1 }]],
 ]) {
-  test(`session rejected for ${name}`, async () => {
+  test(`A sessão é recusada para ${name}`, async () => {
     pool.query = async () => select(users);
     const { res, passed } = await verify();
     assert.equal(passed, false);
@@ -62,26 +62,26 @@ for (const [name, users] of [
   });
 }
 
-test('legacy tokens require a new login without querying the database', async () => {
+test("Os tokens antigos exigem um novo login sem consultar a base de dados", async () => {
   const token = jwt.sign({ id: 1, perfil: 'Administrador' }, process.env.JWT_SECRET);
   const { res, passed } = await verify(token);
   assert.equal(passed, false);
   assert.equal(res.code, 401);
 });
 
-test('invalid token never reaches the database', async () => {
+test("Um token inválido nunca chega à base de dados", async () => {
   const { res, passed } = await verify('invalid');
   assert.equal(passed, false);
   assert.equal(res.code, 401);
 });
 
-test('database outage denies access without treating it as a successful session', async () => {
+test("A indisponibilidade da base impede o acesso sem considerar a sessão válida", async () => {
   const { res, passed } = await verify();
   assert.equal(passed, false);
   assert.equal(res.code, 503);
 });
 
-test('same-email account without an explicit link cannot read a member profile', async () => {
+test("Uma conta com o mesmo email mas sem associação explícita não pode consultar o perfil de membro", async () => {
   pool.query = async (sql, params) => {
     // Fixture: account 2 shares a member email, but only account 1 is approved.
     const linked = params[0] === 1 || /OR\s+u\.email/i.test(sql);
@@ -96,7 +96,7 @@ test('same-email account without an explicit link cannot read a member profile',
   assert.equal(allowed.body.id, 9);
 });
 
-test('photo upload for an unlinked account neither saves a file nor creates membership', async () => {
+test("O carregamento de fotografias por uma conta sem associação não guarda ficheiros nem cria um membro", async () => {
   pool.query = async (sql) => {
     assert.match(sql, /^SELECT id FROM membros WHERE utilizador_id/);
     return select([]);
@@ -106,7 +106,7 @@ test('photo upload for an unlinked account neither saves a file nor creates memb
   assert.equal(res.code, 404);
 });
 
-test('ordinary member edit preserves the existing account association', async () => {
+test("A edição normal do membro preserva a associação à conta existente", async () => {
   let association = 7;
   pool.query = async (sql, params) => {
     assert.match(sql, /CASE WHEN \$14::boolean THEN \$12::integer ELSE utilizador_id END/);
@@ -119,13 +119,13 @@ test('ordinary member edit preserves the existing account association', async ()
   assert.equal(association, 7);
 });
 
-test('secretary cannot assign a different account to a member', async () => {
+test("A Secretaria não pode atribuir outra conta a um membro", async () => {
   const res = response();
   await members.updateMember({ params: { id: '9' }, body: { nome: 'Member', utilizador_id: 2 }, user: { perfil: 'Secretaria' } }, res);
   assert.equal(res.code, 403);
 });
 
-test('administrator cannot associate a account already linked to another member', async () => {
+test("O administrador não pode associar uma conta já ligada a outro membro", async () => {
   pool.query = async (sql) => {
     if (/SELECT utilizador_id/.test(sql)) return select([{ utilizador_id: null }]);
     if (/FROM utilizadores/.test(sql)) return select([{ id: 2 }]);
@@ -136,7 +136,7 @@ test('administrator cannot associate a account already linked to another member'
   assert.equal(res.code, 409);
 });
 
-test('member cannot change official entry and baptism through the personal endpoint', async () => {
+test("O membro não pode alterar os dados oficiais de entrada e batismo pelo endpoint pessoal", async () => {
   pool.query = async (sql, params) => {
     assert.doesNotMatch(sql, /entrada\s*=|batizado\s*=/);
     assert.equal(params.length, 6);
@@ -147,7 +147,7 @@ test('member cannot change official entry and baptism through the personal endpo
   assert.equal(res.code, 200);
 });
 
-test('changing a user increments the session version', async () => {
+test("A alteração de um utilizador incrementa a versão da sessão", async () => {
   let version = 0;
   pool.query = async (sql) => {
     assert.match(sql, /session_version = session_version \+ 1/);
@@ -160,7 +160,7 @@ test('changing a user increments the session version', async () => {
   assert.equal(version, 1);
 });
 
-test('password reset consumes a valid token, revokes sessions and commits as one transaction', async () => {
+test("A redefinição da palavra-passe consome um token válido, revoga sessões e confirma tudo numa transação", async () => {
   const operations = [];
   let released = false;
   pool.connect = async () => ({
@@ -181,7 +181,7 @@ test('password reset consumes a valid token, revokes sessions and commits as one
   assert.equal(released, true);
 });
 
-test('used or expired reset token cannot change the password', async () => {
+test("Um token de redefinição usado ou expirado não pode alterar a palavra-passe", async () => {
   const operations = [];
   pool.connect = async () => ({ async query(sql) { operations.push(sql); return { rowCount: 0, rows: [] }; }, release() {} });
   const res = response();
@@ -191,7 +191,7 @@ test('used or expired reset token cannot change the password', async () => {
   assert.equal(operations.some((sql) => /UPDATE utilizadores/.test(sql)), false);
 });
 
-test('failed password update rolls back token consumption', async () => {
+test("Uma falha na alteração da palavra-passe reverte o consumo do token", async () => {
   const operations = [];
   pool.connect = async () => ({
     async query(sql) {
@@ -208,7 +208,7 @@ test('failed password update rolls back token consumption', async () => {
   assert.equal(operations.includes('COMMIT'), false);
 });
 
-test('unavailable payments never report a mock payment request as sent', () => {
+test("Os pagamentos indisponíveis nunca apresentam um pedido simulado como enviado", () => {
   for (const handler of [donations.createDonation, donations.getDonationStatus]) {
     const res = response();
     handler({ body: { valor: 10 } }, res);

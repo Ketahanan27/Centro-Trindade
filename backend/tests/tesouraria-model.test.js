@@ -8,20 +8,20 @@ const movimentos = [
   { id: 3, natureza: 'Receita', tipo: 'Oferta', valor: '10.25', data: '2026-10-02', observacao: '' },
 ];
 
-test('financial summaries convert database decimals and include all movements', () => {
+test("Os resumos financeiros convertem decimais da base e incluem todos os movimentos", () => {
   assert.deepEqual(calcularResumo(movimentos), { entradas: 110.75, saidas: 20.25, saldo: 90.5 });
   assert.deepEqual(calcularTotaisPorTipo(movimentos), [['Oferta', 110.75], ['Água', 20.25]]);
   assert.deepEqual(calcularResumo([]), { entradas: 0, saidas: 0, saldo: 0 });
 });
 
-test('treasury filters combine text and nature and sort without changing source', () => {
+test("Os filtros combinam texto e natureza e ordenam sem alterar os dados originais", () => {
   assert.deepEqual(filtrarMovimentos(movimentos, 'OFERTA', 'Receita').map(m => m.id), [3, 1]);
   assert.deepEqual(filtrarMovimentos(movimentos, 'culto', 'Todos').map(m => m.id), [1]);
   assert.deepEqual(filtrarMovimentos(movimentos, 'culto', 'Despesa'), []);
   assert.deepEqual(movimentos.map(m => m.id), [1, 2, 3]);
 });
 
-test('pagination limits pages to ten movements and clamps after filtering or deletion', () => {
+test("A paginação limita cada página a dez movimentos e ajusta a página após filtragem ou eliminação", () => {
   const lista = Array.from({ length: 21 }, (_, id) => ({ id }));
   assert.equal(paginarMovimentos(lista, 1).movimentosDaPagina.length, 10);
   assert.deepEqual(paginarMovimentos(lista, 2).movimentosDaPagina.map(m => m.id), [10, 11, 12, 13, 14, 15, 16, 17, 18, 19]);
@@ -30,7 +30,7 @@ test('pagination limits pages to ten movements and clamps after filtering or del
   assert.deepEqual(paginarMovimentos([], 3), { totalPaginas: 0, paginaVisivel: 1, movimentosDaPagina: [] });
 });
 
-test('editing a movement normalizes its date and requires a fresh audit reason', () => {
+test("A edição normaliza a data do movimento e exige um novo motivo para a auditoria", () => {
   const movimento = { ...movimentos[0], data: '2026-10-01T00:00:00Z', motivo: 'Motivo anterior' };
   const form = formularioDoMovimento(movimento);
   assert.equal(form.data, '2026-10-01');

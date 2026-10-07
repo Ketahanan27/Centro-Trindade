@@ -6,7 +6,7 @@ import { dadosParaEmissao, FORM_VAZIO } from '../../src/features/secretaria/mode
 import { anosDasApresentacoes, filtrarApresentacoes } from '../../src/features/secretaria/models/apresentacoes.model.js';
 import { filtrarReunioes } from '../../src/features/secretaria/models/atas.model.js';
 
-test('activity count export keeps filters and does not restrict results to the current page', () => {
+test("A exportação de contagens mantém os filtros e não limita os resultados à página atual", () => {
   const filtros = { inicio: '2026-01-01', fim: '2026-12-31', pesquisa: 'Culto & oração' };
   const pagina = new URLSearchParams(consultaContagens(filtros, 3));
   assert.equal(pagina.get('pagina'), '3');
@@ -18,7 +18,7 @@ test('activity count export keeps filters and does not restrict results to the c
   assert.equal(exportacao.get('fim'), filtros.fim);
 });
 
-test('selecting an agenda activity keeps count data and clearing it enables manual entry', () => {
+test("Selecionar uma atividade da Agenda preserva a contagem e desassociá-la permite a introdução manual", () => {
   const form = { quantidade: '12', observacoes: 'Exemplo' };
   const eventos = [{ id: 7, titulo: 'Culto', data_evento: '2026-10-07T00:00:00Z' }];
   const selecionado = formularioDaAgenda(form, eventos, '7');
@@ -27,7 +27,7 @@ test('selecting an agenda activity keeps count data and clearing it enables manu
   assert.equal(Object.hasOwn(form, 'evento_id'), false);
 });
 
-test('visitor follow-up combines name and status without changing source records', () => {
+test("O acompanhamento de visitantes combina nome e estado sem alterar os registos originais", () => {
   const visitantes = [{ nome: 'Alice', estado: 'Visitante' }, { nome: 'ALICE', estado: 'Em acompanhamento' }];
   assert.deepEqual(filtrarVisitantes(visitantes, 'alice', 'Visitante'), [visitantes[0]]);
   assert.equal(filtrarVisitantes(visitantes, 'alice', 'Todos').length, 2);
@@ -39,7 +39,7 @@ test('visitor follow-up combines name and status without changing source records
   assert.equal(original.data_visita, '2026-10-07T00:00:00Z');
 });
 
-test('document emission takes a dated snapshot unaffected by subsequent form edits', () => {
+test("A emissão do documento cria uma cópia datada não afetada por edições posteriores do formulário", () => {
   const form = { ...FORM_VAZIO, nome_completo: ' Alice ', bi: ' BI-1 ', igreja_destino: 'Outra igreja' };
   const registo = dadosParaEmissao(form, 'Recomendacao', new Date(2026, 9, 7));
   assert.equal(registo.nome_completo, 'Alice');
@@ -50,7 +50,7 @@ test('document emission takes a dated snapshot unaffected by subsequent form edi
   assert.equal(registo.dados_json.igreja_destino, 'Outra igreja');
 });
 
-test('presentation years and search use recorded dates including the year boundary', () => {
+test("Os anos e a pesquisa de apresentações usam as datas registadas incluindo a mudança de ano", () => {
   const registos = [
     { data_apresentacao: '2026-01-01', observacoes: 'Culto' },
     { data_apresentacao: '2025-12-31', observacoes: null },
@@ -62,7 +62,7 @@ test('presentation years and search use recorded dates including the year bounda
   assert.equal(filtrarApresentacoes(registos, '', 'Todos').length, 3);
 });
 
-test('meeting search keeps original records and case-insensitive matching', () => {
+test("A pesquisa de reuniões preserva os registos e ignora diferenças entre maiúsculas e minúsculas", () => {
   const reunioes = [{ titulo: 'Reunião pastoral', resumo: 'Ata original' }, { titulo: 'Secretaria' }];
   assert.deepEqual(filtrarReunioes(reunioes, 'PASTORAL'), [reunioes[0]]);
   assert.equal(reunioes.length, 2);

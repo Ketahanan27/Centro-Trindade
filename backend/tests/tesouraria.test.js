@@ -26,14 +26,14 @@ function mockClient({ failAudit = false, missing = false, missingAuthor = false,
   pool.connect = async () => client;
   return calls;
 }
-test('rejects invalid money, impossible dates and malformed observations', () => {
+test("Rejeita valores monetários inválidos, datas impossíveis e observações malformadas", () => {
   for (const valor of ['NaN', 'Infinity', '-1', '0', '0.001', '1e3', true, {}, '100000000']) assert.ok(validarMovimento({ ...valido(), valor }));
   for (const data of ['2026-02-30', '2025-02-29', '2026-13-01', '12/03/2026']) assert.ok(validarMovimento({ ...valido(), data }));
   assert.ok(validarMovimento({ ...valido(), observacao: {} }));
   for (const natureza of ['__proto__', 'constructor', {}, null]) assert.ok(validarMovimento({ ...valido(), natureza }));
   assert.equal(validarMovimento(valido()), null);
 });
-for (const acao of ['Criado', 'Alterado', 'Eliminado']) test(`${acao}: mutation and author snapshots commit together`, async () => {
+for (const acao of ['Criado', 'Alterado', 'Eliminado']) test(`${acao}: a alteração e os dados do autor são confirmados em conjunto`, async () => {
   const calls = mockClient(); const res = resposta();
   await escreverMovimento(acao)({ body: { ...valido(), criado_por: 999 }, params: { id: 3 }, user: { id: 8 } }, res);
   assert.equal(res.code, acao === 'Criado' ? 201 : 200);
@@ -45,7 +45,7 @@ for (const acao of ['Criado', 'Alterado', 'Eliminado']) test(`${acao}: mutation 
   assert.ok(calls.find(([sql]) => sql === 'COMMIT'));
   if (acao !== 'Criado') assert.ok(calls.find(([sql]) => sql.includes('FOR UPDATE')));
 });
-test('audit failure rolls back financial changes', async () => {
+test("Uma falha na auditoria reverte as alterações financeiras", async () => {
   const calls = mockClient({ failAudit: true }); const res = resposta();
   await escreverMovimento('Alterado')({ body: valido(), params: { id: 3 }, user: { id: 8 } }, res);
   assert.equal(res.code, 500);
@@ -53,19 +53,19 @@ test('audit failure rolls back financial changes', async () => {
   assert.ok(!calls.find(([sql]) => sql === 'COMMIT'));
   assert.equal(calls.at(-1)[0], 'RELEASE');
 });
-test('missing movement returns 404 without creating history', async () => {
+test("Um movimento ausente devolve 404 sem criar histórico", async () => {
   const calls = mockClient({ missing: true }); const res = resposta();
   await escreverMovimento('Eliminado')({ body: valido(), params: { id: 3 }, user: { id: 8 } }, res);
   assert.equal(res.code, 404);
   assert.ok(!calls.find(([sql]) => sql.startsWith('INSERT INTO tesouraria_historico')));
 });
-test('missing reason is refused before opening a connection', async () => {
+test("A ausência de motivo é recusada antes de abrir uma ligação", async () => {
   pool.connect = () => { throw new Error('Unexpected connection'); }; const res = resposta();
   await escreverMovimento('Eliminado')({ body: {}, params: { id: 3 }, user: { id: 8 } }, res);
   assert.equal(res.code, 400);
 });
 
-test('missing authenticated author rolls back before writing any movement', async () => {
+test("A ausência do autor autenticado reverte a transação antes de escrever movimentos", async () => {
   const calls = mockClient({ missingAuthor: true });
   const res = resposta();
   await escreverMovimento('Criado')({ body: valido(), user: { id: 8 } }, res);
@@ -75,7 +75,7 @@ test('missing authenticated author rolls back before writing any movement', asyn
   assert.equal(calls.at(-1)[0], 'RELEASE');
 });
 
-test('financial write failure releases the connection and does not create history', async () => {
+test("Uma falha na escrita financeira liberta a ligação e não cria histórico", async () => {
   const calls = mockClient({ failWrite: true });
   const res = resposta();
   await escreverMovimento('Alterado')({ body: valido(), params: { id: 3 }, user: { id: 8 } }, res);
@@ -85,7 +85,7 @@ test('financial write failure releases the connection and does not create histor
   assert.equal(calls.at(-1)[0], 'RELEASE');
 });
 
-test('invalid movement ID is refused before a transaction starts', async () => {
+test("Um identificador inválido de movimento é recusado antes de iniciar a transação", async () => {
   pool.connect = () => { throw new Error('Unexpected connection'); };
   const res = resposta();
   await escreverMovimento('Alterado')({ body: valido(), params: { id: 'abc' }, user: { id: 8 } }, res);
@@ -93,7 +93,7 @@ test('invalid movement ID is refused before a transaction starts', async () => {
   assert.equal(res.body.message, 'Movimento inválido.');
 });
 
-test('movement list keeps registration and last-operation authors in the SQL', async () => {
+test("A listagem mantém no SQL os autores do registo e da última operação", async () => {
   pool.query = async sql => {
     assert.match(sql, /COALESCE\(registo.autor_nome, u.nome\) AS autor_registo/);
     assert.match(sql, /ultima.autor_nome AS autor_ultima_operacao/);
@@ -105,7 +105,7 @@ test('movement list keeps registration and last-operation authors in the SQL', a
   assert.equal(res.body[0].autor_registo, 'Secretaria');
 });
 
-test('monthly summary converts database decimals and preserves its month and year filters', async () => {
+test("O resumo mensal converte os decimais e preserva os filtros de mês e ano", async () => {
   pool.query = async sql => {
     assert.match(sql, /EXTRACT\(MONTH FROM data\)/);
     assert.match(sql, /EXTRACT\(YEAR FROM data\)/);
@@ -116,7 +116,7 @@ test('monthly summary converts database decimals and preserves its month and yea
   assert.deepEqual(res.body, { receitas: 100.5, despesas: 25.25, saldo: 75.25 });
 });
 
-test('audit consultation preserves snapshots and the latest-200 limit', async () => {
+test("A consulta de auditoria preserva os dados históricos e o limite das últimas 200 operações", async () => {
   pool.query = async sql => {
     assert.match(sql, /ORDER BY id DESC LIMIT 200/);
     return { rows: [{ movimento_id: 3, acao: 'Eliminado', antes: snapshot, depois: null }] };

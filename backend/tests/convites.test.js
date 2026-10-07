@@ -31,7 +31,7 @@ function setup({ existing = false, missing = false, active = true, pending = tru
   } });
   return { calls, messages };
 }
-test('creation stores only token hash and commits account and token before email', async () => {
+test("A criação guarda apenas o hash do token e confirma a conta e o token antes de enviar o email", async () => {
   const { calls, messages } = setup(); const res = response();
   await criarContaConvite({ body: body() }, res);
   assert.equal(res.code, 201); assert.equal(res.body.email_enviado, true);
@@ -41,26 +41,26 @@ test('creation stores only token hash and commits account and token before email
   assert.match(messages[0].html, /Pessoa &lt;teste&gt;/);
   assert.equal(calls.find(([sql]) => sql.startsWith('INSERT INTO utilizadores'))[1][1], 'teste@example.invalid');
 });
-test('token persistence failure rolls back account creation and sends no email', async () => {
+test("Uma falha na persistência do token reverte a criação da conta e não envia email", async () => {
   const { calls, messages } = setup({ failToken: true }); const res = response();
   await criarContaConvite({ body: body() }, res);
   assert.equal(res.code, 500); assert.equal(messages.length, 0);
   assert.ok(calls.some(([sql]) => sql === 'ROLLBACK')); assert.ok(!calls.some(([sql]) => sql === 'COMMIT'));
 });
-test('delivery failure preserves pending account and revokes only the failed link', async () => {
+test("Uma falha no envio preserva a conta pendente e revoga apenas o link que falhou", async () => {
   const { calls } = setup({ failMail: true }); const res = response();
   await criarContaConvite({ body: body() }, res);
   assert.equal(res.code, 201); assert.equal(res.body.email_enviado, false);
   assert.match(res.body.message, /Reenviar convite/);
   assert.ok(calls.some(([sql]) => sql === 'UPDATE password_resets SET usado=1 WHERE token=$1'));
 });
-test('duplicate email returns conflict without another account or email', async () => {
+test("Um email duplicado devolve conflito sem criar outra conta ou enviar email", async () => {
   const { calls, messages } = setup({ existing: true }); const res = response();
   await criarContaConvite({ body: body() }, res);
   assert.equal(res.code, 409); assert.equal(messages.length, 0);
   assert.ok(!calls.some(([sql]) => sql.startsWith('INSERT')));
 });
-test('resending locks existing account, rotates link and never creates another account', async () => {
+test("O reenvio bloqueia a conta existente, substitui o link e nunca cria outra conta", async () => {
   const { calls, messages } = setup(); const res = response();
   await emitirLinkConta('convite')({ params: { id: '9' } }, res);
   assert.equal(res.code, 200); assert.equal(messages.length, 1);
@@ -68,14 +68,14 @@ test('resending locks existing account, rotates link and never creates another a
   assert.ok(calls.some(([sql]) => sql.startsWith('UPDATE password_resets SET usado = 1')));
   assert.ok(!calls.some(([sql]) => sql.startsWith('INSERT INTO utilizadores')));
 });
-test('configured and inactive accounts cannot receive an invitation resend', async () => {
+test("Contas já configuradas ou inativas não podem receber um novo convite", async () => {
   for (const options of [{ pending: false }, { active: false }]) {
     const { messages } = setup(options); const res = response();
     await emitirLinkConta('convite')({ params: { id: '9' } }, res);
     assert.equal(res.code, 409); assert.equal(messages.length, 0);
   }
 });
-test('public recovery gives same response for missing accounts and delivery failures', async () => {
+test("A recuperação pública dá a mesma resposta para contas ausentes e falhas no envio", async () => {
   const bodies = [];
   for (const options of [{ missing: true }, { failMail: true }, {}]) {
     setup(options); const res = response();
@@ -84,7 +84,7 @@ test('public recovery gives same response for missing accounts and delivery fail
   }
   assert.deepEqual(bodies[0], bodies[1]); assert.deepEqual(bodies[1], bodies[2]);
 });
-test('stored hashes cannot be used as reset bearer tokens', async () => {
+test("Os hashes guardados não podem ser usados como tokens de redefinição", async () => {
   pool.connect = block; const res = response();
   await redefinirPassword({ body: { token: hashToken('a'.repeat(64)), nova_password: 'Password123!' } }, res);
   assert.equal(res.code, 400);

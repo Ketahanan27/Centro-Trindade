@@ -21,7 +21,7 @@ function fixture() {
     return { rows: [] };
   } };
 }
-test('different instances share counters without storing raw IP addresses', async () => {
+test("Instâncias diferentes partilham contadores sem guardar endereços IP em texto simples", async () => {
   const db = fixture(); const a = new PostgresRateLimitStore('login', db); const b = new PostgresRateLimitStore('login', db);
   a.init({ windowMs: 900000 }); b.init({ windowMs: 900000 });
   assert.equal((await a.increment('192.0.2.1')).totalHits, 1);
@@ -29,19 +29,19 @@ test('different instances share counters without storing raw IP addresses', asyn
   assert.match(db.calls[0][1][0], /^[a-f0-9]{64}$/);
   assert.equal(JSON.stringify(db.calls).includes('192.0.2.1'), false);
 });
-test('expired windows restart and independent scopes do not consume each other limits', async () => {
+test("As janelas expiradas reiniciam e os âmbitos independentes não consomem os limites uns dos outros", async () => {
   const db = fixture(); const a = new PostgresRateLimitStore('auth', db); const b = new PostgresRateLimitStore('contacto', db);
   a.init({ windowMs: 900000 }); b.init({ windowMs: 3600000 });
   await a.increment('client'); assert.equal((await b.increment('client')).totalHits, 1);
   db.rows.get(a.key('client')).reset_at = new Date(0);
   assert.equal((await a.increment('client')).totalHits, 1);
 });
-test('database outage denies protected requests with an explicit store error', async () => {
+test("A indisponibilidade da base recusa pedidos protegidos com um erro explícito de armazenamento", async () => {
   const store = new PostgresRateLimitStore('auth', { query: async () => { throw new Error('Database unavailable'); } });
   store.init({ windowMs: 1000 });
   await assert.rejects(store.increment('client'), { code: 'RATE_LIMIT_STORAGE' });
 });
-test('HTTP middleware blocks after shared limit and supplies retry headers', async () => {
+test("O middleware HTTP bloqueia após atingir o limite partilhado e fornece cabeçalhos para nova tentativa", async () => {
   const db = fixture(); const app = express();
   const store = new PostgresRateLimitStore('http-test', db);
   app.use(rateLimit({ windowMs: 60000, limit: 2, store, standardHeaders: true, legacyHeaders: false }));

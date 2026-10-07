@@ -27,7 +27,7 @@ function fixture() {
   return {queries,released:()=>released};
 }
 for (const [role,administrative,financial] of [['Administrador',true,true],['Pastor',true,true],['Secretaria',true,false],['Tesouraria',false,true]]) {
-  test(`global report enforces ${role} scope in database queries and payload`,async()=>{
+  test(`O relatório global respeita o âmbito de ${role} nas consultas e na resposta`,async()=>{
     const f=fixture(); const {code,body}=await invoke(role);
     assert.equal(code,200);
     assert.equal(Boolean(body.sections.membros),administrative);
@@ -39,31 +39,31 @@ for (const [role,administrative,financial] of [['Administrador',true,true],['Pas
     assert.ok(!f.queries.some(sql=>/LIMIT/.test(sql)));
   });
 }
-test('global report refuses invalid periods, mode and unauthorized users before connecting',async()=>{
+test("O relatório global recusa períodos e formatos inválidos e utilizadores não autorizados antes de abrir a ligação",async()=>{
   pool.connect=async()=>assert.fail('Invalid request connected');
   for (const query of [{inicio:'2026-02-30',fim:'2026-03-01'},{inicio:'2026-02-01',fim:'2025-01-01'},{inicio:'2026-01-01'}, {inicio:'2026-01-01',fim:'2026-02-01',modo:'all'}]) assert.equal((await invoke('Administrador',query)).code,400);
   assert.equal((await invoke('Membro')).code,403);
 });
-test('detailed report refuses oversized exports, rolls back and releases connection',async()=>{
+test("O relatório detalhado recusa exportações excessivas, reverte a transação e liberta a ligação",async()=>{
   const calls=[];let released=false;
   pool.connect=async()=>({query:async sql=>{calls.push(sql);return {rows:/LIMIT/.test(sql)?Array.from({length:5001},()=>({nome:'Pessoa'})):[{total:0}]};},release(){released=true;}});
   assert.equal((await invoke('Administrador',{inicio:'2025-12-01',fim:'2026-01-31',modo:'detalhado'})).code,400);
   assert.equal(calls.at(-1),'ROLLBACK');assert.ok(released);
 });
-test('detailed report returns all authorized sections and uses bounded date-filtered lists',async()=>{
+test("O relatório detalhado devolve todas as secções autorizadas e usa listagens limitadas e filtradas por data",async()=>{
   const f=fixture();const {code,body}=await invoke('Administrador',{inicio:'2025-12-01',fim:'2026-01-31',modo:'detalhado'});
   assert.equal(code,200);assert.equal(Object.keys(body.sections).length,8);
   assert.equal(f.queries.filter(sql=>/LIMIT 5001/.test(sql)).length,8);
   assert.ok(f.released());
 });
-test('database failure rolls back and releases the snapshot without partial data',async()=>{
+test("Uma falha na base reverte a transação e liberta a ligação sem devolver dados parciais",async()=>{
   let released=false;const calls=[];
   pool.connect=async()=>({query:async sql=>{calls.push(sql);if(/FROM/.test(sql))throw new Error('Connection lost');return {rows:[]};},release(){released=true;}});
   const result=await invoke('Administrador');assert.equal(result.code,500);
   assert.equal(result.body.sections,undefined);assert.equal(calls.at(-1),'ROLLBACK');assert.ok(released);
 });
 
-test('combined section sizes enforce the global limit even when each list is below it', async () => {
+test("O tamanho combinado das secções respeita o limite global mesmo quando cada lista está abaixo dele", async () => {
   const calls=[];
   let released=false;
   pool.connect=async()=>({
@@ -81,7 +81,7 @@ test('combined section sizes enforce the global limit even when each list is bel
   assert.ok(released);
 });
 
-test('failed COMMIT returns no report and still releases the connection', async () => {
+test("Uma falha no COMMIT não devolve o relatório e liberta a ligação", async () => {
   const calls=[];
   let released=false;
   pool.connect=async()=>({
@@ -99,13 +99,13 @@ test('failed COMMIT returns no report and still releases the connection', async 
   assert.ok(released);
 });
 
-test('failed BEGIN and failed rollback still release the connection', async () => {
+test("Falhas no BEGIN e no rollback continuam a libertar a ligação", async () => {
   let released=false;
   pool.connect=async()=>({query:async()=>{throw new Error('Connection lost');},release(){released=true;}});
   assert.equal((await invoke('Tesouraria')).code,500);
   assert.ok(released);
 });
-test('detailed global PDF preserves long minutes, money, identity and signatures',()=>{
+test("O PDF global detalhado preserva atas longas, valores monetários, identificação e assinaturas",()=>{
   const doc=criarRelatorioGlobalPDF({inicio:'2026-01-01',fim:'2026-10-07',modo:'detalhado',abrangencia:'Global',emitidoEm:'2026-10-07T12:00:00Z',sections:{
     atas:{titulo:'Reuniões e atas',resumo:{reunioes:1},colunas:[],registos:[{titulo:'Reuniao de teste',data:'2026-10-06',resumo:'Texto de continuidade. '.repeat(250),decisoes:'DECISAO_FINAL'}]},
     tesouraria:{titulo:'Tesouraria',resumo:{receitas:'125.50',despesas:'25.00',saldo:'100.50'},colunas:[['data','Data'],['valor','Valor']],registos:[{data:'2026-10-01',valor:'125.50'}]}

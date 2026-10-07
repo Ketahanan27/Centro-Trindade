@@ -23,7 +23,7 @@ function registo(tipo = 'Membro') {
 }
 
 for (const tipo of ['Batismo', 'Membro', 'Recomendacao']) {
-  test(`${tipo}: reprint uses selected stored identity and original emission date`, () => {
+  test(`${tipo}: a reimpressão usa a identificação guardada selecionada e a data de emissão original`, () => {
     const { doc } = criarDocumentoPDF(registo(tipo));
     const pdf = doc.output();
     assert.match(pdf, /Alice Guardada/);
@@ -33,7 +33,7 @@ for (const tipo of ['Batismo', 'Membro', 'Recomendacao']) {
   });
 }
 
-test('PDF keeps the snapshot when other data changes during persistence', async () => {
+test("O PDF preserva a cópia dos dados quando outros dados mudam durante a persistência", async () => {
   const selected = registo();
   let saved;
   const result = await emitirDocumentoPDF(selected, async () => {
@@ -45,19 +45,19 @@ test('PDF keeps the snapshot when other data changes during persistence', async 
   assert.doesNotMatch(saved, /Nome posterior/);
 });
 
-test('failed database registration never downloads a PDF', async () => {
+test("Uma falha no registo na base nunca descarrega um PDF", async () => {
   let downloaded = false;
   assert.equal(await emitirDocumentoPDF(registo(), async () => false, () => { downloaded = true; }), false);
   assert.equal(downloaded, false);
 });
 
-test('network failure never downloads a PDF', async () => {
+test("Uma falha de rede nunca descarrega um PDF", async () => {
   let downloaded = false;
   await assert.rejects(emitirDocumentoPDF(registo(), async () => { throw new Error('Offline'); }, () => { downloaded = true; }), /Offline/);
   assert.equal(downloaded, false);
 });
 
-test('invalid dates and missing mandatory fields are refused before persistence', async () => {
+test("Datas inválidas e campos obrigatórios ausentes são recusados antes da persistência", async () => {
   const invalid = registo('Batismo');
   invalid.dados_json.data_nascimento = '2025-02-29';
   await assert.rejects(emitirDocumentoPDF(invalid, () => assert.fail('Invalid document persisted')), /datas válidas/);
@@ -70,7 +70,7 @@ test('invalid dates and missing mandatory fields are refused before persistence'
   assert.match(validarDocumento(invalid), /Nome/);
 });
 
-test('long recommendation text paginates and preserves the emission date on every page', () => {
+test("Um texto de recomendação longo é paginado e mantém a data de emissão em todas as páginas", () => {
   const selected = registo('Recomendacao');
   selected.dados_json.motivo = 'Texto longo para uma recomendacao. '.repeat(50);
   const { doc } = criarDocumentoPDF(selected);
@@ -86,13 +86,13 @@ function invoke(handler, req) {
   });
 }
 
-test('API refuses malformed document bodies before accessing PostgreSQL', async () => {
+test("A API recusa dados de documento malformados antes de aceder ao PostgreSQL", async () => {
   for (const body of [null, undefined, [], 'texto']) {
     assert.equal((await invoke(createDocumento, { body })).code, 400);
   }
 });
 
-test('document listing parses legacy JSON and preserves stored identity and emission date', async () => {
+test("A listagem interpreta JSON antigo e preserva a identificação e a data de emissão guardadas", async () => {
   const saved = registo();
   pool.query = async sql => {
     assert.match(sql, /ORDER BY id DESC/);
@@ -115,7 +115,7 @@ test('document listing parses legacy JSON and preserves stored identity and emis
   assert.deepEqual(result.body[3].dados_json, {});
 });
 
-test('document deletion validates IDs and reports an absent record', async () => {
+test("A eliminação de documentos valida identificadores e assinala registos ausentes", async () => {
   for (const id of ['0', 'abc', '2147483648']) {
     assert.equal((await invoke(deleteDocumento, { params: { id } })).code, 400);
   }
@@ -127,12 +127,12 @@ test('document deletion validates IDs and reports an absent record', async () =>
   assert.equal((await invoke(deleteDocumento, { params: { id: '9' } })).code, 404);
 });
 
-test('API refuses incomplete document without writing to PostgreSQL', async () => {
+test("A API recusa documentos incompletos sem escrever no PostgreSQL", async () => {
   const result = await invoke(createDocumento, { body: { tipo: 'Membro', nome_completo: 'Name', bi: 'BI' } });
   assert.equal(result.code, 400);
 });
 
-test('API saves the complete snapshot with its original emission date', async () => {
+test("A API guarda a cópia completa dos dados com a data de emissão original", async () => {
   const selected = registo();
   pool.query = async (sql, params) => {
     assert.match(sql, /^INSERT INTO documentos/);
@@ -157,7 +157,7 @@ function reportFixture(sql, params) {
   return { command: 'SELECT', rows: [] };
 }
 
-test('reports count visitors who became members and respect the requested financial year', async () => {
+test("Os relatórios contam visitantes que se tornaram membros e respeitam o ano financeiro pedido", async () => {
   pool.query = async (sql, params) => reportFixture(sql, params);
   const { code, body } = await invoke(getRelatorios, { query: { ano: '2024' }, user: { perfil: 'Administrador' } });
   assert.equal(code, 200);
@@ -167,7 +167,7 @@ test('reports count visitors who became members and respect the requested financ
   assert.equal(body.referencia.anuais, 2024);
 });
 
-test('Secretaria reports do not expose financial totals or monthly movements', async () => {
+test("Os relatórios da Secretaria não expõem totais financeiros nem movimentos mensais", async () => {
   pool.query = async (sql, params) => reportFixture(sql, params);
   const { body } = await invoke(getRelatorios, { query: { ano: '2024' }, user: { perfil: 'Secretaria' } });
   assert.equal(body.podeVerFinancas, false);
@@ -176,13 +176,13 @@ test('Secretaria reports do not expose financial totals or monthly movements', a
   assert.equal(body.geral.despesas_ano, null);
 });
 
-test('invalid report year does not query the database', async () => {
+test("Um ano de relatório inválido não consulta a base de dados", async () => {
   for (const ano of ['abc', '0', '2024.5', '10000']) {
     assert.equal((await invoke(getRelatorios, { query: { ano }, user: { perfil: 'Administrador' } })).code, 400);
   }
 });
 
-test('reports are available in the sidebar only to authorized staff', () => {
+test("Os relatórios só estão disponíveis no menu lateral para a equipa autorizada", () => {
   for (const perfil of ['Administrador', 'Secretaria', 'Tesouraria', 'Pastor', 'Membro']) {
     assert.equal(temAcesso(perfil, 'relatorios'), perfil !== 'Membro');
   }
@@ -199,18 +199,18 @@ function verificarIdentidade(doc) {
   assert.match(pdf, /1 de/);
 }
 
-test('all declaration templates embed the church logo and signature spaces', () => {
+test("Todos os modelos de declarações incluem o logótipo da igreja e espaços para assinaturas", () => {
   for (const tipo of ['Batismo', 'Membro', 'Recomendacao']) verificarIdentidade(criarDocumentoPDF(registo(tipo)).doc);
 });
 
-test('minutes preserve long content and include church identity and signatures', () => {
+test("As atas preservam conteúdo longo e incluem a identificação da igreja e assinaturas", () => {
   const doc = criarAtaPDF({ id: 12, titulo: 'Reuniao exemplo', data: '2026-10-05', resumo: 'Texto para testar a continuidade da ata. '.repeat(120), decisoes: 'DECISAO_FINAL' });
   verificarIdentidade(doc);
   assert.ok(doc.getNumberOfPages() > 1);
   assert.match(doc.output(), /DECISAO_FINAL/);
 });
 
-test('treasury splits a very long table cell without losing its end or totals', () => {
+test("A Tesouraria divide uma célula muito longa sem perder o final do texto ou os totais", () => {
   const doc = criarTesourariaPDF([{ data: '2026-10-05', tipo: 'Oferta', natureza: 'Receita', valor: '205.50', observacao: 'Descricao longa dentro da tabela. '.repeat(150) + 'FIM_OBSERVACAO' }]);
   verificarIdentidade(doc);
   assert.ok(doc.getNumberOfPages() > 1);
@@ -218,7 +218,7 @@ test('treasury splits a very long table cell without losing its end or totals', 
   assert.match(doc.output(), /205,50/);
 });
 
-test('annual PDF includes monthly presentations and excludes finances for Secretaria', () => {
+test("O PDF anual inclui apresentações mensais e exclui finanças para a Secretaria", () => {
   const dados = { ano: 2026, geral: {}, membrosEstado: [], visitantesEstado: [], eventosMes: [], apresentacoesMes: [], financeiroMensal: [], podeVerFinancas: false };
   const doc = criarRelatorioPDF(dados);
   verificarIdentidade(doc);
