@@ -9,7 +9,7 @@ const MESES = ['Jan','Fev','Mar','Abr','Mai','Jun','Jul','Ago','Set','Out','Nov'
 const euro = (value) => new Intl.NumberFormat('pt-PT', { style: 'currency', currency: 'EUR' }).format(Number(value));
 const ESTADOS = [['Visitante', '#0044ff'], ['Em acompanhamento', '#00c9e0'], ['Tornou-se membro', '#a6b9ff']];
 function Indicador({ titulo, valor, icon, cor = 'blue', detalhe }) {
-  return <article className={`overview-stat ${cor}`}><span className="overview-icon" aria-hidden="true"><i className={icon}/></span><div><span>{titulo}</span><strong>{valor}</strong>{detalhe && <small>{detalhe}</small>}</div></article>;
+  return <article className={`overview-stat ${cor}`}><span className="overview-icon" aria-hidden="true"><i className={icon}/></span><div><span>{titulo}</span><strong>{valor}</strong><small aria-hidden={!detalhe}>{detalhe || "\u00a0"}</small></div></article>;
 }
 function Barras({ dados, financeiro = false, meses }) {
   const linhas = Array.from({length: meses}, (_, i) => ({mes: i+1, ...(dados.find((row) => row.mes === i+1) ?? {})}));
@@ -55,10 +55,10 @@ export default function Dashboard() {
   const tituloMes = new Intl.DateTimeFormat('pt-PT',{month:'long',year:'numeric',timeZone:'UTC'}).format(new Date(`${periodo.inicioMes}T12:00:00Z`));
   return <DashboardLayout><div className="church-overview">
     <header className="overview-heading"><div><h1>Visão geral da igreja</h1><p>{tituloMes}</p></div><span className="overview-live">Dados atuais</span></header>
-    <section className="overview-stats" aria-label="Indicadores da igreja">
-      <Indicador titulo="Membros ativos" valor={stats.membros} icon="ri-team-line" detalhe="Total atual"/>
-      {podeVerMembros && <><Indicador titulo="Novos membros este mês" valor={stats.novosMembros} icon="ri-user-add-line" cor="teal" detalhe="Por data de entrada"/><Indicador titulo="Total de visitantes" valor={stats.visitantes} icon="ri-user-heart-line" cor="gold" detalhe="Todas as atividades registadas"/></>}
-      <Indicador titulo="Próximos eventos" valor={stats.eventos} icon="ri-calendar-event-line" cor="purple" detalhe={podeVerMembros ? 'Eventos agendados' : 'Eventos públicos'}/>
+    <section className={`overview-stats ${podeVerMembros ? "" : "compact"}`} aria-label="Indicadores da igreja">
+      <Indicador titulo="Membros ativos" valor={stats.membros} icon="ri-team-line"/>
+      {podeVerMembros && <Indicador titulo="Total de visitantes" valor={stats.visitantes} icon="ri-user-heart-line" cor="gold" detalhe="Todas as atividades registadas"/>}
+      <Indicador titulo="Próximos eventos" valor={stats.eventos} icon="ri-calendar-event-line" cor="purple"/>
     </section>
     {podeVerMembros && <section className="overview-grid"><article className="overview-panel"><h2>Visitantes por atividade</h2><p className="overview-note">Últimas 8 contagens de {periodo.ano} · participações, não pessoas únicas</p><Atividades dados={dados.visitantesAtividade}/><Link to="/dashboard/secretaria">Consultar contagens na Secretaria</Link></article><article className="overview-panel"><h2>Visitantes por estado</h2><Visitantes dados={dados.visitantesPorEstado}/></article></section>}
     <section className={`overview-grid ${!podeVerFinancas ? 'without-finance' : ''}`}>
