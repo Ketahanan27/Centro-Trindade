@@ -1,0 +1,661 @@
+/*
+|--------------------------------------------------------------------------
+| Página de Tesouraria
+|--------------------------------------------------------------------------
+*/
+.tesouraria-container {
+  width: 100%;
+}
+.tesouraria-container h1 {
+  color: white;
+  margin-bottom: 25px;
+}
+.resumo-cards {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: 20px;
+  margin-bottom: 25px;
+}
+.card {
+  background: #202020;
+  padding: 25px;
+  border-radius: 15px;
+  border-left: 5px solid #0044ff;
+}
+.card.entrada {
+  border-left-color: #10b981;
+}
+.card.saida {
+  border-left-color: #ef4444;
+}
+.card.saldo {
+  border-left-color: #f59e0b;
+}
+.card h3 {
+  color: #ccc;
+  margin-bottom: 10px;
+}
+.card p {
+  color: white;
+  font-size: 28px;
+  font-weight: bold;
+}
+.positivo p {
+  color: #00ff88;
+}
+.negativo p {
+  color: #ff5252;
+}
+.form-box,
+.table-box {
+  background: #202020;
+  padding: 25px;
+  border-radius: 15px;
+  margin-bottom: 25px;
+}
+.form-box h2 {
+  color: white;
+  margin-bottom: 20px;
+}
+.form-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 20px;
+}
+.form-grid label {
+  display: block;
+  color: white;
+  margin-bottom: 8px;
+}
+.form-grid input,
+.form-grid select {
+  width: 100%;
+  padding: 12px;
+  border: none;
+  border-radius: 10px;
+  background: #161616;
+  color: white;
+  outline: none;
+  transition: .3s;
+}
+.form-grid input:focus,
+.form-grid select:focus {
+  box-shadow: 0 0 0 2px #0044ff;
+}
+.form-actions {
+  display: flex;
+  gap: 10px;
+  margin-top: 20px;
+}
+.btn-save,
+.btn-clear {
+  border: none;
+  padding: 12px 20px;
+  border-radius: 10px;
+  cursor: pointer;
+  transition: .3s;
+}
+.btn-save {
+  background: #0044ff;
+  color: white;
+}
+.btn-save:hover {
+  background: #001c68;
+}
+.btn-clear {
+  background: #666;
+  color: white;
+}
+.btn-clear:hover {
+  background: #555;
+}
+.search-box {
+  display: flex;
+  gap: 10px;
+  margin-bottom: 20px;
+  align-items: center;
+}
+.search-box input {
+  flex: 1;
+  padding: 12px;
+  border: none;
+  border-radius: 10px;
+  background: #202020;
+  color: white;
+  outline: none;
+  transition: .3s;
+}
+.search-box input:focus {
+  box-shadow: 0 0 0 2px #0044ff;
+}
+.btn-export {
+  background: #10b981;
+  color: white;
+  border: none;
+  padding: 12px 18px;
+  border-radius: 10px;
+  cursor: pointer;
+  white-space: nowrap;
+  transition: .3s;
+}
+.btn-export:hover {
+  background: #059669;
+}
+.table-box {
+  overflow-x: auto;
+}
+.pagination {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 12px;
+  margin-top: 18px;
+  padding: 16px 12px 2px;
+  border-top: 1px solid #333;
+}
+.pagination-pages {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 6px;
+}
+.pagination button {
+  display: inline-flex;
+  min-width: 40px;
+  min-height: 40px;
+  justify-content: center;
+  align-items: center;
+  padding: 8px 12px;
+  border: 1px solid #3a3a3a;
+  border-radius: 10px;
+  background: #252525;
+  color: #ddd;
+  font: inherit;
+  font-size: .9rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: background .2s, border-color .2s, color .2s, transform .2s;
+}
+.pagination button:hover:not(:disabled),
+.pagination-page.active {
+  border-color: #10b981;
+  background: #10b981;
+  color: #071b14;
+}
+.pagination button:hover:not(:disabled) {
+  transform: translateY(-1px);
+}
+.pagination .pagination-arrow {
+  gap: 7px;
+  padding-inline: 15px;
+  color: white;
+}
+.pagination button:disabled {
+  border-color: #303030;
+  background: #1a1a1a;
+  color: #777;
+  opacity: .7;
+  cursor: not-allowed;
+}
+.pagination button:focus-visible {
+  outline: 2px solid #10b981;
+  outline-offset: 2px;
+}
+.tesouraria-container table {
+  width: 100%;
+  border-collapse: collapse;
+}
+.tesouraria-container th {
+  background: #161616;
+  color: white;
+  padding: 15px;
+  text-align: left;
+}
+.tesouraria-container td {
+  padding: 15px;
+  color: #ddd;
+  border-bottom: 1px solid #333;
+}
+.edit-btn {
+  background: #0044ff;
+  color: white;
+  border: none;
+  padding: 8px 14px;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: .3s;
+}
+.edit-btn:hover {
+  background: #001c68;
+}
+.delete-btn {
+  background: #ff3333;
+  color: white;
+  border: none;
+  padding: 8px 14px;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: .3s;
+}
+.delete-btn:hover {
+  background: #cc0000;
+}
+.empty-row {
+  text-align: center;
+  color: #999;
+  padding: 25px;
+}
+.resumo-tipos {
+  background: #202020;
+  padding: 25px;
+  border-radius: 15px;
+  margin-top: 25px;
+}
+.resumo-tipos h2 {
+  color: white;
+  margin-bottom: 15px;
+}
+.tipo-item {
+  display: flex;
+  justify-content: space-between;
+  padding: 12px 0;
+  border-bottom: 1px solid #333;
+  color: #ddd;
+}
+.tipo-item:last-child {
+  border-bottom: none;
+}
+.tipo-item strong {
+  color: white;
+}
+.natureza-badge {
+  display: inline-block;
+  padding: 3px 10px;
+  border-radius: 20px;
+  font-size: 12px;
+  font-weight: 600;
+}
+.natureza-receita {
+  background: rgba(16, 185, 129, 0.15);
+  color: #10b981;
+}
+.natureza-despesa {
+  background: rgba(239, 68, 68, 0.15);
+  color: #ef4444;
+}
+.filtro-natureza-select {
+  padding: 12px;
+  border: none;
+  border-radius: 10px;
+  background: #202020;
+  color: white;
+  outline: none;
+  cursor: pointer;
+  transition: .3s;
+}
+.filtro-natureza-select:focus {
+  box-shadow: 0 0 0 2px #0044ff;
+}
+.campo-full {
+  grid-column: 1 / -1;
+}
+.valor-cel {
+  font-weight: 600;
+  color: white;
+}
+.obs-cel {
+  max-width: 200px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+/*
+|--------------------------------------------------------------------------
+| Responsivo
+|--------------------------------------------------------------------------
+*/
+@media (max-width: 768px) {
+  .form-grid {
+    grid-template-columns: 1fr;
+  }
+  .search-box {
+    flex-direction: column;
+    align-items: stretch;
+  }
+  .btn-export {
+    width: 100%;
+    text-align: center;
+  }
+}
+@media (max-width: 500px) {
+  .form-box,
+  .table-box {
+    padding: 15px;
+  }
+  .pagination {
+    gap: 8px;
+    padding-inline: 0;
+  }
+  .pagination button {
+    min-width: 36px;
+    min-height: 36px;
+    padding: 7px 9px;
+  }
+  .pagination .pagination-arrow {
+    padding-inline: 10px;
+  }
+  .tesouraria-container th,
+  .tesouraria-container td {
+    font-size: .85rem;
+  }
+}
+.tesouraria-container .table-box {
+  overflow-x: auto;
+}
+.tesouraria-container .movimentos-table {
+  width: 100%;
+  min-width: 850px;
+  table-layout: fixed;
+  border-collapse: collapse;
+}
+.tesouraria-container .movimentos-table th,
+.tesouraria-container .movimentos-table td {
+  vertical-align: middle;
+  text-align: left;
+  overflow-wrap: anywhere;
+  padding: 14px 12px;
+}
+.tesouraria-container .movimentos-table th:nth-child(1) {
+  width: 12%;
+}
+.tesouraria-container .movimentos-table th:nth-child(2) {
+  width: 12%;
+}
+.tesouraria-container .movimentos-table th:nth-child(3) {
+  width: 12%;
+  text-align: right;
+}
+.tesouraria-container .movimentos-table th:nth-child(4) {
+  width: 12%;
+}
+.tesouraria-container .movimentos-table th:nth-child(5) {
+  width: 24%;
+}
+.tesouraria-container .movimentos-table th:nth-child(6) {
+  width: 18%;
+}
+.tesouraria-container .movimentos-table th:nth-child(7) {
+  width: 10%;
+  text-align: center;
+}
+.tesouraria-container .movimentos-table .valor-cel {
+  text-align: right;
+  white-space: nowrap;
+  font-variant-numeric: tabular-nums;
+}
+.tesouraria-container .movimentos-table .obs-cel {
+  max-width: none;
+  white-space: normal;
+}
+.tesouraria-container .movimentos-table .autor-cel span {
+  display: block;
+}
+.tesouraria-container .movimentos-table .autor-cel small {
+  display: block;
+  margin-top: 5px;
+  color: #aaa;
+  line-height: 1.4;
+}
+.tesouraria-container .movement-actions {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 8px;
+}
+.tesouraria-container {
+  display: flex;
+  flex-direction: column;
+  gap: 22px;
+  min-width: 0;
+}
+.tesouraria-container .treasury-heading {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 12px;
+}
+.tesouraria-container .treasury-heading h1 {
+  margin: 0;
+  font-size: 25px;
+}
+.tesouraria-container .treasury-heading > span {
+  color: #aaa;
+  font-size: 12px;
+}
+.tesouraria-container .resumo-cards {
+  grid-template-columns: repeat(3,minmax(0,1fr));
+  gap: 16px;
+  margin: 0;
+}
+.tesouraria-container .card {
+  padding: 22px;
+  border: 1px solid #383838;
+  border-radius: 12px;
+  border-top: 3px solid #0044ff;
+}
+.tesouraria-container .card.entrada {
+  border-top-color: #22c55e;
+}
+.tesouraria-container .card.saida {
+  border-top-color: #ef4444;
+}
+.tesouraria-container .card.saldo {
+  border-top-color: #0044ff;
+}
+.tesouraria-container .card h3 {
+  margin: 0 0 12px;
+  font-size: 12px;
+  font-weight: 500;
+  color: #aaa;
+}
+.tesouraria-container .card p {
+  margin: 0;
+  font-size: 26px;
+  overflow-wrap: anywhere;
+}
+.tesouraria-container .positivo p {
+  color: #82dca2;
+}
+.tesouraria-container .negativo p {
+  color: #ff9292;
+}
+.tesouraria-container .form-box,.tesouraria-container .table-box,.tesouraria-container .resumo-tipos {
+  margin: 0;
+  padding: 22px;
+  border: 1px solid #383838;
+  border-radius: 14px;
+}
+.tesouraria-container .form-box h2,.tesouraria-container .resumo-tipos h2,.tesouraria-container .treasury-table-heading {
+  margin: 0 0 20px;
+  font-size: 17px;
+  color: #eee;
+}
+.tesouraria-container .form-grid {
+  grid-template-columns: repeat(4,minmax(0,1fr));
+  gap: 18px;
+}
+.tesouraria-container .form-grid > div {
+  min-width: 0;
+}
+.tesouraria-container .form-grid label {
+  font-size: 12px;
+  color: #bbb;
+}
+.tesouraria-container .form-grid input,.tesouraria-container .form-grid select {
+  box-sizing: border-box;
+  min-height: 42px;
+  padding: 10px 12px;
+  border: 1px solid #454545;
+  border-radius: 8px;
+  font: inherit;
+  font-size: 14px;
+  color-scheme: dark;
+}
+.tesouraria-container .form-actions {
+  justify-content: flex-end;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin-top: 24px;
+  padding-top: 18px;
+  border-top: 1px solid #383838;
+}
+.tesouraria-container .form-actions button {
+  width: auto;
+  min-height: 38px;
+  padding: 10px 15px;
+  font-size: 12px;
+  border-radius: 8px;
+}
+.tesouraria-container .form-actions .btn-clear {
+  background: #303030;
+  border: 1px solid #505050;
+}
+.tesouraria-container .search-box {
+  display: flex;
+  flex-wrap: wrap;
+  flex-direction: row;
+  gap: 12px;
+  margin: 0;
+  padding: 18px;
+  border: 1px solid #383838;
+  border-radius: 12px;
+  background: #202020;
+}
+.tesouraria-container .search-box input {
+  min-width: 180px;
+  width: auto;
+  flex: 1;
+}
+.tesouraria-container .search-box input,.tesouraria-container .search-box select {
+  box-sizing: border-box;
+  min-height: 40px;
+  padding: 10px 12px;
+  border: 1px solid #454545;
+  border-radius: 8px;
+  background: #171717;
+  font: inherit;
+  font-size: 13px;
+  color-scheme: dark;
+}
+.tesouraria-container .search-box .btn-export {
+  width: auto;
+  min-height: 38px;
+  padding: 10px 13px;
+  border: 1px solid #4b5c85;
+  border-radius: 8px;
+  background: #0044ff18;
+  color: #a8bfff;
+  font-size: 12px;
+}
+.tesouraria-container .movimentos-table th {
+  font-size: 12px;
+  color: #aaa;
+  background: #171717;
+}
+.tesouraria-container .movimentos-table td {
+  font-size: 13px;
+  padding-block: 17px;
+}
+.tesouraria-container .movimentos-table tbody tr:hover td {
+  background: #ffffff03;
+}
+.tesouraria-container .movement-actions button {
+  display: grid;
+  place-items: center;
+  width: 32px;
+  height: 32px;
+  padding: 0;
+  border-radius: 7px;
+  background: #303030;
+  border: 1px solid #555;
+  color: #ddd;
+}
+.tesouraria-container .movement-actions .delete-btn {
+  background: #ef444414;
+  border-color: #783535;
+  color: #ff9292;
+}
+.tesouraria-container .natureza-badge {
+  font-size: 11px;
+  padding: 5px 8px;
+  border-radius: 6px;
+}
+.tesouraria-container .natureza-receita {
+  color: #82dca2;
+  background: #22c55e15;
+}
+.tesouraria-container .natureza-despesa {
+  color: #ff9292;
+  background: #ef444415;
+}
+.tesouraria-container .pagination button {
+  min-width: 32px;
+  min-height: 32px;
+  padding: 7px 10px;
+  font-size: 12px;
+  border-radius: 7px;
+}
+.tesouraria-container .pagination-page.active,.tesouraria-container .pagination button:hover:not(:disabled) {
+  background: #0044ff;
+  border-color: #527eff;
+  color: white;
+}
+.tesouraria-container .resumo-tipos {
+  display: grid;
+  grid-template-columns: repeat(2,minmax(0,1fr));
+  gap: 0 24px;
+}
+.tesouraria-container .resumo-tipos h2 {
+  grid-column: 1/-1;
+}
+.tesouraria-container .tipo-item {
+  gap: 16px;
+  font-size: 13px;
+  padding: 14px 0;
+}
+.tesouraria-container .tipo-item strong {
+  white-space: nowrap;
+  font-variant-numeric: tabular-nums;
+}
+.tesouraria-container :is(input,select,button):focus-visible {
+  outline: 2px solid #a2bdff;
+  outline-offset: 3px;
+}
+@media(max-width:1100px) {
+  .tesouraria-container .form-grid {
+    grid-template-columns: repeat(2,minmax(0,1fr));
+  }
+}
+@media(max-width:600px) {
+  .tesouraria-container {
+    gap: 16px;
+  }
+  .tesouraria-container .resumo-cards,.tesouraria-container .form-grid,.tesouraria-container .resumo-tipos {
+    grid-template-columns: 1fr;
+  }
+  .tesouraria-container .form-box,.tesouraria-container .table-box,.tesouraria-container .resumo-tipos {
+    padding: 16px;
+  }
+  .tesouraria-container .search-box input {
+    flex-basis: 100%;
+  }
+}
+.tesouraria-container .banner-leitura {
+  padding: 14px;
+  border: 1px solid #454545;
+  border-radius: 8px;
+  color: #ddd;
+  background: #202020;
+}

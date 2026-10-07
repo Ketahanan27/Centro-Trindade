@@ -1,7 +1,7 @@
 # Organização do projeto
 
 O frontend está a ser organizado por funcionalidades. Membros é o primeiro
-módulo migrado, seguido da Agenda; os restantes continuam nas pastas anteriores
+módulo migrado, seguido da Agenda e da Tesouraria; os restantes continuam nas pastas anteriores
 até à sua migração.
 
 ## Membros: responsabilidades
@@ -51,6 +51,30 @@ Mudar de mês ou selecionar outra data limpa a edição anterior, evitando guard
 um evento com dados de outra seleção. Os dias usam a data local e respeitam anos
 bissextos. O calendário público continua separado em `src/pages/calendario.jsx`,
 sem controlos de navegação. As permissões continuam verificadas no backend.
+
+## Tesouraria: responsabilidades
+
+O módulo está em `src/features/tesouraria`:
+
+| Ficheiro | Responsabilidade |
+| --- | --- |
+| `TesourariaPage.jsx` | Compor a página e aplicar o modo de leitura |
+| `hooks/useTesouraria.js` | Gerir carregamento, filtros, formulário, ações e exportações |
+| `tesouraria.api.js` | Consultar, guardar e eliminar movimentos |
+| `tesouraria.model.js` | Preparar formulários, totais, filtros e paginação |
+| `components/TesourariaResumo.jsx` | Apresentar receitas, despesas e saldo globais |
+| `components/MovimentoFormulario.jsx` | Apresentar campos e motivo da alteração |
+| `components/MovimentosFiltros.jsx` | Apresentar pesquisa, natureza e exportações |
+| `components/MovimentosTabela.jsx` | Apresentar movimentos, autores, ações e paginação |
+| `components/ResumoCategorias.jsx` | Apresentar os totais por tipo |
+| `tesouraria.module.css` | Isolar os estilos da Tesouraria |
+
+A tabela mantém dez movimentos por página. Os filtros só afetam a tabela; o
+resumo financeiro e o PDF geral continuam a incluir todos os movimentos. O PDF
+diário usa a data do formulário. Os documentos continuam a usar o gerador oficial
+partilhado em `src/utils/exportacoesPdf.js`. Alterações e eliminações mantêm os
+motivos de auditoria e a autorização do backend; a página preserva o modo de
+leitura anterior, que apresenta apenas o resumo financeiro.
 
 ## Convenções para os próximos módulos
 
