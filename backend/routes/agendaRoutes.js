@@ -6,7 +6,7 @@ import {
   getPublicEvents,
   updateEvent,
   deleteEvent,
-} from "../controllers/agendaController.js";
+} from "../modules/agenda/agenda.controller.js";
 
 import { verifyToken, permit } from "../middleware/auth.js";
 import { publicReadLimiter, writeLimiter } from "../middleware/rateLimit.js";

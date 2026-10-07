@@ -3,7 +3,8 @@ import { after, afterEach, test } from 'node:test';
 import { validarEvento } from '../utils/secretariaValidation.js';
 process.env.DATABASE_URL = 'postgresql://test:test@127.0.0.1:1/test';
 const { pool } = await import('../config/db.js');
-const agenda = await import('../controllers/agendaController.js');
+const agenda = await import('../modules/agenda/agenda.controller.js');
+const { criarAgendaService, hojeLisboa } = await import('../modules/agenda/agenda.service.js');
 const original = pool.query;
 const deny = async () => { throw new Error('Unexpected database access'); };
 pool.query = deny;
@@ -48,4 +49,57 @@ test('past event deletion remains blocked by a conditional DELETE', async () => 
     return { command: 'SELECT', rows: [{ id: 1 }] };
   };
   const res = response(); await agenda.deleteEvent({ params: { id: '1' } }, res); assert.equal(res.code, 400);
+});
+
+test('agenda service refuses past creation before persistence and sends normalized data', async () => {
+  const guardados = [];
+  const service = criarAgendaService({ criar: async dados => { guardados.push(dados); return 7; } }, () => '2026-10-07');
+  await assert.rejects(service.criar({ ...evento(), data_evento: '2026-10-06' }), error => error.status === 400);
+  assert.equal(guardados.length, 0);
+  assert.equal(await service.criar({ ...evento(), data_evento: '2026-10-07' }), 7);
+  assert.equal(guardados[0].titulo, 'Evento');
+  assert.equal(guardados[0].publico, false);
+});
+
+test('agenda service validates identifiers but permits correcting past events', async () => {
+  const atualizados = [];
+  const service = criarAgendaService({ atualizar: async (...args) => { atualizados.push(args); return 1; } });
+  await assert.rejects(service.atualizar('abc', evento()), error => error.status === 400);
+  assert.equal(atualizados.length, 0);
+  await service.atualizar('7', { ...evento(), data_evento: '2000-01-01', estado: 'Concluído' });
+  assert.equal(atualizados[0][0], 7);
+  assert.equal(atualizados[0][1].estado, 'Concluído');
+});
+
+test('agenda service distinguishes past and absent events only after a protected delete fails', async () => {
+  const chamadas = [];
+  const service = criarAgendaService({
+    eliminarNaoRealizado: async (id, hoje) => { chamadas.push([id, hoje]); return id === 1 ? 1 : 0; },
+    existe: async id => { chamadas.push(['existe', id]); return id === 2; },
+  }, () => '2026-10-07');
+  await service.eliminar('1');
+  assert.deepEqual(chamadas, [[1, '2026-10-07']]);
+  await assert.rejects(service.eliminar('2'), error => error.status === 400 && error.message.includes('já realizados'));
+  await assert.rejects(service.eliminar('3'), error => error.status === 404);
+});
+
+test('agenda clock returns ISO date in Lisbon across midnight and summer time', () => {
+  assert.equal(hojeLisboa(new Date('2026-06-30T23:30:00Z')), '2026-07-01');
+  assert.equal(hojeLisboa(new Date('2026-12-31T23:30:00Z')), '2026-12-31');
+});
+
+test('agenda write controllers preserve conflict responses and absent-update handling', async () => {
+  pool.query = async () => { throw Object.assign(new Error('Simulated foreign key conflict'), { code: '23503' }); };
+  const criado = response();
+  await agenda.createEvent({ body: evento() }, criado);
+  assert.equal(criado.code, 409);
+  assert.equal(criado.body.message, 'Existem registos associados que impedem esta operação.');
+  const eliminado = response();
+  await agenda.deleteEvent({ params: { id: '7' } }, eliminado);
+  assert.equal(eliminado.code, 409);
+  assert.equal(eliminado.body.message, 'Existem registos associados a este evento.');
+  pool.query = async () => ({ command: 'UPDATE', rowCount: 0, rows: [] });
+  const atualizado = response();
+  await agenda.updateEvent({ params: { id: '7' }, body: evento() }, atualizado);
+  assert.equal(atualizado.code, 404);
 });

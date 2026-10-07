@@ -194,9 +194,35 @@ consistente das operações continuam definidos no backend.
 `npm run check:ci` executa lint, testes isolados, compilação de produção e
 verificação da entrada serverless. Os testes não precisam da base de produção.
 
+## Backend: Agenda
+
+O primeiro módulo reorganizado do backend está em `backend/modules/agenda`:
+
+| Ficheiro | Responsabilidade |
+| --- | --- |
+| `agenda.controller.js` | Receber o pedido HTTP e devolver respostas, códigos e cabeçalhos |
+| `agenda.service.js` | Validar os dados e aplicar as regras dos eventos |
+| `agenda.repository.js` | Executar SQL parametrizado e devolver resultados da persistência |
+
+O fluxo é rota → middleware de autenticação e autorização → controlador → serviço
+→ repositório → PostgreSQL. `backend/routes/agendaRoutes.js` mantém os endpoints,
+os limites de pedidos e os perfis autorizados. A validação partilhada existente
+continua em `backend/utils/secretariaValidation.js` e `inputValidation.js`.
+
+As consultas públicas filtram visibilidade e estado no SQL e não devolvem os
+campos internos. A criação impede datas passadas, mas a edição continua a permitir
+corrigir eventos já realizados. A eliminação usa uma condição de data no próprio
+DELETE, evitando uma verificação prévia que pudesse ficar desatualizada. Uma
+consulta posterior distingue um evento ausente de um evento protegido.
+
+O serviço permite substituir repositório e relógio em testes. Os testes de
+controladores continuam a verificar o SQL através de um pool simulado. Nenhum
+destes testes altera a base de produção. O script de verificação PostgreSQL foi
+atualizado para o novo import, mas só deve ser executado numa base de teste.
+
 ## Continuação
 
-Migrar os restantes módulos do frontend, consolidar os seus estilos e, depois,
-organizar o backend por módulo com controlador, regras e consultas separados
-onde a complexidade o justificar. A migração do backend ainda não foi feita
-nesta primeira etapa.
+Continuar a organização do backend por módulo com controlador, regras e consultas
+separados onde a complexidade o justificar. Apenas a Agenda foi migrada no backend;
+os restantes módulos mantêm os controladores anteriores. As páginas públicas e de
+autenticação e a limpeza final do projeto continuam pendentes.
