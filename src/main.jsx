@@ -7,14 +7,14 @@ import App from "./App";
 
 import "./assets/styles/index.css";
 
-import "./assets/styles/home/gallery.css";
-import "./assets/styles/home/hero.css";
-import "./assets/styles/home/videosection.css";
+import "./features/publico/styles/gallery.css";
+import "./features/publico/styles/hero.css";
+import "./features/publico/styles/videosection.css";
 import "./assets/styles/home/Footer.css";
 import "./assets/styles/home/Navbar.css";
-import "./assets/styles/home/formulario.css";
-import "./assets/styles/home/contribua.css";
-import "./assets/styles/home/calendario.css";
+import "./features/publico/styles/formulario.css";
+import "./features/publico/styles/contribua.css";
+import "./features/publico/styles/calendario.css";
 import "remixicon/fonts/remixicon.css";
 
 ReactDOM.createRoot(document.getElementById("root")).render(

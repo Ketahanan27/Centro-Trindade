@@ -1,5 +1,5 @@
-import Layout from "../components/Layout";
-import "../assets/styles/home/Escola120.css";
+import Layout from "../../components/Layout";
+import "./styles/Escola120.css";
 
 function Escola120() {
   return (

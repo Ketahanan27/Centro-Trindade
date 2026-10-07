@@ -1,16 +1,16 @@
 import { Routes, Route } from "react-router-dom";
 
-import Home from "../pages/Home";
-import Escola120 from "../pages/Escola120";
-import Contribua from "../pages/Contribua";
-import Formulario from "../pages/Formulario";
-import NotFound from "../pages/NotFound";
+import Home from "../features/publico/HomePage";
+import Escola120 from "../features/publico/Escola120Page";
+import Contribua from "../features/publico/ContribuaPage";
+import Formulario from "../features/publico/ContactoPage";
+import NotFound from "../features/publico/NotFoundPage";
 import Login from "../features/auth/LoginPage";
-import Calendario from "../pages/calendario";
+import Calendario from "../features/publico/AgendaPublicaPage";
 import RedefinirPassword from "../features/auth/RedefinirPasswordPage";
 import Registo from "../features/auth/AcessoConvitePage";
-import PoliticaPrivacidade from "../pages/politicaprivacidade";
-import TermosCondicoes from "../pages/termoscondicoes";
+import PoliticaPrivacidade from "../features/publico/PoliticaPrivacidadePage";
+import TermosCondicoes from "../features/publico/TermosCondicoesPage";
 
 import Dashboard from "../features/dashboard/DashboardPage";
 import Membros from "../features/membros/MembrosPage";

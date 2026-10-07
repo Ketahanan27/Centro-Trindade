@@ -204,6 +204,22 @@ e regresso ao login. O registo público permanece como página informativa de
 acesso por convite. O CSS específico foi movido para `auth.css`, partilhado por
 estas páginas, preservando as classes e o visual.
 
+## Frontend: Páginas públicas
+
+As restantes páginas estão agrupadas em `src/features/publico`: Home, Contacto,
+Agenda pública, Escola 120, Contribua, Política de Privacidade, Termos e página
+não encontrada. Os componentes Hero, VideoSection e Gallery pertencem a este
+módulo; Layout, Navbar e Footer continuam partilhados em `src/components`.
+
+Os hooks `useContacto`, `useAgendaPublica` e `useGaleria` concentram estado,
+submissões, carregamento e temporizador. Os pedidos estão em `publico.api.js`,
+os meses em `publico.model.js` e as imagens em `galeria.images.js`. A agenda
+continua sem interação e apresenta apenas eventos agendados. Vídeo, textos
+legais e aviso de contribuições indisponíveis foram preservados.
+
+Os estilos específicos foram movidos para `publico/styles`. As importações no
+ficheiro principal mantêm a ordem anterior para preservar a cascata CSS.
+
 ## Verificação
 
 `npm run check:ci` executa lint, testes isolados, compilação de produção e
@@ -395,6 +411,6 @@ Continuar a organização do backend por módulo com controlador, regras e consu
 separados onde a complexidade o justificar. Agenda, Tesouraria, Membros e os
 módulos da Secretaria, Dashboard, Relatórios, Autenticação, Utilizadores e Convites
 foram migrados no backend, juntamente com Contacto e Contribuições.
-Os controladores antigos foram substituídos. As páginas de autenticação também
-foram organizadas. As restantes páginas públicas e a limpeza final do projeto
-continuam pendentes.
+Os controladores antigos foram substituídos. As páginas de autenticação e as
+páginas públicas também foram organizadas. A revisão e limpeza final dos
+ficheiros sem utilização continua pendente.

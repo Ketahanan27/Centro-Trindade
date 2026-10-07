@@ -1,44 +1,17 @@
-import { useState, useEffect, useMemo } from "react";
+import { useMemo } from "react";
+import { useAgendaPublica } from "./hooks/useAgendaPublica.js";
+import { months } from "./publico.model.js";
 
-import Navbar from "../components/Navbar";
-import Footer from "../components/Footer";
-import { apiFetchArray } from "../utils/api";
-import { formatarData } from "../utils/data";
+import Navbar from "../../components/Navbar";
+import Footer from "../../components/Footer";
 
-import "../assets/styles/home/calendario.css";
+import { formatarData } from "../../utils/data";
+
+import "./styles/calendario.css";
 
 function Calendario() {
-  const months = [
-    "Janeiro", "Fevereiro", "Março", "Abril",
-    "Maio", "Junho", "Julho", "Agosto",
-    "Setembro", "Outubro", "Novembro", "Dezembro",
-  ];
-
-  const [events, setEvents] = useState([]);
+  const { events, loading, error } = useAgendaPublica();
   const currentDate = new Date();
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState(null);
-
-  useEffect(() => {
-    let active = true;
-    async function carregar() {
-      try {
-        const data = await apiFetchArray("/api/eventos");
-        if (!active) return;
-        setEvents(data.filter((item) => item.estado === "Agendado")
-          .map((item) => ({ ...item, data_evento: item.data_evento?.slice(0, 10) })));
-        setError(null);
-      } catch {
-        if (!active) return;
-        setError("Erro ao carregar a agenda pública.");
-        setEvents([]);
-      } finally {
-        if (active) setLoading(false);
-      }
-    }
-    carregar();
-    return () => { active = false; };
-  }, []);
 
   const year = currentDate.getFullYear();
   const month = currentDate.getMonth();

@@ -1,7 +1,7 @@
-import Layout from "../components/Layout";
-import "../assets/styles/home/contribua.css";
-import mbway from "../assets/img/mbway.png";
-import paypal from "../assets/img/PAYPAL.jpg";
+import Layout from "../../components/Layout";
+import "./styles/contribua.css";
+import mbway from "../../assets/img/mbway.png";
+import paypal from "../../assets/img/PAYPAL.jpg";
 
 function Contribua() {
   return (
