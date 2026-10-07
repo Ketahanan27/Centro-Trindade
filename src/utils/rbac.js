@@ -1,18 +1,18 @@
 export const PERMISSOES = {
   Administrador: {
-    areas: ["dashboard", "membros", "agenda", "tesouraria", "secretaria", "utilizadores"],
+    areas: ["dashboard", "relatorios", "membros", "agenda", "tesouraria", "secretaria", "utilizadores"],
     soLeitura: false,
   },
   Secretaria: {
-    areas: ["dashboard", "membros", "agenda", "secretaria"],
+    areas: ["dashboard", "relatorios", "membros", "agenda", "secretaria"],
     soLeitura: false,
   },
   Tesouraria: {
-    areas: ["dashboard", "tesouraria"],
+    areas: ["dashboard", "relatorios", "tesouraria"],
     soLeitura: false,
   },
   Pastor: {
-    areas: ["dashboard", "membros", "agenda", "tesouraria", "secretaria"],
+    areas: ["dashboard", "relatorios", "membros", "agenda", "tesouraria", "secretaria"],
     soLeitura: true,
   },
   Membro: {

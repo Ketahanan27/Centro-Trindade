@@ -16,6 +16,7 @@ import Dashboard from "../pages/dashboard/dashboard";
 import Membros from "../pages/dashboard/membros";
 import Agenda from "../pages/dashboard/agenda";
 import Tesouraria from "../pages/dashboard/tesouraria";
+import Relatorios from "../pages/dashboard/relatorios";
 import Secretaria from "../pages/dashboard/secretaria";
 import Utilizadores from "../pages/dashboard/utilizadores";
 import MinhaArea from "../pages/dashboard/MinhaArea";
@@ -51,6 +52,7 @@ function AppRoutes() {
       <Route path="/dashboard/secretaria" element={
         <ProtectedRoute area="secretaria"><Secretaria /></ProtectedRoute>
       } />
+      <Route path="/dashboard/relatorios" element={<ProtectedRoute area="relatorios"><Relatorios /></ProtectedRoute>} />
       <Route path="/dashboard/utilizadores" element={
         <ProtectedRoute area="utilizadores"><Utilizadores /></ProtectedRoute>
       } />

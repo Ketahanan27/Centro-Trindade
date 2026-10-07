@@ -8,6 +8,7 @@ const q = (sql, params = []) =>
 const PERFIS_FINANCAS = ["Administrador", "Tesouraria", "Pastor"];
 
 export const getRelatorios = async (req, res) => {
+  if (!['Administrador', 'Secretaria', 'Pastor'].includes(req.user?.perfil)) return res.status(403).json({ message: 'Acesso não permitido.' });
   const ano = req.query.ano === undefined ? new Date().getFullYear() : Number(req.query.ano);
   if (!Number.isInteger(ano) || ano < 1900 || ano > 9999) {
     return res.status(400).json({ message: "Ano inválido." });
@@ -69,9 +70,9 @@ export const getRelatorios = async (req, res) => {
            (SELECT COUNT(*)               FROM apresentacoes WHERE EXTRACT(YEAR FROM data_apresentacao) = $1)   AS apresentacoes_ano,
            (SELECT COALESCE(SUM(quantidade),0) FROM apresentacoes WHERE EXTRACT(YEAR FROM data_apresentacao) = $2) AS criancas_ano,
            (SELECT COUNT(*)               FROM eventos WHERE data_evento >= CURRENT_DATE AND estado = 'Agendado') AS proximos_eventos,
-           (SELECT ROUND(COALESCE(SUM(valor),0),2) FROM tesouraria WHERE natureza = 'Receita' AND EXTRACT(YEAR FROM data) = $3) AS receitas_ano,
-           (SELECT ROUND(COALESCE(SUM(valor),0),2) FROM tesouraria WHERE natureza = 'Despesa' AND EXTRACT(YEAR FROM data) = $4) AS despesas_ano`,
-        [ano, ano, ano, ano]),
+           ${podeVerFinancas ? "(SELECT ROUND(COALESCE(SUM(valor),0),2) FROM tesouraria WHERE natureza = 'Receita' AND EXTRACT(YEAR FROM data) = $3)" : 'NULL::numeric'} AS receitas_ano,
+           ${podeVerFinancas ? "(SELECT ROUND(COALESCE(SUM(valor),0),2) FROM tesouraria WHERE natureza = 'Despesa' AND EXTRACT(YEAR FROM data) = $4)" : 'NULL::numeric'} AS despesas_ano`,
+        podeVerFinancas ? [ano, ano, ano, ano] : [ano, ano]),
     ]);
 
     /*

@@ -8,6 +8,7 @@ const NAV_ITEMS = [
   { to: "/dashboard/agenda", icon: "ri-calendar-event-line", label: "Agenda", area: "agenda" },
   { to: "/dashboard/tesouraria", icon: "ri-money-euro-circle-line", label: "Tesouraria", area: "tesouraria" },
   { to: "/dashboard/secretaria", icon: "ri-file-list-3-line", label: "Secretaria", area: "secretaria" },
+  { to: "/dashboard/relatorios", icon: "ri-bar-chart-line", label: "Relatórios", area: "relatorios" },
   { to: "/dashboard/utilizadores", icon: "ri-user-settings-line", label: "Utilizadores", area: "utilizadores" },
   { to: "/dashboard/minha-area", icon: "ri-account-circle-line", label: "Minha Área", area: null },
 ];

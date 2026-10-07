@@ -4,7 +4,6 @@ import DashboardLayout from "../../components/dashboard/dashboardlayout";
 import VisitasAtividade from "../../components/secretaria/visitasAtividade";
 import Visitantes from "../../components/secretaria/visitantes";
 import Documentos from "../../components/secretaria/documentos";
-import Relatorios from "../../components/secretaria/relatorios";
 import Apresentacoes from "../../components/secretaria/apresentacoes";
 import Atas from "../../components/secretaria/atas";
 
@@ -35,13 +34,6 @@ function Secretaria() {
           </button>
 
           <button
-            className={activeTab === "relatorios" ? "active" : ""}
-            onClick={() => setActiveTab("relatorios")}
-          >
-            Relatórios
-          </button>
-
-          <button
             className={activeTab === "apresentacoes" ? "active" : ""}
             onClick={() => setActiveTab("apresentacoes")}
           >
@@ -62,7 +54,6 @@ function Secretaria() {
           {activeTab === "visitantes" && <Visitantes />}
           {activeTab === "visitas-atividade" && <VisitasAtividade />}
           {activeTab === "documentos" && <Documentos />}
-          {activeTab === "relatorios" && <Relatorios />}
           {activeTab === "apresentacoes" && <Apresentacoes />}
           {activeTab === "atas" && <Atas />}
 

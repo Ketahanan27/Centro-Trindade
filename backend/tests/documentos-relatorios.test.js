@@ -118,7 +118,7 @@ function reportFixture(sql, params) {
 
 test('reports count visitors who became members and respect the requested financial year', async () => {
   pool.query = async (sql, params) => reportFixture(sql, params);
-  const { code, body } = await invoke(getRelatorios, { query: { ano: '2024' }, user: { perfil: 'Tesouraria' } });
+  const { code, body } = await invoke(getRelatorios, { query: { ano: '2024' }, user: { perfil: 'Administrador' } });
   assert.equal(code, 200);
   assert.equal(body.geral.convertidos, 2);
   assert.equal(body.podeVerFinancas, true);
@@ -137,13 +137,13 @@ test('Secretaria reports do not expose financial totals or monthly movements', a
 
 test('invalid report year does not query the database', async () => {
   for (const ano of ['abc', '0', '2024.5', '10000']) {
-    assert.equal((await invoke(getRelatorios, { query: { ano }, user: { perfil: 'Tesouraria' } })).code, 400);
+    assert.equal((await invoke(getRelatorios, { query: { ano }, user: { perfil: 'Administrador' } })).code, 400);
   }
 });
 
-test('reports remain within secretaria without a duplicate standalone area', () => {
+test('reports are available in the sidebar only to authorized staff', () => {
   for (const perfil of ['Administrador', 'Secretaria', 'Tesouraria', 'Pastor', 'Membro']) {
-    assert.equal(temAcesso(perfil, 'relatorios'), false);
+    assert.equal(temAcesso(perfil, 'relatorios'), perfil !== 'Membro');
   }
   for (const perfil of ['Administrador', 'Secretaria', 'Pastor']) assert.equal(temAcesso(perfil, 'secretaria'), true);
   assert.equal(temAcesso('Membro', 'secretaria'), false);

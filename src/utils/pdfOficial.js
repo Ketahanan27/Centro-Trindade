@@ -83,6 +83,19 @@ export function criarPDFOficial({ titulo, departamento, data = dataPDFHoje(), re
     });
     y += 9;
   };
+  const graficoBarras = (items) => {
+    const max = Math.max(1, ...items.map(item => Number(item.valor)));
+    for (const item of items) {
+      espaco(13);
+      doc.setFont('helvetica', 'normal'); doc.setFontSize(8.5); doc.setTextColor(...AZUL);
+      doc.text(String(item.label), 20, y);
+      doc.setFillColor(239, 243, 247); doc.rect(62, y - 4, 92, 5, 'F');
+      doc.setFillColor(...AZUL); doc.rect(62, y - 4, 92 * Number(item.valor) / max, 5, 'F');
+      doc.text(String(item.texto ?? item.valor), 190, y, { align: 'right' });
+      y += 11;
+    }
+    y += 5;
+  };
   const finalizar = () => {
     if (y > 218) novaPagina();
     doc.setFont("helvetica", "bold"); doc.setFontSize(9); doc.setTextColor(...AZUL);
@@ -101,5 +114,5 @@ export function criarPDFOficial({ titulo, departamento, data = dataPDFHoje(), re
     }
     return doc;
   };
-  return { doc, paragrafo, secao, tabela, finalizar };
+  return { doc, paragrafo, secao, tabela, graficoBarras, finalizar };
 }
