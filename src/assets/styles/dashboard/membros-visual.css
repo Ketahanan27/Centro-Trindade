@@ -8,20 +8,20 @@
 .members-view .members-count { white-space:nowrap; font-size:12px; color:#aaa; }
 .members-view .table-wrapper { padding:0; background:#202020; border:1px solid #383838; border-radius:12px; overflow-x:auto; }
 .members-view table { min-width:760px; table-layout:fixed; }
-.members-view th { padding:15px 18px; font-size:12px; color:#aaa; background:#171717; }
-.members-view th:nth-child(1) { width:29%; }
+.members-view .table-wrapper th { padding:15px 18px; font-size:12px; color:#aaa; background:#171717; }
+.members-view th:nth-child(1) { width:26%; }
 .members-view th:nth-child(2) { width:15%; }
-.members-view th:nth-child(3) { width:27%; }
+.members-view th:nth-child(3) { width:24%; }
 .members-view th:nth-child(4) { width:13%; }
-.members-view th:nth-child(5) { width:16%; }
-.members-view td { padding:17px 18px; font-size:13px; vertical-align:middle; overflow-wrap:anywhere; }
+.members-view th:nth-child(5) { width:22%; }
+.members-view .table-wrapper td { padding:17px 18px; font-size:13px; vertical-align:middle; overflow-wrap:anywhere; }
 .members-view tr:last-child td { border-bottom:0; }
 .members-view tbody tr:hover td { background:#ffffff03; }
 .members-view .member-identity { display:flex; gap:10px; align-items:center; }
 .members-view .member-identity strong { font-weight:500; }
 .members-view .member-initial { display:grid; place-items:center; width:32px; height:32px; flex-shrink:0; background:#0044ff18; color:#a8bfff; border:1px solid #0044ff35; border-radius:9px; }
-.members-view .member-actions { display:flex; align-items:center; gap:7px; }
-.members-view .member-actions button { display:grid; place-items:center; width:32px; height:32px; padding:0; border-radius:7px; background:#303030; border:1px solid #555; color:#ddd; }
+.members-view .member-actions { display:flex; align-items:center; justify-content:flex-start; gap:7px; min-width:110px; }
+.members-view .member-actions button { display:grid; place-items:center; flex:0 0 32px; width:32px; min-width:32px; max-width:32px; height:32px; min-height:32px; padding:0; margin:0; border-radius:7px; background:#303030; border:1px solid #555; color:#ddd; font-size:15px; }
 .members-view .member-actions .view { background:#0044ff18; border-color:#405ea4; color:#a0baff; }
 .members-view .member-actions .delete { background:#ef444414; border-color:#783535; color:#ff9292; }
 .members-view :is(.badge-ativo,.badge-inativo) { display:inline-flex; align-items:center; gap:6px; padding:5px 8px; border-radius:6px; font-size:11px; }
