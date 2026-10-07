@@ -412,5 +412,15 @@ separados onde a complexidade o justificar. Agenda, Tesouraria, Membros e os
 módulos da Secretaria, Dashboard, Relatórios, Autenticação, Utilizadores e Convites
 foram migrados no backend, juntamente com Contacto e Contribuições.
 Os controladores antigos foram substituídos. As páginas de autenticação e as
-páginas públicas também foram organizadas. A revisão e limpeza final dos
-ficheiros sem utilização continua pendente.
+páginas públicas também foram organizadas.
+
+A revisão final removeu o componente Card sem utilização, a imagem temporária
+`tmp-test.png`, os scripts antigos de manutenção MySQL e a dependência `mysql2`.
+Os scripts PostgreSQL, o conversor do backup e a manutenção das fotografias
+foram preservados. A rota protegida passou a chamar-se `ProtectedRoute.jsx`.
+O README foi atualizado para a estrutura atual do projeto.
+
+Os estilos antigos de Agenda e Tesouraria ainda existem localmente com alterações
+pendentes do utilizador. Não têm imports na aplicação, mas foram preservados
+para não descartar esse trabalho. A alteração pendente em `src/utils/data.js`
+também foi preservada.

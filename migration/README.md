@@ -1,9 +1,10 @@
 # Migração MySQL → PostgreSQL
 
 A aplicação usa agora `DATABASE_URL` no `.env` para ligar ao PostgreSQL.
-As variáveis `DB_HOST`, `DB_USER`, `DB_PASSWORD` e `DB_NAME` servem apenas
-os scripts antigos de manutenção MySQL (`tabela_atas.js` e
-`link_membros_utilizadores.js`). Não executar esses scripts para gerir o Neon.
+Os scripts antigos de manutenção MySQL e o driver `mysql2` foram removidos.
+As variáveis `DB_HOST`, `DB_USER`, `DB_PASSWORD` e `DB_NAME` já não são usadas.
+A associação entre membros e contas é explícita, pela administração do sistema.
+O conversor do backup MySQL continua disponível e usa o driver PostgreSQL.
 
 ## Comandos
 

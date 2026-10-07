@@ -21,7 +21,7 @@ import Secretaria from "../features/secretaria/SecretariaPage";
 import Utilizadores from "../features/utilizadores/UtilizadoresPage";
 import MinhaArea from "../features/minha-area/MinhaAreaPage";
 
-import ProtectedRoute from "./ProctedRoute";
+import ProtectedRoute from "./ProtectedRoute";
 
 function AppRoutes() {
   return (

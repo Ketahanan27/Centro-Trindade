@@ -89,67 +89,40 @@ base separada, já preparada. Ver [instruções da migração](migration/README.
 
 ---
 
-# 🏗️ Arquitetura do Projeto
+# Arquitetura do projeto
 
-O projeto utiliza uma arquitetura separada entre frontend e backend.
+O frontend organiza cada área em `src/features`, separando páginas, componentes,
+hooks, pedidos HTTP e regras. O backend utiliza `backend/modules`, com
+controladores HTTP, serviços e repositórios SQL. Layout e utilitários partilhados
+ficam fora dos módulos.
 
 ```text
 erp-centro_trindade/
-│
+├── api/                 # Entrada serverless da Vercel
 ├── backend/
-│   ├── config/
-│   │   └── db.js
-│   │
-│   ├── controllers/
-│   │   ├── agendaController.js
-│   │   ├── authController.js
-│   │   ├── membroController.js
-│   │   ├── visitantesController.js
-│   │   └── ...
-│   │
-│   ├── middleware/
-│   │   └── auth.js
-│   │
-│   ├── routes/
-│   │   ├── agendaRoutes.js
-│   │   ├── authRoutes.js
-│   │   ├── membroRoutes.js
-│   │   ├── visitantesRoutes.js
-│   │   └── ...
-│   │
+│   ├── config/          # PostgreSQL, fotografias e schemas
+│   ├── middleware/      # Autenticação, autorização e limites
+│   ├── modules/         # Áreas funcionais da API
+│   ├── routes/          # Endpoints e permissões
+│   ├── scripts/         # Migração e manutenção
+│   ├── tests/           # Testes isolados
+│   ├── utils/           # Validação e operações partilhadas
 │   └── server.js
-│
-├── public/
-│
+├── docs/arquitetura.md
+├── migration/           # Instruções da migração
+├── public/              # Ficheiros públicos
+├── shared/              # Regras usadas pelo frontend e backend
 ├── src/
-│   ├── assets/
-│   │   ├── img/
-│   │   └── styles/
-│   │
-│   ├── components/
-│   │   ├── dashboard/
-│   │   ├── home/
-│   │   └── secretaria/
-│   │
-│   ├── pages/
-│   │   ├── Home.jsx
-│   │   ├── Login.jsx
-│   │   ├── Escola120.jsx
-│   │   ├── Contribua.jsx
-│   │   ├── Formulario.jsx
-│   │   └── ...
-│   │
-│   ├── routes/
-│   │   ├── AppRoutes.jsx
-│   │   └── ProctedRoute.jsx
-│   │
+│   ├── assets/          # Imagens e estilos gerais
+│   ├── components/      # Layout e componentes partilhados
+│   ├── features/        # Áreas internas, acesso e páginas públicas
+│   ├── routes/          # AppRoutes e ProtectedRoute
+│   ├── utils/           # API, datas, permissões e exportação PDF
 │   ├── App.jsx
 │   └── main.jsx
-│
-├── .env
-├── .gitignore
-├── eslint.config.js
-├── index.html
-├── package.json
-├── package-lock.json
-└── vite.config.js
+└── scripts/             # Compilação e pré-visualização de PDFs
+```
+
+Ver [a arquitetura e responsabilidades dos módulos](docs/arquitetura.md).
+`npm run check:ci` executa lint, testes isolados, compilação e verificação da
+entrada serverless. Os scripts de manutenção da base são executados separadamente.
