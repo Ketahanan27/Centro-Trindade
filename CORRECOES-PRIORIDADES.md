@@ -188,3 +188,9 @@ Verificação da Tesouraria: db:prepare executado com sucesso na base configurad
 - PDF oficial com logótipo, nome do ministério, total, contagens e assinaturas; exemplo sintético com 28 atividades/3 páginas renderizado e inspecionado.
 - Dashboard mostra as últimas oito atividades do ano e o total mensal apenas destas contagens. Acompanhamento individual continua separado; registos antigos não foram convertidos nem somados. Total representa participações, não pessoas únicas.
 - Preparação aditiva executada na base atual: tabela/índices novos, zero contagens iniciais, sem reescrever visitantes/eventos/membros. Lint global, 122 testes, build e verificação serverless passaram; consultas de leitura confirmadas. Validação visual completa da interface em dispositivos ainda pendente.
+
+### Total de visitantes no dashboard — 7 de outubro de 2026
+
+- Cartão Visitantes este mês alterado para Total de visitantes, somando quantidade em todas as atividades registadas, sem filtro de mês/ano.
+- Continua a representar participações agregadas, sem somar os registos individuais de acompanhamento. Permissões preservadas.
+- Teste verifica explicitamente a ausência de filtro temporal na consulta do total.

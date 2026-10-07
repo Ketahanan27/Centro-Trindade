@@ -15,7 +15,10 @@ test('administrator receives real aggregates and explicit monthly balance',async
  const calls=mock();const res=response();await getDashboardStats({user:{perfil:'Administrador'}},res);
  assert.equal(res.code,200);assert.equal(res.data.stats.saldo,'70.00');assert.equal(res.data.stats.eventos,7);assert.equal(res.data.stats.novosMembros,3);
  assert.equal(res.data.pendencias.contasPorAtivar,3);assert.equal(res.data.proximosEventos[0].total,undefined);assert.equal(res.headers['Cache-Control'],'private, no-store');
- assert.ok(calls.find(({sql})=>sql.includes('SUM(quantidade)')).params[0].endsWith('-01'));
+ const totalVisitantes = calls.find(({sql})=>sql.includes('SUM(quantidade)'));
+ assert.doesNotMatch(totalVisitantes.sql, /WHERE|data_atividade/);
+ assert.deepEqual(totalVisitantes.params, []);
+ assert.equal(res.data.stats.visitantes, 3);
 });
 test('Secretaria never queries or receives financial values or account invitation totals',async()=>{
  const calls=mock();const res=response();await getDashboardStats({user:{perfil:'Secretaria'}},res);

@@ -57,7 +57,7 @@ export default function Dashboard() {
     <header className="overview-heading"><div><h1>Visão geral da igreja</h1><p>{tituloMes}</p></div><span className="overview-live">Dados atuais</span></header>
     <section className="overview-stats" aria-label="Indicadores da igreja">
       <Indicador titulo="Membros ativos" valor={stats.membros} icon="ri-team-line" detalhe="Total atual"/>
-      {podeVerMembros && <><Indicador titulo="Novos membros este mês" valor={stats.novosMembros} icon="ri-user-add-line" cor="teal" detalhe="Por data de entrada"/><Indicador titulo="Visitantes este mês" valor={stats.visitantes} icon="ri-user-heart-line" cor="gold" detalhe="Participações registadas"/></>}
+      {podeVerMembros && <><Indicador titulo="Novos membros este mês" valor={stats.novosMembros} icon="ri-user-add-line" cor="teal" detalhe="Por data de entrada"/><Indicador titulo="Total de visitantes" valor={stats.visitantes} icon="ri-user-heart-line" cor="gold" detalhe="Todas as atividades registadas"/></>}
       <Indicador titulo="Próximos eventos" valor={stats.eventos} icon="ri-calendar-event-line" cor="purple" detalhe={podeVerMembros ? 'Eventos agendados' : 'Eventos públicos'}/>
     </section>
     {podeVerMembros && <section className="overview-grid"><article className="overview-panel"><h2>Visitantes por atividade</h2><p className="overview-note">Últimas 8 contagens de {periodo.ano} · participações, não pessoas únicas</p><Atividades dados={dados.visitantesAtividade}/><Link to="/dashboard/secretaria">Consultar contagens na Secretaria</Link></article><article className="overview-panel"><h2>Visitantes por estado</h2><Visitantes dados={dados.visitantesPorEstado}/></article></section>}

@@ -18,7 +18,7 @@ export const getDashboardStats = async (req, res) => {
     const [membros, novos, visitantes, eventos, visitantesAtividade, estados, financeiro, graficoAnual, semConta, convites] = await Promise.all([
       q("SELECT COUNT(*) AS total FROM membros WHERE estado='Ativo'"),
       podeVerMembros ? q('SELECT COUNT(*) AS total FROM membros WHERE entrada >= $1::date AND entrada < $2::date', mes) : [],
-      podeVerMembros ? q('SELECT COALESCE(SUM(quantidade),0) AS total FROM visitas_atividade WHERE data_atividade >= $1::date AND data_atividade < $2::date', mes) : [],
+      podeVerMembros ? q('SELECT COALESCE(SUM(quantidade),0) AS total FROM visitas_atividade') : [],
       q(`SELECT id,titulo,TO_CHAR(data_evento,'YYYY-MM-DD') AS data,hora_evento,local_evento,publico,estado,
          COUNT(*) FILTER (WHERE estado='Agendado') OVER() AS total FROM eventos WHERE data_evento >= $1::date
          AND ($2::boolean OR (publico=true AND estado='Agendado')) ORDER BY data_evento,hora_evento NULLS LAST,id LIMIT 4`, [periodo.hoje, podeVerMembros]),
