@@ -5,10 +5,10 @@ import Escola120 from "../pages/Escola120";
 import Contribua from "../pages/Contribua";
 import Formulario from "../pages/Formulario";
 import NotFound from "../pages/NotFound";
-import Login from "../pages/Login";
+import Login from "../features/auth/LoginPage";
 import Calendario from "../pages/calendario";
-import RedefinirPassword from "../pages/RedefinirPassword";
-import Registo from "../pages/registro";
+import RedefinirPassword from "../features/auth/RedefinirPasswordPage";
+import Registo from "../features/auth/AcessoConvitePage";
 import PoliticaPrivacidade from "../pages/politicaprivacidade";
 import TermosCondicoes from "../pages/termoscondicoes";
 

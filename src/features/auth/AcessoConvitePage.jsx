@@ -1,6 +1,6 @@
 import { Link } from "react-router-dom";
-import "../assets/styles/home/login.css";
-import logo from "../assets/img/principal.png";
+import "./auth.css";
+import logo from "../../assets/img/principal.png";
 
 function Registo() {
   return (

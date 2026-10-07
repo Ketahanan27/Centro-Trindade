@@ -189,6 +189,21 @@ consistente das operações continuam definidos no backend.
 - Remover ficheiros substituídos só depois de verificar as suas referências.
   Scripts de manutenção não são lixo por não serem importados pela aplicação.
 
+## Frontend: Autenticação
+
+As páginas de acesso estão em `src/features/auth`: `LoginPage.jsx`,
+`RedefinirPasswordPage.jsx` e `AcessoConvitePage.jsx`. A recuperação usa o
+componente `ModalRecuperar.jsx`. Os hooks `useLogin`, `useRecuperarPassword` e
+`useRedefinirPassword` gerem formulários, estados, mensagens e navegação; os
+pedidos POST estão concentrados em `auth.api.js`.
+
+Os endpoints públicos continuam a ser chamados sem alterar a gestão de sessões
+dos pedidos internos. O login mantém o armazenamento da sessão e o aviso de
+expiração. A redefinição conserva o token do convite, confirmação da palavra-passe
+e regresso ao login. O registo público permanece como página informativa de
+acesso por convite. O CSS específico foi movido para `auth.css`, partilhado por
+estas páginas, preservando as classes e o visual.
+
 ## Verificação
 
 `npm run check:ci` executa lint, testes isolados, compilação de produção e
@@ -380,5 +395,6 @@ Continuar a organização do backend por módulo com controlador, regras e consu
 separados onde a complexidade o justificar. Agenda, Tesouraria, Membros e os
 módulos da Secretaria, Dashboard, Relatórios, Autenticação, Utilizadores e Convites
 foram migrados no backend, juntamente com Contacto e Contribuições.
-Os controladores antigos foram substituídos. As páginas públicas e de
-autenticação e a limpeza final do projeto continuam pendentes.
+Os controladores antigos foram substituídos. As páginas de autenticação também
+foram organizadas. As restantes páginas públicas e a limpeza final do projeto
+continuam pendentes.
