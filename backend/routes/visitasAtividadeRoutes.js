@@ -1,0 +1,11 @@
+import express from 'express';
+import {verifyToken,permit} from '../middleware/auth.js';
+import {writeLimiter} from '../middleware/rateLimit.js';
+import {listarContagens,criarContagem,atualizarContagem,eliminarContagem} from '../controllers/visitasAtividadeController.js';
+const router=express.Router();
+router.use(verifyToken);
+router.get('/',permit('Administrador','Secretaria','Pastor'),listarContagens);
+router.post('/',permit('Administrador','Secretaria'),writeLimiter,criarContagem);
+router.put('/:id',permit('Administrador','Secretaria'),writeLimiter,atualizarContagem);
+router.delete('/:id',permit('Administrador','Secretaria'),writeLimiter,eliminarContagem);
+export default router;

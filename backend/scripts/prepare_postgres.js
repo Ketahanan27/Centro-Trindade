@@ -1,3 +1,4 @@
+import { VISITAS_ATIVIDADE_SQL } from '../config/visitasAtividadeSchema.js';
 import { pool } from '../config/db.js';
 import { TESOURARIA_AUDITORIA_SQL } from '../config/tesourariaSchema.js';
 import { RATE_LIMIT_SQL } from '../config/rateLimitSchema.js';
@@ -11,6 +12,7 @@ try {
   await pool.query('CREATE UNIQUE INDEX IF NOT EXISTS membros_conta_unica ON membros (utilizador_id) WHERE utilizador_id IS NOT NULL');
   await pool.query(TESOURARIA_AUDITORIA_SQL);
   await pool.query(RATE_LIMIT_SQL);
+  await pool.query(VISITAS_ATIVIDADE_SQL);
   console.log('Estrutura PostgreSQL preparada: sessões, associação de membros e histórico da tesouraria disponíveis.');
 } catch (error) {
   console.error('Falha ao preparar PostgreSQL:', error.code ?? 'erro');

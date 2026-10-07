@@ -41,3 +41,4 @@
 .overview-event-status.scheduled i { background:#0044ff; box-shadow:0 0 0 2px #0044ff33; }
 .overview-event-status.completed i { background:#22c55e; box-shadow:0 0 0 2px #22c55e33; }
 .overview-event-status.cancelled i { background:#ef4444; box-shadow:0 0 0 2px #ef444433; }
+.overview-activities {list-style:none;padding:0;}.overview-activities li {margin:18px 0;}.overview-activities li>div:first-child {display:flex;justify-content:space-between;gap:16px;font-size:.85rem;margin-bottom:8px;}.overview-activities strong {color:#8fb6ff;}.overview-activity-track {height:12px;background:#333;border-radius:4px;}.overview-activity-track span {display:block;height:100%;background:linear-gradient(90deg,#0044ff,#00c9e0);border-radius:4px;}

@@ -178,3 +178,13 @@ Verificação da Tesouraria: db:prepare executado com sucesso na base configurad
 - Eventos futuros mostram Público/Interno e estado com ponto: Agendado azul, Concluído verde, Cancelado vermelho. Gestão pode ver futuros nos três estados; Membro/Tesouraria continuam a receber apenas públicos Agendados.
 - Indicador de próximos eventos continua a contar apenas futuros Agendados, independentemente dos quatro eventos apresentados. Não foram alterados eventos reais.
 - Lint global, 115 testes, compilação e verificação serverless passaram; consultas verificadas na base atual por leitura.
+
+### Contagem de visitantes por atividade — 7 de outubro de 2026
+
+- Novo separador Secretaria → Visitantes por atividade, independente de Acompanhamento de visitantes. Guarda nome/data da atividade, quantidade, observações opcionais e autoria de criação/última alteração; sem nomes/contactos de visitantes.
+- Pode ligar um evento da Agenda, usando título/data do servidor, ou indicar nome/data diretamente. Contagem de zero permitida; inteiros até 1000000 e datas reais não futuras. Um evento tem uma contagem; nome de atividade/data também não pode repetir, incluindo pedidos concorrentes. Cultos diferentes no mesmo dia devem ter nomes distintos.
+- Administrador/Secretaria podem criar/corrigir/eliminar; Pastor consulta/exporta. Membro/Tesouraria não recebem o módulo. Eliminação do evento preserva contagem e snapshot do título/data.
+- Lista com 25 por página, filtros de data/pesquisa, totais de todo o período e exportação PDF de todo o filtro (até 5000 atividades; acima disso exige reduzir período, sem truncar silenciosamente).
+- PDF oficial com logótipo, nome do ministério, total, contagens e assinaturas; exemplo sintético com 28 atividades/3 páginas renderizado e inspecionado.
+- Dashboard mostra as últimas oito atividades do ano e o total mensal apenas destas contagens. Acompanhamento individual continua separado; registos antigos não foram convertidos nem somados. Total representa participações, não pessoas únicas.
+- Preparação aditiva executada na base atual: tabela/índices novos, zero contagens iniciais, sem reescrever visitantes/eventos/membros. Lint global, 122 testes, build e verificação serverless passaram; consultas de leitura confirmadas. Validação visual completa da interface em dispositivos ainda pendente.

@@ -110,3 +110,11 @@ O workflow .github/workflows/ci.yml executa npm ci e npm run check:ci em envios 
 Usa Node 24, runner Ubuntu e credenciais fictícias/vazias. Não executa test:postgres, migrações, limpeza de fotografias ou operações na base real. O workflow só tem permissão de leitura do repositório e não persiste credenciais no checkout.
 
 Consultar o resultado no separador Actions do GitHub. Esta verificação não bloqueia automaticamente merges nem a publicação independente da Vercel: configurar um required status check e uma regra de publicação exige uma decisão própria. A validação local não comprova execução remota; confirmar a primeira execução no GitHub.
+
+## Visitantes por atividade
+
+Executar npm run db:prepare antes de publicar esta versão em cada ambiente: cria visitas_atividade e índices aditivos. Não há migração de visitantes individuais para contagens: a quantidade inicial é zero até a Secretaria registar as atividades.
+
+Secretaria → Visitantes por atividade permite contagem direta ou associação à Agenda. Nome/data ficam guardados como snapshot, mesmo que o evento seja eliminado. Cada atividade/data e cada evento associado têm uma contagem; corrigir o registo existente quando for necessário ajustar um total. Registos de acompanhamento individual permanecem independentes.
+
+PDF usa os filtros atuais e todos os resultados desse filtro, independentemente da página visível; exportações acima de 5000 atividades exigem reduzir o período. Quantidades representam participações por atividade, não visitantes únicos. Não inserir dados pessoais dos visitantes nas observações.

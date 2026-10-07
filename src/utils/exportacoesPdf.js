@@ -53,3 +53,15 @@ export function criarRelatorioPDF(dados) {
 }
 
 export { dataPDFHoje };
+
+export function criarVisitasAtividadePDF(registos, periodo = 'Todas as datas') {
+  const pdf = criarPDFOficial({ titulo: 'Visitantes por atividade', departamento: 'Secretaria Geral | Relatório de atividades' });
+  pdf.secao('Âmbito do relatório');
+  pdf.paragrafo(periodo);
+  pdf.paragrafo('Contagem agregada de participações de visitantes. Uma pessoa presente em várias atividades é contada em cada atividade. Não representa pessoas únicas e não inclui os registos de acompanhamento individual.');
+  const total = registos.reduce((sum, row) => sum + Number(row.quantidade), 0);
+  pdf.tabela(['Atividades', 'Participações de visitantes'], [[registos.length, total]], [85, 85]);
+  pdf.secao('Contagens registadas');
+  pdf.tabela(['Data', 'Atividade', 'Visitantes', 'Observações'], registos.length ? registos.map((row) => [formatarData(row.data_atividade), row.atividade, row.quantidade, row.observacoes || '-']) : [['-', 'Sem contagens registadas', 0, '-']], [25, 65, 25, 55]);
+  return pdf.finalizar();
+}

@@ -5,6 +5,7 @@ import fs from "fs";
 import path from "path";
 import { fileURLToPath } from "url";
 
+import visitasAtividadeRoutes from './routes/visitasAtividadeRoutes.js';
 import authRoutes from "./routes/authRoutes.js";
 import membroRoutes from "./routes/membroRoutes.js";
 import agendaRoutes from "./routes/agendaRoutes.js";
@@ -69,6 +70,7 @@ app.use("/api/auth", authRoutes);
 app.use("/api/membros", membroRoutes);
 app.use("/api/eventos", agendaRoutes);
 app.use("/api/visitantes", visitantesRoutes);
+app.use("/api/visitas-atividade", visitasAtividadeRoutes);
 app.use("/api/apresentacoes", apresentacoesRoutes);
 app.use("/api/documentos", documentosRoutes);
 app.use("/api/tesouraria", tesourariaRoutes);

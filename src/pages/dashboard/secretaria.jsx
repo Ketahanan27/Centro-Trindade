@@ -1,6 +1,7 @@
 import { useState } from "react";
 import DashboardLayout from "../../components/dashboard/dashboardlayout";
 
+import VisitasAtividade from "../../components/secretaria/visitasAtividade";
 import Visitantes from "../../components/secretaria/visitantes";
 import Documentos from "../../components/secretaria/documentos";
 import Relatorios from "../../components/secretaria/relatorios";
@@ -10,19 +11,20 @@ import Atas from "../../components/secretaria/atas";
 import "../../assets/styles/dashboard/secretaria.css";
 
 function Secretaria() {
-  const [activeTab, setActiveTab] = useState("visitantes");
+  const [activeTab, setActiveTab] = useState("visitas-atividade");
 
   return (
     <DashboardLayout>
       <div className="secretaria-page">
 
         <div className="secretaria-tabs">
+          <button className={activeTab === "visitas-atividade" ? "active" : ""} onClick={() => setActiveTab("visitas-atividade")}>Visitantes por atividade</button>
 
           <button
             className={activeTab === "visitantes" ? "active" : ""}
             onClick={() => setActiveTab("visitantes")}
           >
-            Visitantes
+            Acompanhamento de visitantes
           </button>
 
           <button
@@ -58,6 +60,7 @@ function Secretaria() {
         <div className="secretaria-content">
 
           {activeTab === "visitantes" && <Visitantes />}
+          {activeTab === "visitas-atividade" && <VisitasAtividade />}
           {activeTab === "documentos" && <Documentos />}
           {activeTab === "relatorios" && <Relatorios />}
           {activeTab === "apresentacoes" && <Apresentacoes />}
