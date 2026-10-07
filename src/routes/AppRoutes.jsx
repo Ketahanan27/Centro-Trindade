@@ -18,8 +18,8 @@ import Agenda from "../features/agenda/AgendaPage";
 import Tesouraria from "../features/tesouraria/TesourariaPage";
 import Relatorios from "../pages/dashboard/relatorios";
 import Secretaria from "../features/secretaria/SecretariaPage";
-import Utilizadores from "../pages/dashboard/utilizadores";
-import MinhaArea from "../pages/dashboard/MinhaArea";
+import Utilizadores from "../features/utilizadores/UtilizadoresPage";
+import MinhaArea from "../features/minha-area/MinhaAreaPage";
 
 import ProtectedRoute from "./ProctedRoute";
 

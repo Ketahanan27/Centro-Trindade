@@ -1,8 +1,8 @@
 # Organização do projeto
 
 O frontend está a ser organizado por funcionalidades. Membros é o primeiro
-módulo migrado, seguido da Agenda, Tesouraria e Secretaria. Os restantes continuam
-nas pastas anteriores até à sua migração.
+módulo migrado, seguido da Agenda, Tesouraria, Secretaria, Utilizadores e Minha
+Área. Os restantes continuam nas pastas anteriores até à sua migração.
 
 ## Membros: responsabilidades
 
@@ -106,6 +106,41 @@ guardar o snapshot no servidor e só então disponibilizar o ficheiro. A reimpre
 usa o registo guardado, mantendo a identidade e data originais. As atas e contagens
 usam os geradores oficiais existentes. Os hooks preservam as permissões de leitura
 e escrita na interface; a autorização efetiva continua no backend.
+
+## Utilizadores: responsabilidades
+
+O módulo está em `src/features/utilizadores`. `UtilizadoresPage.jsx` compõe a
+página, enquanto `useUtilizadores` gere consulta, pesquisa, criação, edição e
+eliminação. `utilizadores.api.js` centraliza esses pedidos e o envio de convites
+ou recuperação de acesso. `utilizadores.model.js` define os perfis, descrições,
+cores, formulário inicial e pesquisa.
+
+A tabela, o formulário no portal, os detalhes e o distintivo de perfil ficam
+em componentes separados. `useConviteUtilizador` gere a confirmação e o estado
+de envio nos detalhes. Mantêm-se a criação por convite, o email bloqueado na
+edição, a proteção da própria conta e a autorização administrativa no backend.
+`utilizadores.module.css` inclui os estilos da página e dos modais no portal.
+
+## Minha Área: responsabilidades
+
+O módulo está em `src/features/minha-area`. `MinhaAreaPage.jsx` compõe a página
+e os estados de carregamento e erro. `PerfilFotografia` apresenta a fotografia
+protegida e o carregamento; `PerfilFormulario` apresenta os campos pessoais.
+`useMinhaArea` gere consulta, gravação, fotografia, pré-visualização e feedback.
+`minha-area.api.js` usa os endpoints do próprio utilizador, sem receber um ID
+de membro escolhido pela interface.
+
+`minha-area.model.js` prepara formulários e pedidos, normaliza telefone e código
+postal e define os campos visíveis. A edição usa nomes de campos explícitos, sem
+depender dos rótulos apresentados. Nome, email, nascimento, entrada, batismo e
+estado continuam protegidos. O pedido de atualização mantém a lista anterior de
+cinco campos permitidos; a associação da conta continua a cargo do administrador.
+
+As imagens continuam a usar `AuthenticatedPhoto`, o avatar local de substituição
+e o envio multipart. As pré-visualizações libertam os seus URLs ao mudar ou sair.
+`minha-area.module.css` isola os estilos e a animação de carregamento. Foram
+retirados os controlos de edição que nunca eram apresentados e estilos de
+elementos substituídos nas duas páginas.
 
 ## Convenções para os próximos módulos
 
