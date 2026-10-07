@@ -15,14 +15,14 @@ export const getDashboardStats = async (req, res) => {
     const periodo = periodoDashboard();
     const mes = [periodo.inicioMes, periodo.fimMes];
     const ano = [periodo.inicioAno, periodo.fimAno];
-    const [membros, novos, visitantes, eventos, crescimento, estados, financeiro, graficoAnual, semConta, convites] = await Promise.all([
+    const [membros, novos, visitantes, eventos, visitantesMensais, estados, financeiro, graficoAnual, semConta, convites] = await Promise.all([
       q("SELECT COUNT(*) AS total FROM membros WHERE estado='Ativo'"),
       podeVerMembros ? q('SELECT COUNT(*) AS total FROM membros WHERE entrada >= $1::date AND entrada < $2::date', mes) : [],
       podeVerMembros ? q('SELECT COUNT(*) AS total FROM visitantes WHERE data_visita >= $1::date AND data_visita < $2::date', mes) : [],
-      q(`SELECT id,titulo,TO_CHAR(data_evento,'YYYY-MM-DD') AS data,hora_evento,local_evento,
-         COUNT(*) OVER() AS total FROM eventos WHERE estado='Agendado' AND data_evento >= $1::date
-         AND ($2::boolean OR publico=true) ORDER BY data_evento,hora_evento NULLS LAST,id LIMIT 4`, [periodo.hoje, podeVerMembros]),
-      podeVerMembros ? q('SELECT EXTRACT(MONTH FROM entrada)::integer AS mes,COUNT(*) AS total FROM membros WHERE entrada >= $1::date AND entrada < $2::date GROUP BY 1 ORDER BY 1', ano) : [],
+      q(`SELECT id,titulo,TO_CHAR(data_evento,'YYYY-MM-DD') AS data,hora_evento,local_evento,publico,estado,
+         COUNT(*) FILTER (WHERE estado='Agendado') OVER() AS total FROM eventos WHERE data_evento >= $1::date
+         AND ($2::boolean OR (publico=true AND estado='Agendado')) ORDER BY data_evento,hora_evento NULLS LAST,id LIMIT 4`, [periodo.hoje, podeVerMembros]),
+      podeVerMembros ? q('SELECT EXTRACT(MONTH FROM data_visita)::integer AS mes,COUNT(*) AS total FROM visitantes WHERE data_visita >= $1::date AND data_visita < $2::date GROUP BY 1 ORDER BY 1', ano) : [],
       podeVerMembros ? q('SELECT estado,COUNT(*) AS total FROM visitantes GROUP BY estado ORDER BY estado') : [],
       podeVerFinancas ? q("SELECT COALESCE(SUM(valor) FILTER (WHERE natureza='Receita'),0) AS receitas,COALESCE(SUM(valor) FILTER (WHERE natureza='Despesa'),0) AS despesas FROM tesouraria WHERE data >= $1::date AND data < $2::date", mes) : [],
       podeVerFinancas ? q("SELECT EXTRACT(MONTH FROM data)::integer AS mes,COALESCE(SUM(valor) FILTER (WHERE natureza='Receita'),0) AS receitas,COALESCE(SUM(valor) FILTER (WHERE natureza='Despesa'),0) AS despesas FROM tesouraria WHERE data >= $1::date AND data < $2::date GROUP BY 1 ORDER BY 1", ano) : [],
@@ -36,8 +36,8 @@ export const getDashboardStats = async (req, res) => {
         visitantes: podeVerMembros ? Number(visitantes[0]?.total ?? 0) : null, eventos: Number(eventos[0]?.total ?? 0),
         receitas: podeVerFinancas ? receita.toFixed(2) : null, despesas: podeVerFinancas ? despesa.toFixed(2) : null,
         saldo: podeVerFinancas ? (receita - despesa).toFixed(2) : null },
-      proximosEventos: eventos.map(({ id, titulo, data, hora_evento, local_evento }) => ({ id, titulo, data, hora_evento, local_evento })),
-      crescimento: crescimento.map((row) => ({ mes: Number(row.mes), total: Number(row.total) })),
+      proximosEventos: eventos.map(({ id, titulo, data, hora_evento, local_evento, publico, estado }) => ({ id, titulo, data, hora_evento, local_evento, publico, estado })),
+      visitantesMensais: visitantesMensais.map((row) => ({ mes: Number(row.mes), total: Number(row.total) })),
       visitantesPorEstado: estados.map((row) => ({ estado: row.estado, total: Number(row.total) })),
       graficoAnual: graficoAnual.map((row) => ({ mes: Number(row.mes), receitas: Number(row.receitas), despesas: Number(row.despesas) })),
       pendencias: { membrosSemConta: podeVerMembros ? Number(semConta[0]?.total ?? 0) : null, contasPorAtivar: admin ? Number(convites[0]?.total ?? 0) : null },

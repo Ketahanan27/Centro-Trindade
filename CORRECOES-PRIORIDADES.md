@@ -170,3 +170,11 @@ Verificação da Tesouraria: db:prepare executado com sucesso na base configurad
 - Finanças apenas Administrador/Tesouraria/Pastor. Agregados detalhados de membros/visitantes e membros sem conta apenas Administrador/Secretaria/Pastor; contas por ativar só Administrador. Membro/Tesouraria recebem apenas eventos públicos; gestão vê internos também. Resposta privada sem cache.
 - Gráficos têm tabelas alternativas de valores; foco visível, layout adaptável e estados de vazio/erro/carregamento. Sem conta associada não implica criar obrigatoriamente uma conta.
 - Lint global, 114 testes isolados, build e verificação serverless passaram. Consultas verificadas por leitura na base atual, sem alteração de registos. Não houve validação visual exaustiva em dispositivos.
+
+### Dashboard: paleta, visitantes e estados dos eventos — 7 de outubro de 2026
+
+- Paleta alinhada com o projeto: fundos #161616/#202020, azul #0044ff e ciano; cores semânticas dos estados preservadas.
+- Gráfico de novos membros por mês substituído por visitantes por mês, consultando data_visita. Conta registos de visitas, sem inventar presenças por culto ou contagens de pessoas únicas.
+- Eventos futuros mostram Público/Interno e estado com ponto: Agendado azul, Concluído verde, Cancelado vermelho. Gestão pode ver futuros nos três estados; Membro/Tesouraria continuam a receber apenas públicos Agendados.
+- Indicador de próximos eventos continua a contar apenas futuros Agendados, independentemente dos quatro eventos apresentados. Não foram alterados eventos reais.
+- Lint global, 115 testes, compilação e verificação serverless passaram; consultas verificadas na base atual por leitura.
