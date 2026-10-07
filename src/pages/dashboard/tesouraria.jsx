@@ -6,6 +6,7 @@ import { toast } from "../../utils/toast";
 import { apiFetch, apiFetchArray } from "../../utils/api";
 import "../../assets/styles/dashboard/tesouraria.css";
 import "../../assets/styles/dashboard/tesouraria-movimentos.css";
+import "../../assets/styles/dashboard/tesouraria-visual.css";
 
 const TIPOS = {
   Receita: ["Dízimo", "Oferta", "Voto", "Contribuição", "Doação", "Ação Social", "T-Shirts", "Outros"],
@@ -249,7 +250,7 @@ function Tesouraria() {
           </div>
         )}
 
-        <h1>Tesouraria</h1>
+        <header className="treasury-heading"><h1>Tesouraria</h1><span>{movimentos.length} movimentos</span></header>
         <div className="resumo-cards">
           <div className="card entrada">
             <h3>Receitas</h3>
@@ -365,14 +366,15 @@ function Tesouraria() {
                 <option value="Despesa">Despesas</option>
               </select>
               <button className="btn-export" onClick={() => exportarPDF()}>
-                GERAL
+                PDF geral
               </button>
               <button className="btn-export" onClick={exportarPDFDia}>
-                DIÁRIO
+                PDF diário
               </button>
             </div>
 
             <div className="table-box">
+              <h2 className="treasury-table-heading">Movimentos registados</h2>
               {loading ? (
                 <p className="empty-row">A carregar movimentos...</p>
               ) : (

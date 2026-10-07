@@ -9,6 +9,7 @@ import { formatarData } from "../../utils/data";
 import { useListaRemota, executarAcaoCrud } from "../../utils/useCrud";
 import { usePerfil } from "../../routes/PerfilContext";
 import "../../assets/styles/dashboard/membros.css";
+import "../../assets/styles/dashboard/membros-visual.css";
 
 
 const FORM_VAZIO = {
@@ -109,7 +110,7 @@ function Membros() {
 
   return (
     <DashboardLayout>
-      <div className="container">
+      <div className="container members-view">
 
         {soLeitura && (
           <div className="banner-leitura">
@@ -127,6 +128,7 @@ function Membros() {
           )}
         </div>
 
+        <div className="members-toolbar">
         <div className="search-box">
           <input
             type="text"
@@ -134,6 +136,9 @@ function Membros() {
             value={pesquisa}
             onChange={(e) => setPesquisa(e.target.value)}
           />
+        </div>
+
+        <span className="members-count">{membrosFiltrados.length} {membrosFiltrados.length === 1 ? "membro" : "membros"}</span>
         </div>
 
         <div className="table-wrapper">
@@ -147,7 +152,7 @@ function Membros() {
               ) : (
                 membrosFiltrados.map((membro) => (
                   <tr key={membro.id}>
-                    <td>{membro.nome}</td>
+                    <td><div className="member-identity"><span className="member-initial" aria-hidden="true">{membro.nome?.trim().charAt(0).toUpperCase()}</span><strong>{membro.nome}</strong></div></td>
                     <td>{membro.telemovel}</td>
                     <td>{membro.email}</td>
                     <td>
@@ -155,21 +160,21 @@ function Membros() {
                         {membro.estado}
                       </span>
                     </td>
-                    <td className="actions">
-                      <button className="view" onClick={() => { setSelectedMember(membro); setShowDetails(true); }}>
+                    <td><div className="member-actions">
+                      <button className="view" aria-label="Ver membro" title="Ver detalhes" onClick={() => { setSelectedMember(membro); setShowDetails(true); }}>
                         <i className="ri-eye-line"></i>
                       </button>
                       {!soLeitura && (
                         <>
-                          <button className="edit" onClick={() => editarMembro(membro)}>
+                          <button className="edit" aria-label="Editar membro" title="Editar" onClick={() => editarMembro(membro)}>
                             <i className="ri-pencil-line"></i>
                           </button>
-                          <button className="delete" onClick={() => eliminarMembro(membro.id)}>
+                          <button className="delete" aria-label="Eliminar membro" title="Eliminar" onClick={() => eliminarMembro(membro.id)}>
                             <i className="ri-delete-bin-line"></i>
                           </button>
                         </>
                       )}
-                    </td>
+                    </div></td>
                   </tr>
                 ))
               )}
@@ -180,11 +185,11 @@ function Membros() {
       </div>
 
       {showModal && createPortal(
-        <div className="modal active">
-          <div className="modal-content">
+        <div className="modal active members-modal">
+          <div className="modal-content" role="dialog" aria-modal="true" aria-label="Ficha de membro">
             <div className="modal-header">
               <h2>{editId ? "Editar Membro" : "Novo Membro"}</h2>
-              <button onClick={() => setShowModal(false)}><i className="ri-close-line"></i></button>
+              <button aria-label="Fechar" onClick={() => setShowModal(false)}><i className="ri-close-line"></i></button>
             </div>
             <form onSubmit={handleSubmit}>
               <div className="grid">
@@ -270,11 +275,11 @@ function Membros() {
       )}
 
       {showDetails && selectedMember && createPortal(
-        <div className="modal active">
-          <div className="modal-content">
+        <div className="modal active members-modal">
+          <div className="modal-content" role="dialog" aria-modal="true" aria-label="Ficha de membro">
             <div className="modal-header">
               <h2>Detalhes do Membro</h2>
-              <button onClick={() => setShowDetails(false)}><i className="ri-close-line"></i></button>
+              <button aria-label="Fechar detalhes" onClick={() => setShowDetails(false)}><i className="ri-close-line"></i></button>
             </div>
 
             <div className="details-wrapper">
