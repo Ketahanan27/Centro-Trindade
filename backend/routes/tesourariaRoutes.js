@@ -1,5 +1,5 @@
 import express from "express";
-import { getHistorico } from "../controllers/tesourariaEscrita.js";
+import { getHistorico } from "../modules/tesouraria/tesouraria.controller.js";
 
 import {
   getMovimentos,
@@ -7,7 +7,7 @@ import {
   createMovimento,
   updateMovimento,
   deleteMovimento,
-} from "../controllers/tesourariaController.js";
+} from "../modules/tesouraria/tesouraria.controller.js";
 
 import { verifyToken, permit } from "../middleware/auth.js";
 import { writeLimiter } from "../middleware/rateLimit.js";

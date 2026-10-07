@@ -220,9 +220,36 @@ controladores continuam a verificar o SQL através de um pool simulado. Nenhum
 destes testes altera a base de produção. O script de verificação PostgreSQL foi
 atualizado para o novo import, mas só deve ser executado numa base de teste.
 
+## Backend: Tesouraria
+
+O módulo está em `backend/modules/tesouraria`:
+
+| Ficheiro | Responsabilidade |
+| --- | --- |
+| `tesouraria.controller.js` | Receber pedidos e devolver respostas HTTP |
+| `tesouraria.service.js` | Coordenar movimentos, autor confirmado e histórico |
+| `tesouraria.repository.js` | Executar consultas, bloqueios e transações PostgreSQL |
+| `tesouraria.model.js` | Validar valores, datas, motivos e preparar o resumo |
+
+A escrita passa por validação antes de abrir uma ligação. O repositório inicia
+a transação e entrega ao serviço as operações disponíveis nessa ligação. O
+serviço confirma o autor, bloqueia o movimento existente com `FOR UPDATE`, escreve
+o movimento e o snapshot de auditoria. O repositório só confirma a transação
+depois de todas essas operações terem sucesso; em erro, faz rollback e liberta
+a ligação. Um movimento ausente devolve 404 sem criar histórico.
+
+O autor vem da sessão e o seu nome é confirmado no PostgreSQL. O payload não
+determina o autor. Alterações e eliminações exigem motivo; a eliminação preserva
+o snapshot anterior. As consultas mantêm os autores na tabela de movimentos,
+o resumo mensal e o limite de 200 operações na consulta de histórico.
+
+As rotas e autorizações permanecem em `backend/routes/tesourariaRoutes.js`.
+Os testes usam ligações e consultas simuladas, cobrindo confirmação conjunta,
+rollback, libertação da ligação, validação e consultas.
+
 ## Continuação
 
 Continuar a organização do backend por módulo com controlador, regras e consultas
-separados onde a complexidade o justificar. Apenas a Agenda foi migrada no backend;
+separados onde a complexidade o justificar. Agenda e Tesouraria foram migradas no backend;
 os restantes módulos mantêm os controladores anteriores. As páginas públicas e de
 autenticação e a limpeza final do projeto continuam pendentes.
