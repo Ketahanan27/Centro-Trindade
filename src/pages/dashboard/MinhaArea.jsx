@@ -5,6 +5,7 @@ import { formatarData as fmtData } from "../../utils/data";
 import DashboardLayout from "../../components/dashboard/dashboardlayout";
 import AuthenticatedPhoto from "../../components/AuthenticatedPhoto";
 import "../../assets/styles/dashboard/minha-area.css";
+import "../../assets/styles/dashboard/minha-area-visual.css";
 
 const CODIGO_POSTAL_RE = /^\d{4}-\d{3}$/;
 
@@ -227,7 +228,8 @@ function MinhaArea() {
 
   return (
     <DashboardLayout>
-      <div className="minha-area-page">
+      <div className="minha-area-page personal-view">
+        <header className="personal-page-heading"><h1>Minha Área</h1></header>
         <div className="minha-area-card-big">
           <div className="minha-area-card-photo">
             <AuthenticatedPhoto
@@ -262,7 +264,8 @@ function MinhaArea() {
 
           <div className="minha-area-card-details">
             <div className="minha-area-card-header">
-              <h1>{membro?.nome || userLocal.nome || "Bem-vindo"}</h1>
+              <h2>{membro?.nome || userLocal.nome || "Bem-vindo"}</h2>
+              <span className="personal-role">{userLocal.perfil || "Membro"}</span>
             </div>
           </div>
         </div>
@@ -286,6 +289,7 @@ function MinhaArea() {
 
         {!loading && membro && (
           <form className="minha-area-form" onSubmit={handleSave}>
+            <h2 className="personal-form-title">Dados pessoais</h2>
             <div className="minha-area-grid">
               {campos.map(({ icone, label, valor }) => {
                 const isReadOnly = ["Email", "Nome", "Nascimento", "Estado", "Entrada", "Batizado(a)"].includes(label);

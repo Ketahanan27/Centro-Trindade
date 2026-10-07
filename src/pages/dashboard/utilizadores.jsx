@@ -5,6 +5,7 @@ import { apiFetch } from "../../utils/api";
 import { toast } from "../../utils/toast";
 import { useListaRemota, executarAcaoCrud } from "../../utils/useCrud";
 import "../../assets/styles/dashboard/utilizadores.css";
+import "../../assets/styles/dashboard/utilizadores-visual.css";
 
 const getUser = () => {
   try {
@@ -49,11 +50,11 @@ const BadgePerfil = ({ perfil }) => (
 
 function ModalUtilizador({ editId, formData, onChange, onSubmit, onClose, loading }) {
   return createPortal(
-    <div className="modal active" onClick={(e) => e.target === e.currentTarget && onClose()}>
-      <div className="modal-content">
+    <div className="modal active users-modal" onClick={(e) => e.target === e.currentTarget && onClose()}>
+      <div className="modal-content" role="dialog" aria-modal="true" aria-label="Ficha de utilizador">
         <div className="modal-header">
           <h2>{editId ? "Editar Utilizador" : "Novo Utilizador"}</h2>
-          <button onClick={onClose}><i className="ri-close-line"></i></button>
+          <button aria-label="Fechar" onClick={onClose}><i className="ri-close-line"></i></button>
         </div>
 
         <form onSubmit={onSubmit}>
@@ -122,11 +123,11 @@ function ModalDetalhes({ user, onClose, onEdit, currentUserId }) {
   };
 
   return createPortal(
-    <div className="modal active" onClick={(e) => e.target === e.currentTarget && onClose()}>
-      <div className="modal-content">
+    <div className="modal active users-modal" onClick={(e) => e.target === e.currentTarget && onClose()}>
+      <div className="modal-content" role="dialog" aria-modal="true" aria-label="Ficha de utilizador">
         <div className="modal-header">
           <h2>Detalhes do Utilizador</h2>
-          <button onClick={onClose}><i className="ri-close-line"></i></button>
+          <button aria-label="Fechar" onClick={onClose}><i className="ri-close-line"></i></button>
         </div>
 
         <div className="details-grid-util">
@@ -229,7 +230,7 @@ function Utilizadores() {
 
   return (
     <DashboardLayout>
-      <div className="container">
+      <div className="container users-view">
 
         <div className="page-header">
           <h1>Utilizadores</h1>
@@ -246,6 +247,7 @@ function Utilizadores() {
           ))}
         </div>
 
+        <div className="users-toolbar">
         <div className="search-box">
           <input
             type="text"
@@ -257,6 +259,8 @@ function Utilizadores() {
 
         <div className="user-counter">
           {filtrados.length} utilizador(es)
+        </div>
+
         </div>
 
         <div className="table-wrapper">
@@ -290,25 +294,25 @@ function Utilizadores() {
                           {user.estado}
                         </span>
                       </td>
-                      <td className="actions">
+                      <td><div className="users-row-actions">
                         <button
                           className="view"
-                          title="Detalhes"
+                          title="Detalhes" aria-label="Ver utilizador"
                           onClick={() => { setSelectedUser(user); setShowDetails(true); }}
                         >
                           <i className="ri-eye-line"></i>
                         </button>
                         {user.id !== eu.id && (
                           <>
-                            <button className="edit" title="Editar" onClick={() => abrirEditar(user)}>
+                            <button className="edit" title="Editar" aria-label="Editar utilizador" onClick={() => abrirEditar(user)}>
                               <i className="ri-pencil-line"></i>
                             </button>
-                            <button className="delete" title="Eliminar" onClick={() => eliminar(user)}>
+                            <button className="delete" title="Eliminar" aria-label="Eliminar utilizador" onClick={() => eliminar(user)}>
                               <i className="ri-delete-bin-line"></i>
                             </button>
                           </>
                         )}
-                      </td>
+                      </div></td>
                     </tr>
                   ))
                 )}
